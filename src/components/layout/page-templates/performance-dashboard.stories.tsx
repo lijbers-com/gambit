@@ -4210,12 +4210,16 @@ export const FunnelView: Story = {
                   </CardHeader>
                   <CardContent>
                     <AreaChartComponent
-                      data={considerationData}
+                      // Sales rides alongside Spend, read from the same
+                      // months of purchaseData Purchase itself uses — the
+                      // two tabs never disagree on what the period sold.
+                      data={considerationData.map((d, i) => ({ ...d, revenue: purchaseData[i]?.totalRevenue ?? 0 }))}
                       config={{
                         ...Object.fromEntries(
                           engagementChannels.map(k => [k, { label: engagementLabels[k], color: engagementColors[k], engine: engagementEngines[k] }])
                         ),
                         spend: { label: 'Spend', color: 'hsl(var(--chart-950))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
+                        revenue: { label: 'Sales', color: 'hsl(var(--chart-700))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
                       stacked={true}
                       showLegend={false}

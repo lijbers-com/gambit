@@ -1,10 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from './card';
 import { Badge } from './badge';
+import { Button } from './button';
 import { FormSection } from './form-section';
 import { Inbox, type InboxItem } from './inbox';
 import { MessageDrawer } from './message-drawer';
@@ -92,9 +93,11 @@ export interface CardInsight {
 export const CardInsightList: React.FC<{
   insights: CardInsight[];
   className?: string;
-  /** 'compact' drops the unread dot, the preview line and the chevron —
-   *  just the subject and its kind badge, one line each — so a card with
-   *  several things to say can show more of them in the same height. */
+  /** 'compact' drops the unread dot and the preview line — just the subject
+   *  and its kind badge, one line each — so a card with several things to
+   *  say can show more of them in the same height. A row still opens on
+   *  click: an accordion first, the explanation in place, with the full
+   *  case a step further rather than the immediate destination. */
   variant?: 'default' | 'compact';
   /** How many rows show before the rest is cut. Defaults to 3 for the full
    *  row, 6 for compact — a compact row is short enough to fit more. */
@@ -102,6 +105,7 @@ export const CardInsightList: React.FC<{
 }> = ({ insights, className, variant = 'default', maxVisible }) => {
   const status = useInboxState();
   const [openId, setOpenId] = React.useState<string | null>(null);
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const active = insights.find((m) => m.id === openId) ?? null;
   if (insights.length === 0) return null;
   const compact = variant === 'compact';
@@ -109,46 +113,72 @@ export const CardInsightList: React.FC<{
   return (
     <div className={className}>
       <div className="divide-y divide-border overflow-hidden rounded-lg border">
-        {visible.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            onClick={() => { markRead(m.id); setOpenId(m.id); }}
-            className={cn(
-              'group/msg flex w-full text-left transition-colors hover:bg-surface-hover',
-              compact ? 'items-center justify-between gap-3 px-4 py-2' : 'items-start gap-3 px-4 py-3',
-            )}
-          >
-            {compact ? (
-              <>
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{m.subject}</span>
-                <Badge variant={m.kind === 'recommendation' ? 'secondary' : 'outline'} className="shrink-0 px-2 py-0.5 text-xs font-medium capitalize">
-                  {m.kind}
-                </Badge>
-              </>
-            ) : (
-              <>
-                <span className="mt-1.5 flex h-4 w-4 shrink-0 items-center justify-center">
-                  {(status[m.id] ?? 'unread') === 'unread' && (
-                    <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />
-                  )}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2">
-                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{m.subject}</span>
+        {visible.map((m) => {
+          const expanded = compact && expandedId === m.id;
+          return (
+            <div key={m.id}>
+              <button
+                type="button"
+                onClick={() => {
+                  markRead(m.id);
+                  // Compact rows open in place first — the drawer's full
+                  // case is a step further, not the only thing a click does.
+                  if (compact) setExpandedId((cur) => (cur === m.id ? null : m.id));
+                  else setOpenId(m.id);
+                }}
+                aria-expanded={compact ? expanded : undefined}
+                className={cn(
+                  'group/msg flex w-full text-left transition-colors hover:bg-surface-hover',
+                  compact ? 'items-center justify-between gap-3 px-4 py-2' : 'items-start gap-3 px-4 py-3',
+                )}
+              >
+                {compact ? (
+                  <>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{m.subject}</span>
                     <Badge variant={m.kind === 'recommendation' ? 'secondary' : 'outline'} className="shrink-0 px-2 py-0.5 text-xs font-medium capitalize">
                       {m.kind}
                     </Badge>
-                  </span>
-                  {/* One line, like every other notification row. The context line
-                      the inbox adds is dropped here: the card IS the context. */}
-                  <span className="mt-1.5 block truncate text-sm text-muted-foreground">{m.preview}</span>
-                </span>
-                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover/msg:text-foreground" />
-              </>
-            )}
-          </button>
-        ))}
+                    <ChevronRight
+                      className={cn(
+                        'h-3.5 w-3.5 shrink-0 text-muted-foreground/40 transition-transform group-hover/msg:text-foreground',
+                        expanded && 'rotate-90',
+                      )}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <span className="mt-1.5 flex h-4 w-4 shrink-0 items-center justify-center">
+                      {(status[m.id] ?? 'unread') === 'unread' && (
+                        <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />
+                      )}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{m.subject}</span>
+                        <Badge variant={m.kind === 'recommendation' ? 'secondary' : 'outline'} className="shrink-0 px-2 py-0.5 text-xs font-medium capitalize">
+                          {m.kind}
+                        </Badge>
+                      </span>
+                      {/* One line, like every other notification row. The context line
+                          the inbox adds is dropped here: the card IS the context. */}
+                      <span className="mt-1.5 block truncate text-sm text-muted-foreground">{m.preview}</span>
+                    </span>
+                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover/msg:text-foreground" />
+                  </>
+                )}
+              </button>
+              {expanded && (
+                <div className="space-y-2.5 border-t bg-muted/20 px-4 py-3">
+                  <p className="text-sm leading-relaxed text-muted-foreground">{m.preview}</p>
+                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setOpenId(m.id)}>
+                    See full case
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
       {active && (
         <MessageDrawer

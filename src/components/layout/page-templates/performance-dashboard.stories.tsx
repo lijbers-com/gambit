@@ -87,6 +87,44 @@ const volumeCardInsights: CardInsight[] = [
   },
 ];
 
+const engagementCardInsights: CardInsight[] = [
+  {
+    id: 'INS-engagement-pace',
+    kind: 'insight',
+    subject: 'Engagement is pacing 15% ahead of plan',
+    preview: 'The flight has delivered 92K clicks against an 80K target, running 15% ahead of where it should be at this point.',
+    context: 'All propositions · this flight',
+    caseData: volumePacingCase({ delivered: '92K', target: '80K', pacePct: 115, topChannel: 'Sponsored products', unit: 'clicks' }),
+  },
+  {
+    id: 'INS-engagement-ctr',
+    kind: 'recommendation',
+    subject: 'Shift €1,500 from display to sponsored products',
+    preview: "Sponsored products is converting at 2.8% CTR against display's 1.9% this month — the same spend can earn more clicks.",
+    context: 'Holiday Sale Plan',
+    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€1,500', roasFrom: '1.9%', roasTo: '2.8%', metric: 'CTR' }),
+  },
+];
+
+const unitsCardInsights: CardInsight[] = [
+  {
+    id: 'INS-units-pace',
+    kind: 'insight',
+    subject: 'Units sold are pacing 19% ahead of plan',
+    preview: 'The flight has sold 17.8K units against a 15K target, running 19% ahead of where it should be at this point.',
+    context: 'All propositions · this flight',
+    caseData: volumePacingCase({ delivered: '17.8K', target: '15K', pacePct: 119, topChannel: 'Sponsored products', unit: 'units sold' }),
+  },
+  {
+    id: 'INS-units-roas',
+    kind: 'recommendation',
+    subject: 'Shift €3,000 from display to sponsored products',
+    preview: "Sponsored products is returning 580% ROAS against display's 420% this month — the same spend can buy more return.",
+    context: 'Holiday Sale Plan',
+    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€3,000', roasFrom: '420%', roasTo: '580%' }),
+  },
+];
+
 const buyerCardInsights: CardInsight[] = [
   {
     id: 'INS-buyer-new',
@@ -3339,8 +3377,6 @@ export const FunnelView: Story = {
     const [loyaltyMetrics, setLoyaltyMetrics] = useState<string[]>(['repeatPurchaseRate', 'customerLifetimeValue', 'churnRate']);
 
     // Per-chart channel filters (badges-as-filters)
-    const [engagementChannels, setEngagementChannels] = useState<string[]>(['spaClicks', 'displayClicks', 'doohClicks', 'omiClicks']);
-    const [unitChannels, setUnitChannels] = useState<string[]>(['spaUnitsSold', 'displayUnitsSold', 'dmiUnitsSold', 'omiUnitsSold', 'offsiteUnitsSold']);
     const [roasChannels, setRoasChannels] = useState<string[]>(['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas']);
     const toggleChannel = (setter: React.Dispatch<React.SetStateAction<string[]>>, key: string) =>
       setter(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
@@ -4186,27 +4222,10 @@ export const FunnelView: Story = {
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      {considerationEngagementKeys.map((key) => {
-                        const active = engagementChannels.includes(key);
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => toggleChannel(setEngagementChannels, key)}
-                            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
-                          >
-                            <Badge
-                              variant={active ? "secondary" : "outline"}
-                              className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
-                            >
-                              <PropositionSwatch engine={engagementEngines[key]} className="mr-1.5" />
-                              {engagementLabels[key]} {Math.round(considerationDataRaw[5][key] / 1000)}K
-                            </Badge>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {/* The per-channel breakdown used to sit here as a row of
+                        badges — now it only shows on hover, in the chart's
+                        own tooltip, which already carries the same pattern
+                        swatch and the exact value for that point. */}
                   </CardHeader>
                   <CardContent>
                     <AreaChartComponent
@@ -4216,7 +4235,7 @@ export const FunnelView: Story = {
                       data={considerationData.map((d, i) => ({ ...d, revenue: purchaseData[i]?.totalRevenue ?? 0 }))}
                       config={{
                         ...Object.fromEntries(
-                          engagementChannels.map(k => [k, { label: engagementLabels[k], color: engagementColors[k], engine: engagementEngines[k] }])
+                          considerationEngagementKeys.map(k => [k, { label: engagementLabels[k], color: engagementColors[k], engine: engagementEngines[k] }])
                         ),
                         spend: { label: 'Spend', color: 'hsl(var(--chart-950))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                         revenue: { label: 'Sales', color: 'hsl(var(--chart-700))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
@@ -4229,11 +4248,10 @@ export const FunnelView: Story = {
                       showYAxis={true}
                       showRightYAxis={true}
                       benchmark={{ value: 80000, label: "Target 80K" }}
-                      className="h-[200px] w-full"
+                      className="h-[320px] w-full"
                     />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+78%</Badge>
-                    </div>
+                    {/* What this chart is saying — cases open in the drawer. */}
+                    <CardInsightList insights={engagementCardInsights} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
 
@@ -4401,36 +4419,20 @@ export const FunnelView: Story = {
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      {purchaseUnitKeys.map((key) => {
-                        const active = unitChannels.includes(key);
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => toggleChannel(setUnitChannels, key)}
-                            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
-                          >
-                            <Badge
-                              variant={active ? "secondary" : "outline"}
-                              className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
-                            >
-                              <PropositionSwatch engine={unitEngines[key]} className="mr-1.5" />
-                              {unitLabels[key]} {(purchaseData[purchaseData.length - 1] as any)[key].toLocaleString()}
-                            </Badge>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {/* The per-channel breakdown used to sit here as a row of
+                        badges — now it only shows on hover, in the chart's
+                        own tooltip, which already carries the same pattern
+                        swatch and the exact value for that point. */}
                   </CardHeader>
                   <CardContent>
                     <AreaChartComponent
                       data={purchaseData}
                       config={{
                         ...Object.fromEntries(
-                          unitChannels.map(k => [k, { label: unitLabels[k], color: unitColors[k], engine: unitEngines[k] }])
+                          purchaseUnitKeys.map(k => [k, { label: unitLabels[k], color: unitColors[k], engine: unitEngines[k] }])
                         ),
                         spend: { label: 'Spend', color: 'hsl(var(--chart-950))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
+                        totalRevenue: { label: 'Sales', color: 'hsl(var(--chart-700))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
                       stacked={true}
                       showLegend={false}
@@ -4440,11 +4442,10 @@ export const FunnelView: Story = {
                       showYAxis={true}
                       showRightYAxis={true}
                       benchmark={{ value: 15000, label: "Target 15K" }}
-                      className="h-[200px] w-full"
+                      className="h-[320px] w-full"
                     />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+125%</Badge>
-                    </div>
+                    {/* What this chart is saying — cases open in the drawer. */}
+                    <CardInsightList insights={unitsCardInsights} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
 

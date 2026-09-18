@@ -61,11 +61,12 @@ export function shareOfVoiceCase(p: { brandShare: number; category: string; tren
 }
 
 /** Budget recommendation — reallocate toward what is delivering. */
-export function budgetRecommendationCase(p: { from: string; to: string; amount: string; roasFrom: string; roasTo: string }): CaseData {
+export function budgetRecommendationCase(p: { from: string; to: string; amount: string; roasFrom: string; roasTo: string; metric?: string }): CaseData {
+  const metric = p.metric ?? 'ROAS';
   return {
     stats: [
-      { label: `${p.from} ROAS`, value: p.roasFrom, sub: 'trailing the plan' },
-      { label: `${p.to} ROAS`, value: p.roasTo, sub: 'ahead of target', tone: 'success' },
+      { label: `${p.from} ${metric}`, value: p.roasFrom, sub: 'trailing the plan' },
+      { label: `${p.to} ${metric}`, value: p.roasTo, sub: 'ahead of target', tone: 'success' },
       { label: 'Suggested shift', value: p.amount, sub: `${p.from} → ${p.to}` },
     ],
     insights: [
@@ -124,16 +125,17 @@ export function salesUpliftTestCase(p: {
 }
 
 /** Volume pacing — is delivery on track against the plan? */
-export function volumePacingCase(p: { delivered: string; target: string; pacePct: number; topChannel: string }): CaseData {
+export function volumePacingCase(p: { delivered: string; target: string; pacePct: number; topChannel: string; unit?: string }): CaseData {
+  const unit = p.unit ?? 'impressions';
   return {
     stats: [
-      { label: 'Delivered', value: p.delivered, sub: 'impressions to date' },
+      { label: 'Delivered', value: p.delivered, sub: `${unit} to date` },
       { label: 'Target', value: p.target, sub: 'for the full flight' },
       { label: 'Pace', value: `${p.pacePct}%`, sub: p.pacePct >= 100 ? 'ahead of plan' : 'of where it should be', tone: p.pacePct >= 100 ? 'success' : 'neutral' },
     ],
     insights: [
-      { title: 'What is carrying it', text: `${p.topChannel} is delivering the largest share of volume this period.` },
-      { title: 'What to watch', text: 'Volume alone does not buy attention — check reach and frequency before adding more impressions to the same audience.' },
+      { title: 'What is carrying it', text: `${p.topChannel} is delivering the largest share of ${unit} this period.` },
+      { title: 'What to watch', text: `Volume alone does not buy attention — check reach and frequency before adding more ${unit} to the same audience.` },
     ],
   };
 }

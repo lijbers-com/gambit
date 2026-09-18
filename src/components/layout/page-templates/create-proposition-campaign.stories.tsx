@@ -3518,7 +3518,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   <FormSection title={`Add keywords (${keywords.length})`}>
                     <div className="space-y-4">
                       <p className="-mt-2 text-xs text-muted-foreground">
-                        Keywords target shoppers searching for relevant products. Switch between what we suggest and what the booking has; add one, a selection or all; type your own. Bids are set on the booking once it exists.
+                        Keywords target shoppers searching for relevant products. Add the suggestions one by one or all at once; filter on status, volume and competition. Bids are set on the booking once it exists.
                       </p>
                       <KeywordTable keywords={keywords} onChange={setKeywords} />
                     </div>

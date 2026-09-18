@@ -833,7 +833,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
                       {message.showRetailProducts && (
                         <div className="mt-4">
                           <FormSection title="Retail products" className="bg-white rounded-lg">
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <div className="relative" data-dropdown-container>
                             <label className="block text-sm font-medium mb-2">Select retail products*</label>
                             <SearchInput

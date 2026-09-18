@@ -8,14 +8,17 @@ module.exports = {
   ],
   theme: {
     extend: {
-      // The two distances a page is built from. `section` sits between the
+      // The distances a page is built from. `section` sits between the
       // big rows — page header, control panel, metric row, the card with its
       // tabs; `row` sits between the things inside a row — metric cards, the
       // columns of the main card; `inline` between buttons, filters and
-      // chips that stand next to each other on one line.
+      // chips that stand next to each other on one line; `field` between
+      // one form field (or field group) and the next inside a FormSection —
+      // every form uses the same distance there, on every page.
       spacing: {
         inline: '0.5rem',
         row: '0.5rem',
+        field: '1.5rem',
         section: '2rem',
       },
       colors: {

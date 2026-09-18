@@ -860,7 +860,7 @@ const updatedForecastMetrics = [
                   </div>
                 </FormSection>
                 <FormSection bordered title="Campaign evaluation" className="mb-6">
-                  <div className="space-y-4">
+                  <div className="space-y-field">
                     <div className="flex items-start justify-between gap-4">
                       <p className="text-sm text-muted-foreground">Add an Evaluation ID to group this campaign with related ones.</p>
                       <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
@@ -1358,7 +1358,7 @@ export const DigitalInstoreRunning: Story = {
                   </div>
                 </FormSection>
                 <FormSection bordered title="Campaign evaluation" className="mb-6">
-                  <div className="space-y-4">
+                  <div className="space-y-field">
                     <div className="flex items-start justify-between gap-4">
                       <p className="text-sm text-muted-foreground">Add an Evaluation ID to group this campaign with related ones.</p>
                       <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />

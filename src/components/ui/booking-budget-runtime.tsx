@@ -165,24 +165,28 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
   className,
 }) => (
   <FormSection bordered={bordered} title="Run time & budget" className={className}>
-    <div className="space-y-4 min-w-0">
-      <div className="min-w-0 space-y-4">
-        <div className="min-w-0">
-          <label className="block text-sm font-medium mb-2">Run time*</label>
-          <DateRangePicker
-            dateRange={startDate ? { from: startDate, to: endDate } : undefined}
-            onDateRangeChange={(range) => {
-              onStartDateChange(range?.from);
-              onEndDateChange(range?.to);
-            }}
-            placeholder="Select start and end date"
-            showPresets
-            showWeekNumbers
-            events={retailMoments}
-            presets={futureDateRangePresets}
-            className="w-full min-w-0"
-          />
-        </div>
+    <div className="space-y-field min-w-0">
+      {/* Every item here — the run time, the start/end pair, the budget,
+          the notification switch — sits one `field` apart from the next;
+          a hint stays close to the field it explains (its own small
+          margin), never counted as an item of its own. */}
+      <div className="min-w-0">
+        <label className="block text-sm font-medium mb-2">Run time*</label>
+        <DateRangePicker
+          dateRange={startDate ? { from: startDate, to: endDate } : undefined}
+          onDateRangeChange={(range) => {
+            onStartDateChange(range?.from);
+            onEndDateChange(range?.to);
+          }}
+          placeholder="Select start and end date"
+          showPresets
+          showWeekNumbers
+          events={retailMoments}
+          presets={futureDateRangePresets}
+          className="w-full min-w-0"
+        />
+      </div>
+      <div className="min-w-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
           <div className="min-w-0">
             <label className="block text-sm text-muted-foreground mb-2">Start time</label>
@@ -214,7 +218,7 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
               min="0"
             />
             {campaignBudget && <FieldHint>Campaign budget: {campaignBudget}</FieldHint>}
-            {budgetExtra && <div className="mt-4">{budgetExtra}</div>}
+            {budgetExtra && <div className="mt-field">{budgetExtra}</div>}
           </div>
         );
         return pacing ? pacing(budgetField) : budgetField;

@@ -168,7 +168,7 @@ export const MediaCart: Story = {
                     <Card className="min-w-0">
                       <CardHeader className="space-y-8">
                         <FormSection title="Campaign details">
-                          <div className="space-y-4">
+                          <div className="space-y-field">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                               <div>
                                 <label className="block text-sm font-medium mb-2">Goal*</label>
@@ -209,7 +209,7 @@ export const MediaCart: Story = {
 
                         {/* Display Engine Card */}
                         <FormSection title="Display Engine">
-                          <div className="space-y-4">
+                          <div className="space-y-field">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                               <div>
                                 <div className="text-sm text-muted-foreground">Budget</div>
@@ -261,7 +261,7 @@ export const MediaCart: Story = {
 
                         {/* Sponsored Products Engine Card */}
                         <FormSection title="Sponsored Products Engine">
-                          <div className="space-y-4">
+                          <div className="space-y-field">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
                               <div>
                                 <div className="text-sm text-muted-foreground">Budget</div>

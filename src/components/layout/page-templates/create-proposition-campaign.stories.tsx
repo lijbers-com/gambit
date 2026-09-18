@@ -3445,7 +3445,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                 <Card>
                   <CardContent className="space-y-6 p-6">
                   <FormSection title="Run time & budget">
-                    <div className="space-y-4">
+                    <div className="space-y-field">
                       {/* One field, both ends picked in one calendar — a run
                           time is a span, not two independent dates. */}
                       <div className="space-y-1.5">
@@ -3519,7 +3519,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                   {/* Products — the selection component, so searching for a
                       product works the same as searching for anything else. */}
                   <FormSection title={`Add keywords (${keywords.length})`}>
-                    <div className="space-y-4">
+                    <div className="space-y-field">
                       <p className="-mt-2 text-xs text-muted-foreground">
                         Keywords target shoppers searching for relevant products. Add the suggestions one by one or all at once; filter on status, volume and competition. Bids are set on the booking once it exists.
                       </p>

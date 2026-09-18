@@ -327,7 +327,7 @@ export const CreativeBuilder: React.FC<{ engine: EngineId; className?: string }>
             )}
 
             <FormSection title="Creative details">
-              <div className="space-y-4">
+              <div className="space-y-field">
                 <div>
                   <label className="mb-1.5 block text-sm font-medium">Name*</label>
                   <Input placeholder="Enter creative name" value={name} onChange={(e) => setName(e.target.value)} />

@@ -1834,7 +1834,7 @@ export const DigitalInStore: Story = {
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
                             <Input
@@ -2136,7 +2136,7 @@ export const DigitalInStore: Story = {
                       </div>
 
                       <FormSection bordered title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
                             <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
@@ -3108,7 +3108,7 @@ export const OfflineInStore: Story = {
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
                             <Input
@@ -3155,7 +3155,7 @@ export const OfflineInStore: Story = {
                       </FormSection>
 
                       <FormSection bordered title="Preparation" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <p className="text-sm text-muted-foreground">
                             Complete the steps below to prepare this booking. Set the store list, creative status, printer instructions, and briefing to mark this booking as ready.
                           </p>
@@ -3604,7 +3604,7 @@ export const OfflineInStore: Story = {
                       </FormSection>
 
                       <FormSection bordered title="Printer" className={cn(bookingTab !== 'creatives' && "hidden")}>
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <div>
                             <label className="block text-sm font-medium mb-2">Status</label>
                             <DropdownMenu>
@@ -3734,7 +3734,7 @@ export const OfflineInStore: Story = {
                       </div>
 
                       <FormSection bordered title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
                             <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
@@ -4122,7 +4122,7 @@ export const SponsoredProducts: Story = {
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                     <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name*</label>
                             <Input
@@ -4346,7 +4346,7 @@ export const SponsoredProducts: Story = {
                       </div>
 
                       <FormSection bordered title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
                             <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />
@@ -4663,7 +4663,7 @@ export const OffsiteDisplay: Story = {
                   <Card className={cn("min-w-0", bookingTab === 'details' && "rounded-tl-none")}>
                 <CardHeader className="[&>:not(.hidden)~:not(.hidden)]:mt-8">
 <FormSection bordered title="Booking details" className={cn(bookingTab !== 'details' && "hidden")}>
-                    <div className="space-y-4">
+                    <div className="space-y-field">
                       <div>
                         <label className="block text-sm font-medium mb-2">Name*</label>
                         <Input
@@ -4721,7 +4721,7 @@ export const OffsiteDisplay: Story = {
                   </FormSection>
 
                   <FormSection bordered title="Targeting" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                    <div className="space-y-6">
+                    <div className="space-y-field">
                       <div>
                         <label className="block text-sm font-medium mb-2">Audience</label>
                         <div className="flex flex-wrap gap-2">
@@ -4858,7 +4858,7 @@ export const OffsiteDisplay: Story = {
                       </div>
 
                       <FormSection bordered title="Evaluation" className={cn(bookingTab !== 'evaluation' && "hidden")}>
-                        <div className="space-y-4">
+                        <div className="space-y-field">
                           <div className="flex items-start justify-between gap-4">
                             <p className="text-sm text-muted-foreground">Add evaluation details for this booking once it runs.</p>
                             <Switch checked={evaluationEnabled} onCheckedChange={setEvaluationEnabled} />

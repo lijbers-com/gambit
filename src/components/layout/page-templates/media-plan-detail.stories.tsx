@@ -1251,7 +1251,7 @@ export const MediaPlanDetail: Story = {
                     {/* Sections mirror the create-media-plan wizard steps, each
                         in its own card so a long form stays scannable. */}
                     <FormSection title="Setup" bordered>
-                      <div className="space-y-6">
+                      <div className="space-y-field">
                         <div className="space-y-2">
                           <Label htmlFor="mp-name">Media plan name</Label>
                           <Input id="mp-name" value={planName} onChange={(e) => setPlanName(e.target.value)} hint="Give your media plan a descriptive name to easily identify it later" />
@@ -1274,7 +1274,7 @@ export const MediaPlanDetail: Story = {
                     </FormSection>
 
                     <FormSection title="Advertiser" bordered>
-                      <div className="space-y-6">
+                      <div className="space-y-field">
                         {/* Who the plan advertises for is fixed once it exists:
                             the campaigns, bookings and reporting underneath are
                             all attributed to this advertiser and brand. */}
@@ -1301,7 +1301,7 @@ export const MediaPlanDetail: Story = {
                     </FormSection>
 
                     <FormSection title="Goal and objectives" bordered>
-                      <div className="space-y-5">
+                      <div className="space-y-field">
                         {/* The wizard's own goal card, one card only: the goal
                             is fixed once the plan exists (the KPIs and the
                             reporting hang off it), so the alternatives are not
@@ -1379,7 +1379,7 @@ export const MediaPlanDetail: Story = {
                         them). In setup, where the control bar steps aside,
                         this is the one place to reach them. */}
                     <FormSection title="Run time & budget" bordered>
-                      <div className="space-y-6">
+                      <div className="space-y-field">
                         <div className="space-y-2">
                           <Label>Media plan run time</Label>
                           <DatesCell

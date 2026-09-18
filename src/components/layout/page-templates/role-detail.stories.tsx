@@ -75,7 +75,7 @@ const RoleDetailContent = ({ roleName, roleDescription, allPermissionsOn = false
         activeTab === 'details' ? (
           <form className="space-y-8 w-full max-w-2xl" onSubmit={(e) => e.preventDefault()}>
             <FormSection title="Role">
-              <div className="space-y-4">
+              <div className="space-y-field">
                 <div>
                   <label className="block text-sm font-medium mb-1">Name</label>
                   <Input defaultValue={roleName} placeholder="Enter role name" />

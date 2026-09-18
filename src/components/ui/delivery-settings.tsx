@@ -120,7 +120,7 @@ export const DeliveryBehaviorFields: React.FC<{
 }> = ({ value, onChange }) => {
   const set = <K extends keyof DeliveryBehaviorValue>(key: K, v: DeliveryBehaviorValue[K]) => onChange({ ...value, [key]: v });
   return (
-    <div className="space-y-4">
+    <div className="space-y-field">
       <ToggleRow
         label="Optimise for cost per click"
         hint="Spend shifts toward the placements winning clicks most cheaply."
@@ -207,7 +207,7 @@ export const DeliveryObjectivesFields: React.FC<{
 }> = ({ value, onChange }) => {
   const set = <K extends keyof DeliveryObjectivesValue>(key: K, v: DeliveryObjectivesValue[K]) => onChange({ ...value, [key]: v });
   return (
-    <div className="space-y-6">
+    <div className="space-y-field">
       <div className="space-y-2">
         <Label className="block">Priority</Label>
         <MiniSelect value={value.priority} options={['Inherited from campaign', 'Highest', 'High', 'Normal', 'Low']} onChange={(v) => set('priority', v)} />

@@ -191,7 +191,7 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
   );
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('space-y-field', className)}>
       {/* Full width: the daily budget moved inside the pacing card, so the
           two-column line the total once shared no longer exists. */}
       {budgetField}

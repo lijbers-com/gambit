@@ -31,7 +31,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { queueToast } from '@/components/ui/toast';
 import { LinkPickerDialog } from '@/components/ui/link-picker';
-import { Link2 } from 'lucide-react';
+import { Link2, Pencil } from 'lucide-react';
 import { getDb, createMediaPlan, updateMediaPlan, createCampaign, updateCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 import {
@@ -463,7 +463,6 @@ export const GoalSelection: Story = {
        *  it on save rather than creating it. */
       existingId?: string;
       /** The user has checked this campaign — it is created in review, not as a draft. */
-      approved?: boolean;
       /** The row's form is open. Closed, the row reads like a proposed booking. */
       open?: boolean;
     };
@@ -485,8 +484,9 @@ export const GoalSelection: Story = {
     const [campaignRows, setCampaignRows] = React.useState<CampaignRow[]>(() =>
       propositions.map((p) => ({
         id: `row-${(rowSeq.current += 1)}`,
-        // Open, so every option — mode, name, budget, run time — is in view.
-        open: true,
+        // Folded: the row already says what matters — budget and run time —
+        // and the pencil opens the rest.
+        open: false,
         engine: p.id,
         mode: 'preset' as const,
         name: '',
@@ -814,7 +814,8 @@ export const GoalSelection: Story = {
           buyingType: row.buyingType,
           // Approved in the wizard it starts in review; otherwise it is a
           // proposal the plan's setup asks the user to check.
-          status: row.approved ? 'in-option' : 'draft',
+          // Every campaign leaves the wizard as a draft; review happens on the plan.
+          status: 'draft',
           budget: rowBudget,
           spend: 0,
           startDate: campaignStart,
@@ -1430,7 +1431,7 @@ export const GoalSelection: Story = {
                   <CardHeader>
                     <CardTitle className="text-lg">Campaigns</CardTitle>
                     <CardDescription>
-                      The campaigns in this plan, one per proposition, proposed and prefilled. Check each one and mark it reviewed; add any that are missing.
+                      The campaigns in this plan, one per proposition, proposed and prefilled. Split the budget and run time between them; open one to change the rest, and add any that are missing.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1502,10 +1503,12 @@ export const GoalSelection: Story = {
                                 </span>
                                 <div className="min-w-0">
                                   <div className="truncate text-sm font-medium">{rowName}</div>
+                                  {/* Budget first: splitting the plan's money over
+                                      its campaigns is what this step is for. */}
                                   <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                                    {row.existingId ? 'Existing campaign · joins this plan on save' : row.approved ? 'Reviewed' : 'Proposed — to review'}
-                                    {' · '}€{share.toLocaleString()} · {runTime}
-                                    {!row.existingId && ` · ${isAssisted ? 'Assisted' : 'Expert'}`}
+                                    <span className="font-medium text-foreground">€{share.toLocaleString()}</span>
+                                    {' · '}{runTime}
+                                    {row.existingId ? ' · Existing campaign · joins this plan on save' : ` · ${isAssisted ? 'Assisted' : 'Expert'}`}
                                   </div>
                                 </div>
                               </div>
@@ -1523,12 +1526,9 @@ export const GoalSelection: Story = {
                                     </span>
                                   </label>
                                 )}
-                                {row.approved && <Badge variant="success">Reviewed</Badge>}
-                                {row.approved || row.existingId ? (
-                                  <Button variant="outline" size="sm" onClick={() => updateRow(row.id, { open: true })}>Open</Button>
-                                ) : (
-                                  <Button size="sm" onClick={() => updateRow(row.id, { open: true })}>Review</Button>
-                                )}
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground" title="Edit campaign" aria-label={`Edit ${rowName}`} onClick={() => updateRow(row.id, { open: true })}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
                           );
@@ -1560,9 +1560,6 @@ export const GoalSelection: Story = {
                             }
                             control={
                               <>
-                                {!row.existingId && (
-                                  <Badge variant={row.approved ? 'success' : 'outline'}>{row.approved ? 'Reviewed' : 'To review'}</Badge>
-                                )}
                                 {/* Mode toggle — it both shows and sets the
                                     mode. Fixed-width word so the header does
                                     not twitch on flip. An existing campaign
@@ -1701,18 +1698,11 @@ export const GoalSelection: Story = {
                                 </div>
                               </div>
                             )}
-                            {/* Marking it reviewed is the check the plan's
-                                setup asks for: the campaign is created in
-                                review rather than as a draft. The card folds
-                                to a row; Open brings the options back. */}
-                            <div className="flex items-center justify-end gap-2 pt-1">
-                              <Button variant="ghost" size="sm" onClick={() => updateRow(row.id, { open: false })}>Collapse</Button>
-                              {!row.existingId && !row.approved && (
-                                <Button size="sm" onClick={() => updateRow(row.id, { open: false, approved: true })}>Mark as reviewed</Button>
-                              )}
-                              {!row.existingId && row.approved && (
-                                <Button variant="outline" size="sm" onClick={() => updateRow(row.id, { approved: false })}>Reopen review</Button>
-                              )}
+                            {/* Done folds the card back to its row; nothing is
+                                reviewed here — that happens on the plan once
+                                the campaigns exist as drafts. */}
+                            <div className="flex items-center justify-end gap-inline pt-1">
+                              <Button variant="outline" size="sm" onClick={() => updateRow(row.id, { open: false })}>Done</Button>
                             </div>
                           </OptionCard>
                         );

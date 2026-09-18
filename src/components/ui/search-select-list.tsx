@@ -14,6 +14,9 @@ export interface SearchSelectOption {
   label: string;
   /** Optional secondary line shown under the label. */
   description?: string;
+  /** Optional leading visual — a thumbnail, a swatch, a small icon — shown
+   *  in the dropdown row and on the selected card. Sized by the caller. */
+  icon?: React.ReactNode;
 }
 
 export interface SearchSelectListProps {
@@ -199,11 +202,14 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
                   results.map((option) => (
                     <div
                       key={option.value}
-                      className="cursor-pointer border-b p-3 last:border-b-0 hover:bg-neutral-50"
+                      className="flex cursor-pointer items-center gap-3 border-b p-3 last:border-b-0 hover:bg-neutral-50"
                       onClick={() => add(option.value)}
                     >
-                      <div className="text-sm font-medium">{option.label}</div>
-                      {option.description && <div className="text-xs text-muted-foreground">{option.description}</div>}
+                      {option.icon}
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium">{option.label}</div>
+                        {option.description && <div className="truncate text-xs text-muted-foreground">{option.description}</div>}
+                      </div>
                     </div>
                   ))
                 ) : !allowCreate || !search.trim() ? (
@@ -230,6 +236,7 @@ export const SearchSelectList: React.FC<SearchSelectListProps> = ({
               <OptionCard
                 key={option.value}
                 selected
+                icon={option.icon}
                 title={option.label}
                 description={hideSelectedDescription ? undefined : option.description}
                 control={

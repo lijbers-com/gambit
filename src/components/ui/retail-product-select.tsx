@@ -72,7 +72,14 @@ export const RetailProductSelect: React.FC<RetailProductSelectProps> = ({
     return rows.map((p) => ({ id: p.id, name: p.name, brand: brandOfProduct(db, p).brand?.name, gtin: p.gtin, image: p.image }));
   }, [db, products, brands, advertiser]);
   const options = React.useMemo(
-    () => catalogue.map((p) => ({ value: p.id, label: p.name, description: [p.brand, p.gtin ? `GTIN ${p.gtin}` : `ID ${p.id}`].filter(Boolean).join(' · ') })),
+    () => catalogue.map((p) => ({
+      value: p.id,
+      label: p.name,
+      description: [p.brand, p.gtin ? `GTIN ${p.gtin}` : `ID ${p.id}`].filter(Boolean).join(' · '),
+      icon: p.image
+        ? <img src={p.image} alt="" className="h-8 w-8 shrink-0 rounded object-cover" />
+        : <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted text-xs font-medium text-muted-foreground" aria-hidden>{p.name.slice(0, 1)}</span>,
+    })),
     [catalogue],
   );
   const count = value.filter((id) => catalogue.some((p) => p.id === id)).length;

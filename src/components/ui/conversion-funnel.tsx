@@ -38,6 +38,11 @@ export interface ConversionFunnelProps {
   barHeight?: number
   selectedKey?: string
   onStageClick?: (key: string) => void
+  /** The padding of the card this sits inside, in pixels. The per-stage
+   *  highlight bleeds out by this much on every edge, so it reaches the
+   *  card's own border instead of floating inside a plain, unhighlighted
+   *  gap — the highlight fills the whole column, not just the flow's box. */
+  bleedPadding?: number
 }
 
 const formatPercent = (n: number) => {
@@ -61,6 +66,7 @@ export function ConversionFunnelComponent({
   barHeight = 160,
   selectedKey,
   onStageClick,
+  bleedPadding = 0,
 }: ConversionFunnelProps) {
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
 
@@ -95,10 +101,15 @@ export function ConversionFunnelComponent({
   }
   const isSelected = (key: string) => selectedKey !== undefined && selectedKey === key
 
-  // Half-height of the flow at each stage boundary. A stage holds its width
-  // across the first part of its column and eases into the next stage's
-  // width at the boundary, so the narrowing sits where the drop-off is read.
-  const half = (v: number) => Math.max(MIN_HALF, (v / maxValue) * (H / 2))
+  // Half-height of the flow at each stage. A straight linear scale against
+  // the largest stage crushes every later stage to the same hairline the
+  // moment it's a small fraction of it — a 20x drop already reads as
+  // "nothing," so the funnel looks like it stops instead of still
+  // narrowing through the stages after it. The square root keeps Awareness
+  // dominant while giving Consideration, Purchase and Loyalty each a
+  // visibly different thickness, so the flow keeps reading as still
+  // flowing all the way to the last stage.
+  const half = (v: number) => Math.max(MIN_HALF, Math.sqrt(v / maxValue) * (H / 2))
   const halves = stages.map((s) => half(s.value))
 
   /**
@@ -174,6 +185,31 @@ export function ConversionFunnelComponent({
       {/* One area: the stage's label, share and volume sit at the top of its
           column, the flow runs beneath them — the numbers ride the shape. */}
       <div className="relative" style={{ height: barHeight + LABEL_H }}>
+        {/* Which stage is read, painted first so the flow's own colour sits
+            on top of it undimmed — an overlay in front of the chart was
+            what made its shades read as faded. Bleeds into the surrounding
+            card's own padding so the tint fills the whole column, not just
+            the flow's own box, leaving a plain gap around it. */}
+        <div
+          className="absolute inset-0 grid pointer-events-none"
+          style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
+        >
+          {stages.map((stage, i) => {
+            const selected = isSelected(stage.key)
+            return (
+              <div
+                key={stage.key}
+                className={cn("transition-colors", selected && "bg-muted/30", !selected && hoveredIndex === i && "bg-muted/20")}
+                style={{
+                  marginTop: -bleedPadding,
+                  marginBottom: -bleedPadding,
+                  marginLeft: i === 0 ? -bleedPadding : 0,
+                  marginRight: i === n - 1 ? -bleedPadding : 0,
+                }}
+              />
+            )
+          })}
+        </div>
         <svg
           ref={svgRef}
           className="absolute inset-x-0 bottom-0 w-full"
@@ -220,10 +256,8 @@ export function ConversionFunnelComponent({
                 tabIndex={isInteractive ? 0 : undefined}
                 aria-pressed={isInteractive ? selected : undefined}
                 className={cn(
-                  "relative border-l border-border first:border-l-0 transition-colors",
+                  "relative border-l border-border first:border-l-0",
                   isInteractive && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
-                  selected && "bg-muted/30",
-                  !selected && hoveredIndex === i && "bg-muted/20",
                 )}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}

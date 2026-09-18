@@ -4070,7 +4070,7 @@ export const FunnelView: Story = {
               {/* Funnel chart in its own bordered card, like Total Volume below —
                   same padding as every other chart card. */}
               <Card className="overflow-hidden">
-                <CardContent>
+                <CardContent className="pt-6">
                   <ConversionFunnelComponent
                     stages={funnelStages}
                     selectedKey={selectedStage}
@@ -4079,6 +4079,7 @@ export const FunnelView: Story = {
                       v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString()
                     }
                     showTooltip={false}
+                    bleedPadding={24}
                   />
                 </CardContent>
               </Card>

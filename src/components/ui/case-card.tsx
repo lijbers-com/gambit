@@ -101,32 +101,6 @@ const FOOTNOTE_TITLES = ['What stays fixed', 'How sure we are'];
 /** Removed on ADUSA feedback: the comparative evidence carries the why. */
 const DROPPED_TITLES = ['Why this helps'];
 
-/** Same look and behaviour as AttributionWindowSelect, string-valued. */
-const BasisSelect: React.FC<{
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (v: string) => void;
-}> = ({ label, value, options, onChange }) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="outline" size="sm" className="h-8 gap-1.5 font-normal">
-        <Settings2 className="h-3.5 w-3.5 shrink-0" />
-        <span className="truncate">{value}</span>
-        <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="start">
-      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">{label}</div>
-      {options.map((o) => (
-        <DropdownMenuItem key={o} onClick={() => onChange(o)} className={cn(o === value && 'font-medium')}>
-          {o}
-        </DropdownMenuItem>
-      ))}
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
-
 const StatCards: React.FC<{ stats: CaseStat[] }> = ({ stats }) => (
   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
     {stats.map((s) => (
@@ -211,8 +185,6 @@ export const CaseCard: React.FC<CaseCardProps> = ({
   footer,
   className,
 }) => {
-  const [window, setWindow] = React.useState(`${basis?.window ?? 14} days`);
-  const [method, setMethod] = React.useState<string>(basis?.method ?? 'Hero');
   const [confirming, setConfirming] = React.useState(false);
 
   const footnotes = insights?.filter((i) => FOOTNOTE_TITLES.includes(i.title)) ?? [];
@@ -265,14 +237,6 @@ export const CaseCard: React.FC<CaseCardProps> = ({
         </ul>
       )}
 
-      {recommendation && (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          ROAS basis
-          <BasisSelect label="Attribution window" value={window} options={['7 days', '14 days', '28 days']} onChange={setWindow} />
-          <BasisSelect label="Attribution method" value={method} options={['Hero', 'Halo', 'Direct']} onChange={setMethod} />
-        </div>
-      )}
-
       {footnotes.length > 0 && (
         <div className="space-y-0.5 border-t pt-2">
           {footnotes.map((f) => (
@@ -286,14 +250,13 @@ export const CaseCard: React.FC<CaseCardProps> = ({
       {footer}
 
       {hasActions && (
-        <div className="flex items-center gap-2 border-t pt-3">
+        <div className="flex items-center gap-2 pt-1">
           {onAskAgent && (
-            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={onAskAgent}>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={onAskAgent}>
               <MessageSquare className="h-4 w-4" />
               Ask the agent
             </Button>
           )}
-          <span className="flex-1" />
           {onDecline && (
             <Button variant="outline" size="sm" className="gap-1.5" onClick={onDecline}>
               <X className="h-4 w-4" />

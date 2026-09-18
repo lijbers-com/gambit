@@ -120,24 +120,31 @@ const RightDrawerHeader = ({
   children,
   showCloseButton = true,
   onClose,
+  action,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & {
   showCloseButton?: boolean
   onClose?: () => void
+  /** A control beside the close button — a kind badge, most often — so the
+   *  title can lead the header instead of sitting under it. */
+  action?: React.ReactNode
 }) => (
   <div
     className={cn("flex items-start justify-between p-6 pb-4", className)}
     {...props}
   >
-    <div className="flex-1">{children}</div>
-    {showCloseButton && (
-      <RightDrawerClose asChild>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </Button>
-      </RightDrawerClose>
-    )}
+    <div className="flex-1 min-w-0">{children}</div>
+    <div className="flex shrink-0 items-center gap-2">
+      {action}
+      {showCloseButton && (
+        <RightDrawerClose asChild>
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
+        </RightDrawerClose>
+      )}
+    </div>
   </div>
 )
 RightDrawerHeader.displayName = "RightDrawerHeader"

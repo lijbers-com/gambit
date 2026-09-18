@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { MessageSquare, WalletCards, Rows3, LayoutList, ArrowLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { stashAgentContext } from '@/lib/agent-context';
 import { CaseCard, type CaseCardData } from './case-card';
 import { Badge } from './badge';
@@ -39,12 +38,14 @@ const levelIcon = {
   'booking': LayoutList,
 } as const;
 
-/** Badge per kind — the same vocabulary the inbox list uses. */
-const kindBadge: Record<MessageKind, { label: string; className: string }> = {
-  health: { label: 'At risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
-  action: { label: 'To do', className: 'border-warning-200 bg-warning-50 text-warning-700 font-medium' },
-  recommendation: { label: 'Recommendation', className: 'border-primary/20 bg-primary/5 text-primary' },
-  insight: { label: 'Insight', className: 'border-border bg-neutral-50 text-neutral-600' },
+/** Badge per kind — the same named Badge variants everywhere a kind shows,
+ *  the inbox list and the chart cards' own insight rows included, rather
+ *  than a bespoke colour per surface. */
+const kindBadge: Record<MessageKind, { label: string; variant: 'destructive' | 'todo' | 'secondary' | 'outline' | 'warning' }> = {
+  health: { label: 'At risk', variant: 'destructive' },
+  action: { label: 'To do', variant: 'todo' },
+  recommendation: { label: 'Recommendation', variant: 'secondary' },
+  insight: { label: 'Insight', variant: 'outline' },
 };
 
 export interface MessageDrawerProps {
@@ -97,7 +98,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
 }) => {
   const badge =
     kind === 'health' && severity !== 'blocking'
-      ? { label: 'Needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' }
+      ? { label: 'Needs attention', variant: 'warning' as const }
       : kindBadge[kind];
 
   const hasCase = !!(
@@ -173,7 +174,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
             All notifications
           </button>
           <div>
-            <Badge variant="outline" className={cn('w-fit px-2 py-0.5 text-xs font-medium', badge.className)}>
+            <Badge variant={badge.variant} className="w-fit px-2 py-0.5 text-xs font-medium capitalize">
               {badge.label}
             </Badge>
           </div>
@@ -194,11 +195,18 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
   return (
     <RightDrawer open={open} onOpenChange={onOpenChange}>
       <RightDrawerContent className="sm:max-w-xl">
-        <RightDrawerHeader onClose={() => onOpenChange(false)}>
-          <Badge variant="outline" className={cn('w-fit px-2 py-0.5 text-xs font-medium', badge.className)}>
-            {badge.label}
-          </Badge>
-          <RightDrawerTitle className="mt-1.5">{subject}</RightDrawerTitle>
+        <RightDrawerHeader
+          onClose={() => onOpenChange(false)}
+          // The kind badge sits beside the close button, not above the
+          // title — the title leads, same as the compact insight row it
+          // was opened from.
+          action={
+            <Badge variant={badge.variant} className="w-fit px-2 py-0.5 text-xs font-medium capitalize">
+              {badge.label}
+            </Badge>
+          }
+        >
+          <RightDrawerTitle>{subject}</RightDrawerTitle>
           {/* What this is about, on its own line with its hierarchy icon — the
               same treatment the inbox row gives it. */}
           {context && (

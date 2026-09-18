@@ -4067,10 +4067,10 @@ export const FunnelView: Story = {
             </div>
           <Card className={cn("w-full", selectedStage === funnelStages[0].key && "rounded-tl-none")}>
             <CardContent className="px-6 pt-6 pb-0">
-              {/* Funnel chart in its own bordered card, like Total Volume below.
-                  Inner content is flush (p-0) so the bars run to the card edge. */}
+              {/* Funnel chart in its own bordered card, like Total Volume below —
+                  same padding as every other chart card. */}
               <Card className="overflow-hidden">
-                <CardContent className="p-0">
+                <CardContent>
                   <ConversionFunnelComponent
                     stages={funnelStages}
                     selectedKey={selectedStage}
@@ -4127,7 +4127,7 @@ export const FunnelView: Story = {
                       showYAxis={true}
                       showRightYAxis={true}
                       benchmark={{ value: 700000, label: "Target 700K" }}
-                      className="h-[260px] w-full"
+                      className="h-[320px] w-full"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
                     <CardInsightList insights={volumeCardInsights} variant="compact" className="mt-4" />
@@ -4135,7 +4135,7 @@ export const FunnelView: Story = {
                 </Card>
 
                 {/* Row 2 - Share of Voice + Type of Buyer side by side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Share of Voice */}
                   <Card>
                     <CardHeader>
@@ -4319,7 +4319,7 @@ export const FunnelView: Story = {
                 </Card>
 
                 {/* Row 2 - CTR and PDP Views side by side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-row">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Total CTR */}
                   <Card>
                     <CardHeader>

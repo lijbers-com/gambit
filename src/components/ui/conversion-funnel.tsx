@@ -94,7 +94,6 @@ export function ConversionFunnelComponent({
     if (onStageClick) onStageClick(key)
   }
   const isSelected = (key: string) => selectedKey !== undefined && selectedKey === key
-  const activeIndex = selectedKey !== undefined ? stages.findIndex((s) => s.key === selectedKey) : hoveredIndex
 
   // Half-height of the flow at each stage boundary. A stage holds its width
   // across the first part of its column and eases into the next stage's
@@ -103,49 +102,40 @@ export function ConversionFunnelComponent({
   const halves = stages.map((s) => half(s.value))
 
   /**
-   * One taper, generalised: given the y-edge at every stage boundary (top
-   * and bottom), build the ribbon between them — the same "hold, then ease
-   * into the next stage's edge" curve the whole flow uses. The outer shape
-   * is `buildRibbon(edge => mid - half, edge => mid + half)`; a sub-band is
-   * the same call with edges cut from the stack instead of the full width.
+   * One taper, generalised: given the y-edge at every stage, build the
+   * ribbon between them. Each stage HOLDS its own edge for its full column
+   * width; the drop to the next stage's edge is drawn as that NEXT stage
+   * easing IN from the border, over its own leading portion — so the
+   * narrowing reads as happening at the boundary you cross, not tucked away
+   * in the tail of the stage you're leaving. The outer shape is
+   * `buildRibbon(edge => mid - half, edge => mid + half)`; a sub-band is the
+   * same call with edges cut from the stack instead of the full width.
    *
-   * The very first stage also eases IN, from a single point on the
-   * centreline — the flow starts at nothing, same as it ends at next to
-   * nothing, rather than snapping straight to full width at the left edge.
+   * The very first stage eases in the same way, from a single point on the
+   * centreline in place of a previous stage's edge — the flow starts at
+   * nothing rather than snapping straight to full width at the left edge.
    */
   const buildRibbon = React.useCallback((topEdges: number[], bottomEdges: number[]) => {
     const top: string[] = []
     const bottom: string[] = []
-    const HOLD = 0.6
     const LEAD = 0.3
     for (let i = 0; i < n; i++) {
       const x0 = i * W
-      const x1 = x0 + W * HOLD
+      const leadX = x0 + W * LEAD
       const x2 = x0 + W
-      const aTop = topEdges[i]
-      const bTop = i < n - 1 ? topEdges[i + 1] : topEdges[i]
-      const aBot = bottomEdges[i]
-      const bBot = i < n - 1 ? bottomEdges[i + 1] : bottomEdges[i]
-      if (i === 0) {
-        const leadX = x0 + W * LEAD
-        const leadCx = (x0 + leadX) / 2
-        top.push(`M ${x0} ${mid}`)
-        top.push(`C ${leadCx} ${mid}, ${leadCx} ${aTop}, ${leadX} ${aTop}`)
-        top.push(`L ${x1} ${aTop}`)
-        const cx = (x1 + x2) / 2
-        top.push(`C ${cx} ${aTop}, ${cx} ${bTop}, ${x2} ${bTop}`)
-        bottom.unshift(
-          `C ${cx} ${bBot}, ${cx} ${aBot}, ${x1} ${aBot}`,
-          `L ${leadX} ${aBot}`,
-          `C ${leadCx} ${aBot}, ${leadCx} ${mid}, ${x0} ${mid}`,
-        )
-        continue
-      }
-      top.push(`L ${x1} ${aTop}`)
-      const cx = (x1 + x2) / 2
-      top.push(`C ${cx} ${aTop}, ${cx} ${bTop}, ${x2} ${bTop}`)
-      bottom.unshift(`C ${cx} ${bBot}, ${cx} ${aBot}, ${x1} ${aBot}`, `L ${x0} ${aBot}`)
-      if (i === n - 1) bottom.unshift(`L ${x2} ${bBot}`)
+      const leadCx = (x0 + leadX) / 2
+      const prevTop = i === 0 ? mid : topEdges[i - 1]
+      const prevBot = i === 0 ? mid : bottomEdges[i - 1]
+      const curTop = topEdges[i]
+      const curBot = bottomEdges[i]
+      if (i === 0) top.push(`M ${x0} ${mid}`)
+      top.push(`C ${leadCx} ${prevTop}, ${leadCx} ${curTop}, ${leadX} ${curTop}`)
+      top.push(`L ${x2} ${curTop}`)
+      const segs: string[] = []
+      if (i === n - 1) segs.push(`L ${x2} ${curBot}`)
+      segs.push(`L ${leadX} ${curBot}`)
+      segs.push(`C ${leadCx} ${curBot}, ${leadCx} ${prevBot}, ${x0} ${prevBot}`)
+      bottom.unshift(...segs)
     }
     return `${top.join(" ")} ${bottom.join(" ")} Z`
   }, [n, mid])
@@ -193,39 +183,26 @@ export function ConversionFunnelComponent({
           // `preserveAspectRatio="none"` to introduce.
           viewBox={`0 0 ${n * W} ${H}`}
         >
-          <defs>
-            {/* Where the reader is, the flow is fully inked; elsewhere it steps back. */}
-            <clipPath id="cf-active">
-              {activeIndex !== null && activeIndex >= 0 && <rect x={activeIndex * W} y={0} width={W} height={H} />}
-            </clipPath>
-            {bandPaths && <PropositionPatternDefs engines={ENGINE_ORDER} />}
-          </defs>
+          <defs>{bandPaths && <PropositionPatternDefs engines={ENGINE_ORDER} />}</defs>
           {bandPaths ? (
             // Composition, not just volume: each proposition keeps its own
             // pattern through the flow, so the mix at Awareness and the mix
-            // at Purchase both read at a glance.
+            // at Purchase both read at a glance. One steady opacity — which
+            // stage is "active" is read from the column highlight below, not
+            // from fading the flow itself.
             bandPaths.map(({ engine, d }) => (
-              <React.Fragment key={engine}>
-                <path
-                  d={d}
-                  fill={patternFill(engine)}
-                  stroke={patternFor(engine).ink}
-                  strokeWidth={0.5}
-                  strokeOpacity={0.5}
-                  opacity={activeIndex !== null && activeIndex >= 0 ? 0.4 : 0.85}
-                />
-                {activeIndex !== null && activeIndex >= 0 && (
-                  <path d={d} fill={patternFill(engine)} stroke={patternFor(engine).ink} strokeWidth={0.5} strokeOpacity={0.5} clipPath="url(#cf-active)" />
-                )}
-              </React.Fragment>
+              <path
+                key={engine}
+                d={d}
+                fill={patternFill(engine)}
+                stroke={patternFor(engine).ink}
+                strokeWidth={0.5}
+                strokeOpacity={0.5}
+                opacity={0.85}
+              />
             ))
           ) : (
-            <>
-              <path d={path} fill={color} opacity={activeIndex !== null && activeIndex >= 0 ? 0.35 : 0.8} />
-              {activeIndex !== null && activeIndex >= 0 && (
-                <path d={path} fill={color} clipPath="url(#cf-active)" />
-              )}
-            </>
+            <path d={path} fill={color} opacity={0.8} />
           )}
         </svg>
 

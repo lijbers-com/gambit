@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Settings2 } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { OptionCard, OptionCardTick } from './option-card';
@@ -105,7 +105,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
                       disabled={disabled}
                       onClick={() => setSettingsOpen((o) => !o)}
                     >
-                      <Settings2 className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
                   )}
                   <OptionCardTick />

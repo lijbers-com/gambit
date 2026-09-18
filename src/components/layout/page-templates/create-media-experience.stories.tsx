@@ -1496,23 +1496,29 @@ export const GoalSelection: Story = {
                         // stands, and the one thing to do about it.
                         if (!row.open) {
                           return (
-                            <div key={row.id} className="flex items-center justify-between gap-3 rounded-lg border bg-neutral-50 p-4">
-                              <div className="flex min-w-0 items-center gap-3">
+                            // Closed and open share one anatomy — icon, title,
+                            // sub line, header padding — so opening a row
+                            // never shifts anything; only the body appears.
+                            <div key={row.id} className="rounded-md border border-border bg-neutral-50">
+                              <div className="flex items-center gap-3 p-3">
+                              <div className="flex min-w-0 flex-1 items-center gap-3">
                                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
                                   <IconComponent size={14} />
                                 </span>
                                 <div className="min-w-0">
                                   <div className="truncate text-sm font-medium">{rowName}</div>
                                   {/* Budget first: splitting the plan's money over
-                                      its campaigns is what this step is for. */}
+                                      its campaigns is what this step is for. The
+                                      mode is not repeated here — the toggle beside
+                                      the row already says it. */}
                                   <div className="mt-0.5 truncate text-xs text-muted-foreground">
                                     <span className="font-medium text-foreground">€{share.toLocaleString()}</span>
                                     {' · '}{runTime}
-                                    {row.existingId ? ' · Existing campaign · joins this plan on save' : ` · ${isAssisted ? 'Assisted' : 'Expert'}`}
+                                    {row.existingId && ' · Existing campaign · joins this plan on save'}
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex shrink-0 items-center gap-3">
+                              <div className="flex shrink-0 items-center gap-2">
                                 {/* The mode stays at hand on a closed row too. */}
                                 {!row.existingId && (
                                   <label className="flex shrink-0 cursor-pointer items-center gap-2">
@@ -1529,6 +1535,7 @@ export const GoalSelection: Story = {
                                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground" title="Edit campaign" aria-label={`Edit ${rowName}`} onClick={() => updateRow(row.id, { open: true })}>
                                   <Pencil className="h-4 w-4" />
                                 </Button>
+                              </div>
                               </div>
                             </div>
                           );

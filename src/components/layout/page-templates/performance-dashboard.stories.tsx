@@ -39,7 +39,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Checkbox } from '@/components/ui/checkbox';
 import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { SessionDateRange } from '@/components/ui/session-date-range';
-import { SessionAdvertiserSelect } from '@/components/ui/session-advertiser-select';
 import { CardInsightList, type CardInsight } from '@/components/ui/insights-notifications';
 import { shareOfVoiceCase, salesUpliftTestCase, volumePacingCase, buyerMixCase, budgetRecommendationCase } from '@/lib/case-templates';
 import { Label } from '@/components/ui/label';
@@ -3307,6 +3306,7 @@ export const FunnelView: Story = {
     const routes = getRoutesForTheme(currentTheme);
 
     // Filter states (multi-select for FilterBar)
+    const [advertiserFilter, setAdvertiserFilter] = useState<string[]>([]);
     const [brandFilter, setBrandFilter] = useState<string[]>([]);
     const [campaignFilter, setCampaignFilter] = useState<string[]>([]);
     const [goalFilter, setGoalFilter] = useState<string[]>([]);
@@ -3713,7 +3713,8 @@ export const FunnelView: Story = {
       },
       {
         key: 'salesSku',
-        label: 'Sales SKU (14 days)',
+        label: 'Sales SKU',
+        subMetric: '14 days',
         value: formatEur(lastPurchase.spaRevenue),
         badgeValue: `+${pctChange(firstPurchase.spaRevenue, lastPurchase.spaRevenue)}%`,
         badgeVariant: 'success',
@@ -3721,7 +3722,8 @@ export const FunnelView: Story = {
       },
       {
         key: 'salesBrand',
-        label: 'Sales brand (14 days)',
+        label: 'Sales brand',
+        subMetric: '14 days',
         value: formatEur(lastPurchase.totalRevenue),
         badgeValue: `+${pctChange(firstTotalRevenue, lastPurchase.totalRevenue)}%`,
         badgeVariant: 'success',
@@ -3729,7 +3731,8 @@ export const FunnelView: Story = {
       },
       {
         key: 'unitsSku',
-        label: 'Units sold SKU (14 days)',
+        label: 'Units sold SKU',
+        subMetric: '14 days',
         value: formatCount(lastPurchase.spaUnitsSold),
         badgeValue: `+${pctChange(firstPurchase.spaUnitsSold, lastPurchase.spaUnitsSold)}%`,
         badgeVariant: 'success',
@@ -3737,7 +3740,8 @@ export const FunnelView: Story = {
       },
       {
         key: 'unitsBrand',
-        label: 'Units sold brand (14 days)',
+        label: 'Units sold brand',
+        subMetric: '14 days',
         value: formatCount(lastPurchase.totalUnitsSold),
         badgeValue: `+${pctChange(firstTotalUnits, lastPurchase.totalUnitsSold)}%`,
         badgeVariant: 'success',
@@ -3745,7 +3749,8 @@ export const FunnelView: Story = {
       },
       {
         key: 'roasSku',
-        label: 'ROAS SKU (14 days)',
+        label: 'ROAS SKU',
+        subMetric: '14 days',
         value: `${lastPurchase.spaRoas}%`,
         badgeValue: `+${pctChange(firstPurchase.spaRoas, lastPurchase.spaRoas)}%`,
         badgeVariant: 'success',
@@ -3753,7 +3758,8 @@ export const FunnelView: Story = {
       },
       {
         key: 'roasBrand',
-        label: 'ROAS Brand (14 days)',
+        label: 'ROAS Brand',
+        subMetric: '14 days',
         value: `${lastPurchase.roas}%`,
         badgeValue: `+${pctChange(firstPurchase.roas, lastPurchase.roas)}%`,
         badgeVariant: 'success',
@@ -3963,15 +3969,24 @@ export const FunnelView: Story = {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* The advertiser picker, moved out of the page header and in
-                  next to the rest of what the numbers cover — no icon, since
-                  its neighbours (Brand, Campaign…) already read as filters
-                  without one. */}
-              <SessionAdvertiserSelect hideIcon />
-
               <div className="flex-1">
                 <FilterBar
                   filters={[
+                    {
+                      // The advertiser picker, moved out of the page header
+                      // and in as a filter like the rest of what the
+                      // numbers cover — multi-select, same as Brand.
+                      name: 'Advertiser',
+                      options: [
+                        { label: 'Coca-Cola', value: 'coca-cola' },
+                        { label: 'Unilever', value: 'unilever' },
+                        { label: 'Procter & Gamble', value: 'procter-gamble' },
+                        { label: 'Nestlé', value: 'nestle' },
+                        { label: 'PepsiCo', value: 'pepsico' },
+                      ],
+                      selectedValues: advertiserFilter,
+                      onChange: setAdvertiserFilter
+                    },
                     {
                       name: 'Brand',
                       options: [
@@ -4097,7 +4112,7 @@ export const FunnelView: Story = {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Total Volume {totalVolumeLabel}
+                      Total Impressions {totalVolumeLabel}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>

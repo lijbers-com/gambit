@@ -49,6 +49,9 @@ export interface BookingBudgetRuntimeProps {
   bordered?: boolean;
   /** Extra budget settings, rendered under pacing and above active days. */
   children?: React.ReactNode;
+  /** What sits directly under the budget field — the budget notification
+   *  switch, drawn like every other switch row on a booking form. */
+  budgetExtra?: React.ReactNode;
   className?: string;
 }
 
@@ -158,6 +161,7 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
   pacing,
   bordered = true,
   children,
+  budgetExtra,
   className,
 }) => (
   <FormSection bordered={bordered} title="Run time & budget" className={className}>
@@ -210,6 +214,7 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
               min="0"
             />
             {campaignBudget && <FieldHint>Campaign budget: {campaignBudget}</FieldHint>}
+            {budgetExtra}
           </div>
         );
         return pacing ? pacing(budgetField) : budgetField;

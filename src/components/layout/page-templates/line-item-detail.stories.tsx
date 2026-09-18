@@ -4169,14 +4169,15 @@ export const SponsoredProducts: Story = {
                             onOverridesChange={setPacingOverrides}
                           />
                         )}
-                      >
-                        <ToggleCard
-                          title="Email budget notifications"
-                          description="Tells you when a booking caps out early or ends the flight with budget unspent."
-                          checked={sendBudgetNotification}
-                          onCheckedChange={setSendBudgetNotification}
-                        />
-                      </BookingBudgetRuntime>
+                        budgetExtra={
+                          <ToggleRow
+                            label="Email budget notifications"
+                            hint="Tells you when a booking caps out early or ends the flight with budget unspent."
+                            checked={sendBudgetNotification}
+                            onCheckedChange={setSendBudgetNotification}
+                          />
+                        }
+                      />
 
                       {/* Targeting is products, keywords and categories — the
                           same three blocks the create flow builds, in the same

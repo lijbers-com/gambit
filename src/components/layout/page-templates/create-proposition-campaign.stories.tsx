@@ -37,7 +37,7 @@ import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
 import { BudgetPacing, type PacingShape, type PacingOverride } from '@/components/ui/budget-pacing';
 import { BidRow, suggestedBid } from '@/components/ui/bid-row';
 import { ToggleCard } from '@/components/ui/toggle-card';
-import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleSection, defaultDeliveryBehavior, defaultDeliveryObjectives, DELIVERY_OBJECTIVES_INFO, DELIVERY_OBJECTIVES_OFF, type DeliveryBehaviorValue, type DeliveryObjectivesValue } from '@/components/ui/delivery-settings';
+import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleRow, ToggleSection, defaultDeliveryBehavior, defaultDeliveryObjectives, DELIVERY_OBJECTIVES_INFO, DELIVERY_OBJECTIVES_OFF, type DeliveryBehaviorValue, type DeliveryObjectivesValue } from '@/components/ui/delivery-settings';
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
@@ -3477,6 +3477,15 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                               value={totalBudget}
                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTotalBudget(e.target.value)}
                             />
+                            {/* The notification is a budget setting, so it
+                                sits right under the budget — a switch row,
+                                like every other switch on a booking form. */}
+                            <ToggleRow
+                              label="Email budget notifications"
+                              hint="Tells you when a booking caps out early or ends the flight with budget unspent."
+                              checked={sendBudgetNotification}
+                              onCheckedChange={setSendBudgetNotification}
+                            />
                           </div>
                         }
                         totalBudget={Number(totalBudget) || undefined}
@@ -3492,12 +3501,6 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                       {/* No CPC field here — on auction campaigns each
                           selected placement carries its own bid, on the next
                           step's cards. */}
-                      <ToggleCard
-                        title="Email budget notifications"
-                        description="Tells you when a booking caps out early or ends the flight with budget unspent."
-                        checked={sendBudgetNotification}
-                        onCheckedChange={setSendBudgetNotification}
-                      />
                     </div>
                   </FormSection>
                   <div className="flex justify-end gap-3">

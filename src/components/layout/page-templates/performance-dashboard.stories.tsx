@@ -3408,13 +3408,17 @@ export const FunnelView: Story = {
     const impressionKeys = ['spaImpressions', 'impressions', 'omiDots', 'doohSpots', 'offsiteImpressions'] as const;
     const selectedImpressionKeys = impressionKeys.filter(k => awarenessMetrics.includes(k));
 
+    // Flighted, not smooth: a campaign is either running or it isn't, so the
+    // series should show that — a spike while it delivers, a drop to near
+    // nothing between flights — rather than one steady ramp. Sponsored
+    // products stays close to always-on; the others start and stop.
     const awarenessDataRaw = [
-      { month: 'Jan', spend: 14200, spaImpressions: 120000, impressions: 65000, sov: 28, salesUplift: 12, omiDots: 62000, doohSpots: 58000, offsiteImpressions: 42000 },
-      { month: 'Feb', spend: 19800, spaImpressions: 175000, impressions: 95000, sov: 38, salesUplift: 15, omiDots: 98000, doohSpots: 87000, offsiteImpressions: 63000 },
-      { month: 'Mar', spend: 17600, spaImpressions: 155000, impressions: 82000, sov: 35, salesUplift: 18, omiDots: 85000, doohSpots: 78000, offsiteImpressions: 55000 },
-      { month: 'Apr', spend: 25400, spaImpressions: 220000, impressions: 118000, sov: 42, salesUplift: 21, omiDots: 120000, doohSpots: 112000, offsiteImpressions: 82000 },
-      { month: 'May', spend: 30100, spaImpressions: 265000, impressions: 140000, sov: 44, salesUplift: 24, omiDots: 142000, doohSpots: 133000, offsiteImpressions: 98000 },
-      { month: 'Jun', spend: 34200, spaImpressions: 300000, impressions: 160000, sov: 47, salesUplift: 27, omiDots: 160000, doohSpots: 155000, offsiteImpressions: 115000 }
+      { month: 'Jan', spend: 14200, spaImpressions: 95000,  impressions: 150000, sov: 28, salesUplift: 12, omiDots: 3000,   doohSpots: 90000, offsiteImpressions: 35000 },
+      { month: 'Feb', spend: 19800, spaImpressions: 100000, impressions: 172000, sov: 38, salesUplift: 15, omiDots: 4000,   doohSpots: 6000,  offsiteImpressions: 80000 },
+      { month: 'Mar', spend: 17600, spaImpressions: 108000, impressions: 9000,   sov: 35, salesUplift: 18, omiDots: 3000,   doohSpots: 98000, offsiteImpressions: 16000 },
+      { month: 'Apr', spend: 25400, spaImpressions: 115000, impressions: 65000,  sov: 42, salesUplift: 21, omiDots: 195000, doohSpots: 7000,  offsiteImpressions: 92000 },
+      { month: 'May', spend: 30100, spaImpressions: 122000, impressions: 150000, sov: 44, salesUplift: 24, omiDots: 180000, doohSpots: 125000, offsiteImpressions: 138000 },
+      { month: 'Jun', spend: 34200, spaImpressions: 130000, impressions: 210000, sov: 47, salesUplift: 27, omiDots: 10000,  doohSpots: 170000, offsiteImpressions: 165000 }
     ];
 
     const awarenessData = awarenessDataRaw.map(d => ({
@@ -3788,27 +3792,48 @@ export const FunnelView: Story = {
       "Loyal": { label: "Loyal Customers", color: "hsl(var(--chart-3))" }
     };
 
+    // Each stage's mix of propositions, read from the same rows the charts
+    // below already use — so the funnel's bands and the chart's series agree.
+    const breakdownFrom = (row: Record<string, number>, engines: Record<string, EngineId>): Partial<Record<EngineId, number>> => {
+      const out: Partial<Record<EngineId, number>> = {};
+      for (const [key, engine] of Object.entries(engines)) out[engine] = (out[engine] ?? 0) + (row[key] ?? 0);
+      return out;
+    };
+    const awarenessBreakdown = breakdownFrom(awarenessDataRaw[awarenessDataRaw.length - 1] as any, channelEngines);
+    const considerationBreakdown = breakdownFrom(considerationDataRaw[considerationDataRaw.length - 1] as any, engagementEngines);
+    const purchaseBreakdown = breakdownFrom(purchaseDataRaw[purchaseDataRaw.length - 1] as any, unitEngines);
+    // Loyalty has no per-channel field of its own — repeat buyers carry
+    // roughly the same channel mix as the purchases that won them.
+    const purchaseTotal = Object.values(purchaseBreakdown).reduce((s, v) => s + (v ?? 0), 0) || 1;
+    const loyaltyBreakdown = Object.fromEntries(
+      Object.entries(purchaseBreakdown).map(([e, v]) => [e, ((v ?? 0) / purchaseTotal) * loyaltyData[loyaltyData.length - 1].existingBuyers]),
+    ) as Partial<Record<EngineId, number>>;
+
     // Conversion funnel breakdown - drives stage tab selection
     const funnelStages = [
       {
         key: 'awareness',
         label: 'Awareness',
         value: awarenessData[awarenessData.length - 1].totalVolume,
+        breakdown: awarenessBreakdown,
       },
       {
         key: 'consideration',
         label: 'Consideration',
         value: considerationData[considerationData.length - 1].totalEngagements,
+        breakdown: considerationBreakdown,
       },
       {
         key: 'purchase',
         label: 'Purchase',
         value: purchaseData[purchaseData.length - 1].totalUnitsSold,
+        breakdown: purchaseBreakdown,
       },
       {
         key: 'loyalty',
         label: 'Loyalty',
         value: loyaltyData[loyaltyData.length - 1].existingBuyers,
+        breakdown: loyaltyBreakdown,
       },
     ];
 
@@ -4038,33 +4063,10 @@ export const FunnelView: Story = {
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <TooltipProvider>
-                        {impressionKeys.map((key) => {
-                          const active = awarenessMetrics.includes(key);
-                          return (
-                            <Tooltip key={key}>
-                              <TooltipTrigger asChild>
-                                <button
-                                  type="button"
-                                  onClick={() => setAwarenessMetrics(prev => prev.includes(key) ? prev.filter(m => m !== key) : [...prev, key])}
-                                  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
-                                >
-                                  <Badge
-                                    variant={active ? "secondary" : "outline"}
-                                    className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
-                                  >
-                                    <PropositionSwatch engine={channelEngines[key]} className="mr-1.5" />
-                                    {channelLabels[key]} {Math.round((awarenessDataRaw[awarenessDataRaw.length - 1] as any)[key] / 1000)}K
-                                  </Badge>
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent>{channelTooltips[key]}</TooltipContent>
-                            </Tooltip>
-                          );
-                        })}
-                      </TooltipProvider>
-                    </div>
+                    {/* The per-channel breakdown used to sit here as a row of
+                        badges — now it only shows on hover, in the chart's
+                        own tooltip, which already carries the same pattern
+                        swatch and the exact value for that point. */}
                   </CardHeader>
                   <CardContent>
                     <AreaChartComponent
@@ -4084,10 +4086,10 @@ export const FunnelView: Story = {
                       showYAxis={true}
                       showRightYAxis={true}
                       benchmark={{ value: 700000, label: "Target 700K" }}
-                      className="h-[200px] w-full"
+                      className="h-[260px] w-full"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
-                    <CardInsightList insights={volumeCardInsights} className="mt-4" />
+                    <CardInsightList insights={volumeCardInsights} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
 

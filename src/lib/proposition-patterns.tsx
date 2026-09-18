@@ -63,19 +63,19 @@ export const PropositionPatternDefs: React.FC<{ engines?: PatternKey[]; opacity?
         return (
           <pattern key={id} id={id} patternUnits="userSpaceOnUse" width={size} height={size} style={{ opacity }}>
             <rect width={size} height={size} fill={p.base} />
-            {p.kind === 'diagonal' && <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.6} opacity={0.7} />}
-            {p.kind === 'diagonal-reverse' && <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.6} opacity={0.7} />}
+            {p.kind === 'diagonal' && <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.5} opacity={0.35} />}
+            {p.kind === 'diagonal-reverse' && <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.5} opacity={0.35} />}
             {p.kind === 'crosshatch' && (
               <>
-                <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.5} opacity={0.7} />
-                <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.5} opacity={0.7} />
+                <path d={`M -2 ${size + 2} L ${size + 2} -2`} stroke={p.ink} strokeWidth={0.4} opacity={0.35} />
+                <path d={`M -2 -2 L ${size + 2} ${size + 2}`} stroke={p.ink} strokeWidth={0.4} opacity={0.35} />
               </>
             )}
-            {p.kind === 'dots' && <circle cx={size / 2} cy={size / 2} r={0.9} fill={p.ink} opacity={0.8} />}
+            {p.kind === 'dots' && <circle cx={size / 2} cy={size / 2} r={0.7} fill={p.ink} opacity={0.4} />}
             {p.kind === 'checker' && (
               <>
-                <rect x={0} y={0} width={size / 2} height={size / 2} fill={p.ink} opacity={0.22} />
-                <rect x={size / 2} y={size / 2} width={size / 2} height={size / 2} fill={p.ink} opacity={0.22} />
+                <rect x={0} y={0} width={size / 2} height={size / 2} fill={p.ink} opacity={0.12} />
+                <rect x={size / 2} y={size / 2} width={size / 2} height={size / 2} fill={p.ink} opacity={0.12} />
               </>
             )}
           </pattern>
@@ -94,19 +94,19 @@ export const PropositionSwatch: React.FC<{ engine: PatternKey; className?: strin
       <defs>
         <pattern id={id} patternUnits="userSpaceOnUse" width={6} height={6}>
           <rect width={6} height={6} fill={p.base} />
-          {p.kind === 'diagonal' && <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={0.6} opacity={0.7} />}
-          {p.kind === 'diagonal-reverse' && <path d="M -1.5 -1.5 L 7.5 7.5" stroke={p.ink} strokeWidth={0.6} opacity={0.7} />}
+          {p.kind === 'diagonal' && <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={0.5} opacity={0.4} />}
+          {p.kind === 'diagonal-reverse' && <path d="M -1.5 -1.5 L 7.5 7.5" stroke={p.ink} strokeWidth={0.5} opacity={0.4} />}
           {p.kind === 'crosshatch' && (
             <>
-              <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={0.7} />
-              <path d="M -1.5 -1.5 L 7.5 7.5" stroke={p.ink} strokeWidth={0.7} />
+              <path d="M -1.5 7.5 L 7.5 -1.5" stroke={p.ink} strokeWidth={0.45} opacity={0.4} />
+              <path d="M -1.5 -1.5 L 7.5 7.5" stroke={p.ink} strokeWidth={0.45} opacity={0.4} />
             </>
           )}
-          {p.kind === 'dots' && <circle cx={3} cy={3} r={0.9} fill={p.ink} />}
+          {p.kind === 'dots' && <circle cx={3} cy={3} r={0.7} fill={p.ink} opacity={0.45} />}
           {p.kind === 'checker' && (
             <>
-              <rect x={0} y={0} width={3} height={3} fill={p.ink} opacity={0.22} />
-              <rect x={3} y={3} width={3} height={3} fill={p.ink} opacity={0.22} />
+              <rect x={0} y={0} width={3} height={3} fill={p.ink} opacity={0.12} />
+              <rect x={3} y={3} width={3} height={3} fill={p.ink} opacity={0.12} />
             </>
           )}
         </pattern>

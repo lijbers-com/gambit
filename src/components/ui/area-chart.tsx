@@ -111,8 +111,10 @@ export function AreaChartComponent({
         margin={{
           left: showYAxis ? 0 : 0,
           right: showRightYAxis ? 0 : 0,
-          top: 4,
-          bottom: 0,
+          // Room for a benchmark badge (and the topmost gridline label) to
+          // clear the plot without crowding the card's own edge.
+          top: benchmark ? 24 : 12,
+          bottom: 4,
         }}
       >
         {showGrid && yAxisTicks.map(tick => (

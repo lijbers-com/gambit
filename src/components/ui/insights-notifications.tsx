@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Card, CardContent } from './card';
 import { Badge } from './badge';
 import { FormSection } from './form-section';
@@ -88,38 +89,64 @@ export interface CardInsight {
   caseData: CaseData;
 }
 
-export const CardInsightList: React.FC<{ insights: CardInsight[]; className?: string }> = ({ insights, className }) => {
+export const CardInsightList: React.FC<{
+  insights: CardInsight[];
+  className?: string;
+  /** 'compact' drops the unread dot, the preview line and the chevron —
+   *  just the subject and its kind badge, one line each — so a card with
+   *  several things to say can show more of them in the same height. */
+  variant?: 'default' | 'compact';
+  /** How many rows show before the rest is cut. Defaults to 3 for the full
+   *  row, 6 for compact — a compact row is short enough to fit more. */
+  maxVisible?: number;
+}> = ({ insights, className, variant = 'default', maxVisible }) => {
   const status = useInboxState();
   const [openId, setOpenId] = React.useState<string | null>(null);
   const active = insights.find((m) => m.id === openId) ?? null;
   if (insights.length === 0) return null;
+  const compact = variant === 'compact';
+  const visible = insights.slice(0, maxVisible ?? (compact ? 6 : 3));
   return (
     <div className={className}>
       <div className="divide-y divide-border overflow-hidden rounded-lg border">
-        {insights.slice(0, 3).map((m) => (
+        {visible.map((m) => (
           <button
             key={m.id}
             type="button"
             onClick={() => { markRead(m.id); setOpenId(m.id); }}
-            className="group/msg flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-hover"
+            className={cn(
+              'group/msg flex w-full text-left transition-colors hover:bg-surface-hover',
+              compact ? 'items-center justify-between gap-3 px-4 py-2' : 'items-start gap-3 px-4 py-3',
+            )}
           >
-            <span className="mt-1.5 flex h-4 w-4 shrink-0 items-center justify-center">
-              {(status[m.id] ?? 'unread') === 'unread' && (
-                <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />
-              )}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-2">
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{m.subject}</span>
+            {compact ? (
+              <>
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{m.subject}</span>
                 <Badge variant={m.kind === 'recommendation' ? 'secondary' : 'outline'} className="shrink-0 px-2 py-0.5 text-xs font-medium capitalize">
                   {m.kind}
                 </Badge>
-              </span>
-              {/* One line, like every other notification row. The context line
-                  the inbox adds is dropped here: the card IS the context. */}
-              <span className="mt-1.5 block truncate text-sm text-muted-foreground">{m.preview}</span>
-            </span>
-            <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover/msg:text-foreground" />
+              </>
+            ) : (
+              <>
+                <span className="mt-1.5 flex h-4 w-4 shrink-0 items-center justify-center">
+                  {(status[m.id] ?? 'unread') === 'unread' && (
+                    <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{m.subject}</span>
+                    <Badge variant={m.kind === 'recommendation' ? 'secondary' : 'outline'} className="shrink-0 px-2 py-0.5 text-xs font-medium capitalize">
+                      {m.kind}
+                    </Badge>
+                  </span>
+                  {/* One line, like every other notification row. The context line
+                      the inbox adds is dropped here: the card IS the context. */}
+                  <span className="mt-1.5 block truncate text-sm text-muted-foreground">{m.preview}</span>
+                </span>
+                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover/msg:text-foreground" />
+              </>
+            )}
           </button>
         ))}
       </div>

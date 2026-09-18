@@ -4,6 +4,7 @@ import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
+import { PropositionSwatch, type PatternKey } from "@/lib/proposition-patterns"
 
 /**
  * The shadcn/ReUI chart contract — the standard the frontend team builds
@@ -25,6 +26,9 @@ export type ChartConfig = Record<
   {
     label?: React.ReactNode
     icon?: React.ComponentType
+    /** The proposition this series stands for — a patterned fill's swatch,
+     *  not a flat colour, shows in the tooltip. */
+    engine?: PatternKey
   } & (
     | { color?: string; theme?: never }
     | { color?: never; theme: Record<keyof typeof THEMES, string> }
@@ -214,6 +218,11 @@ const ChartTooltipContent = React.forwardRef<
                     <>
                       {itemConfig?.icon ? (
                         <itemConfig.icon />
+                      ) : itemConfig?.engine ? (
+                        // A patterned series (fill is a `url(#…)` pattern
+                        // reference, which a CSS background-color cannot
+                        // read) shows the same swatch its legend chip wears.
+                        !hideIndicator && <PropositionSwatch engine={itemConfig.engine} size={10} />
                       ) : (
                         !hideIndicator && (
                           <div

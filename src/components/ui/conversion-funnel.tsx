@@ -11,11 +11,21 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import type { EngineId } from "@/lib/db"
+import { PROPOSITION_PATTERNS, PropositionPatternDefs, patternFill, patternFor } from "@/lib/proposition-patterns"
+
+/** Bottom-to-top stacking order for a funnel's engine bands — the same
+ *  order the pattern system declares them in. */
+const ENGINE_ORDER = Object.keys(PROPOSITION_PATTERNS) as EngineId[]
 
 export interface ConversionFunnelStage {
   key: string
   label: string
   value: number
+  /** This stage's volume by proposition. When every stage carries one, the
+   *  flow renders as stacked, patterned bands — one per engine — instead of
+   *  one flat colour, so composition reads at every point in the funnel. */
+  breakdown?: Partial<Record<EngineId, number>>
 }
 
 export interface ConversionFunnelProps {
@@ -74,28 +84,64 @@ export function ConversionFunnelComponent({
   const half = (v: number) => Math.max(MIN_HALF, (v / maxValue) * (H / 2))
   const halves = stages.map((s) => half(s.value))
 
-  const path = React.useMemo(() => {
-    if (n === 0) return ""
-    const mid = H / 2
+  /**
+   * One taper, generalised: given the y-edge at every stage boundary (top
+   * and bottom), build the ribbon between them — the same "hold, then ease
+   * into the next stage's edge" curve the whole flow uses. The outer shape
+   * is `buildRibbon(edge => mid - half, edge => mid + half)`; a sub-band is
+   * the same call with edges cut from the stack instead of the full width.
+   */
+  const buildRibbon = React.useCallback((topEdges: number[], bottomEdges: number[]) => {
     const top: string[] = []
     const bottom: string[] = []
-    // Ease over the last 40% of each column into the next stage's width.
     const HOLD = 0.6
     for (let i = 0; i < n; i++) {
       const x0 = i * W
       const x1 = x0 + W * HOLD
       const x2 = x0 + W
-      const a = halves[i]
-      const b = i < n - 1 ? halves[i + 1] : halves[i]
-      if (i === 0) top.push(`M ${x0} ${mid - a}`)
-      top.push(`L ${x1} ${mid - a}`)
+      const aTop = topEdges[i]
+      const bTop = i < n - 1 ? topEdges[i + 1] : topEdges[i]
+      const aBot = bottomEdges[i]
+      const bBot = i < n - 1 ? bottomEdges[i + 1] : bottomEdges[i]
+      if (i === 0) top.push(`M ${x0} ${aTop}`)
+      top.push(`L ${x1} ${aTop}`)
       const cx = (x1 + x2) / 2
-      top.push(`C ${cx} ${mid - a}, ${cx} ${mid - b}, ${x2} ${mid - b}`)
-      bottom.unshift(`C ${cx} ${mid + b}, ${cx} ${mid + a}, ${x1} ${mid + a}`, `L ${x0} ${mid + a}`)
-      if (i === n - 1) bottom.unshift(`L ${x2} ${mid + b}`)
+      top.push(`C ${cx} ${aTop}, ${cx} ${bTop}, ${x2} ${bTop}`)
+      bottom.unshift(`C ${cx} ${bBot}, ${cx} ${aBot}, ${x1} ${aBot}`, `L ${x0} ${aBot}`)
+      if (i === n - 1) bottom.unshift(`L ${x2} ${bBot}`)
     }
     return `${top.join(" ")} ${bottom.join(" ")} Z`
-  }, [halves, n])
+  }, [n])
+
+  const mid = H / 2
+  const path = React.useMemo(
+    () => (n === 0 ? "" : buildRibbon(halves.map((h) => mid - h), halves.map((h) => mid + h))),
+    [halves, n, buildRibbon, mid],
+  )
+
+  // A band per proposition, stacked bottom to top by each stage's own
+  // composition — so the flow's narrowing is the sum of each engine's own
+  // drop-off, not a fixed split carried over from the first stage.
+  const hasBreakdown = n > 0 && stages.every((s) => s.breakdown && Object.values(s.breakdown).some((v) => (v ?? 0) > 0))
+  const bandPaths = React.useMemo(() => {
+    if (!hasBreakdown) return null
+    // Cumulative share, bottom to top, at every stage boundary.
+    const edges: number[][] = stages.map((s, i) => {
+      const total = ENGINE_ORDER.reduce((sum, e) => sum + (s.breakdown?.[e] ?? 0), 0) || 1
+      const bottom = mid + halves[i]
+      let cum = 0
+      const out = [bottom]
+      for (const e of ENGINE_ORDER) {
+        cum += (s.breakdown?.[e] ?? 0) / total
+        out.push(bottom - 2 * halves[i] * cum)
+      }
+      return out
+    })
+    return ENGINE_ORDER.map((engine, k) => ({
+      engine,
+      d: buildRibbon(edges.map((e) => e[k + 1]), edges.map((e) => e[k])),
+    }))
+  }, [hasBreakdown, stages, halves, mid, buildRibbon])
 
   return (
     <div className={cn("flex flex-col w-full", className)}>
@@ -113,10 +159,34 @@ export function ConversionFunnelComponent({
             <clipPath id="cf-active">
               {activeIndex !== null && activeIndex >= 0 && <rect x={activeIndex * W} y={0} width={W} height={H} />}
             </clipPath>
+            {bandPaths && <PropositionPatternDefs engines={ENGINE_ORDER} />}
           </defs>
-          <path d={path} fill={color} opacity={activeIndex !== null && activeIndex >= 0 ? 0.35 : 0.8} />
-          {activeIndex !== null && activeIndex >= 0 && (
-            <path d={path} fill={color} clipPath="url(#cf-active)" />
+          {bandPaths ? (
+            // Composition, not just volume: each proposition keeps its own
+            // pattern through the flow, so the mix at Awareness and the mix
+            // at Purchase both read at a glance.
+            bandPaths.map(({ engine, d }) => (
+              <React.Fragment key={engine}>
+                <path
+                  d={d}
+                  fill={patternFill(engine)}
+                  stroke={patternFor(engine).ink}
+                  strokeWidth={0.5}
+                  strokeOpacity={0.5}
+                  opacity={activeIndex !== null && activeIndex >= 0 ? 0.4 : 0.85}
+                />
+                {activeIndex !== null && activeIndex >= 0 && (
+                  <path d={d} fill={patternFill(engine)} stroke={patternFor(engine).ink} strokeWidth={0.5} strokeOpacity={0.5} clipPath="url(#cf-active)" />
+                )}
+              </React.Fragment>
+            ))
+          ) : (
+            <>
+              <path d={path} fill={color} opacity={activeIndex !== null && activeIndex >= 0 ? 0.35 : 0.8} />
+              {activeIndex !== null && activeIndex >= 0 && (
+                <path d={path} fill={color} clipPath="url(#cf-active)" />
+              )}
+            </>
           )}
         </svg>
 

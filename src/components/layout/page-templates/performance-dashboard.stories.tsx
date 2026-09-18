@@ -4255,143 +4255,48 @@ export const FunnelView: Story = {
                   </CardContent>
                 </Card>
 
-                {/* Row 2 - CTR and PDP Views side by side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Total CTR */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-1.5">
-                        Total CTR {considerationData[5].totalCtr}%
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>Average click-through rate across channels. Percentage of ads clicked vs impressions served.</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </CardTitle>
-                      <div className="flex items-center gap-1 flex-wrap mt-1">
-                        <Badge variant="secondary" className="text-xs">SPA CTR {considerationDataRaw[5].spaCtr}%</Badge>
-                        <Plus className="w-3 h-3 text-muted-foreground" />
-                        <Badge variant="secondary" className="text-xs">Display CTR {considerationDataRaw[5].displayCtr}%</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <LineChartComponent
-                        data={considerationData}
-                        config={{
-                          totalCtr: { label: "Total CTR %", color: "hsl(var(--chart-2))" }
-                        }}
-                        showLegend={false}
-                        showGrid={true}
-                        showTooltip={true}
-                        showXAxis={true}
-                        showYAxis={true}
-                        benchmark={{ value: 2, label: "Target 2%" }}
-                        showDots={true}
-                        className="h-[200px] w-full"
-                        xAxisDataKey="month"
-                        tooltipKeys={{
-                          spaCtr: { label: 'SPA CTR %', color: 'transparent' },
-                          displayCtr: { label: 'Display CTR %', color: 'transparent' },
-                        }}
-                      />
-                      <div className="flex justify-end mt-2">
-                        <Badge variant="success" className="text-xs">+56%</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* PDP Views per Reached User */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-1.5">
-                        PDP Views per Reached User {considerationData[5].totalPdpViewsPerUser}
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>Product detail page views per unique reached user. Measures how effectively ads drive product page engagement.</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </CardTitle>
-                      <div className="flex items-center gap-1 flex-wrap mt-1">
-                        <Badge variant="secondary" className="text-xs">SPA {considerationData[5].spaPdpViewsPerUser}</Badge>
-                        <Plus className="w-3 h-3 text-muted-foreground" />
-                        <Badge variant="secondary" className="text-xs">Display {considerationData[5].displayPdpViewsPerUser}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <LineChartComponent
-                        data={considerationData}
-                        config={{
-                          totalPdpViewsPerUser: { label: "PDP Views / User", color: "hsl(var(--chart-4))" }
-                        }}
-                        showLegend={false}
-                        showGrid={true}
-                        showTooltip={true}
-                        showXAxis={true}
-                        showYAxis={true}
-                        benchmark={{ value: 1.5, label: "Target 1.5" }}
-                        showDots={true}
-                        className="h-[200px] w-full"
-                        xAxisDataKey="month"
-                        tooltipKeys={{
-                          spaPdpViewsPerUser: { label: 'SPA PDP Views / User', color: 'transparent' },
-                          displayPdpViewsPerUser: { label: 'Display PDP Views / User', color: 'transparent' },
-                        }}
-                      />
-                      <div className="flex justify-end mt-2">
-                        <Badge variant="success" className="text-xs">+24%</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Row 3 - Total Reach Clicks (Users) */}
+                {/* Row 2 - Total CTR */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Total Reach Clicks {Math.round(considerationDataRaw[5].reachClicks / 1000)}K
+                      Total CTR {considerationData[5].totalCtr}%
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
-                          <TooltipContent>Unique count of customers (customer IDs) that had a click interaction</TooltipContent>
+                          <TooltipContent>Average click-through rate across channels. Percentage of ads clicked vs impressions served.</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
                     <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">New-to-brand reach {Math.round(considerationDataRaw[5].newBrandReach / 1000)}K</Badge>
+                      <Badge variant="secondary" className="text-xs">SPA CTR {considerationDataRaw[5].spaCtr}%</Badge>
                       <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Lapsed brand reach {Math.round(considerationDataRaw[5].lapsedReach / 1000)}K</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Existing brand reach {Math.round(considerationDataRaw[5].existingReach / 1000)}K</Badge>
+                      <Badge variant="secondary" className="text-xs">Display CTR {considerationDataRaw[5].displayCtr}%</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <BarChartComponent
+                    <LineChartComponent
                       data={considerationData}
                       config={{
-                        newBrandReach: { label: "New-to-brand", color: "hsl(var(--chart-1))" },
-                        lapsedReach: { label: "Lapsed brand", color: "hsl(var(--chart-2))" },
-                        existingReach: { label: "Existing brand", color: "hsl(var(--chart-3))" },
+                        totalCtr: { label: "Total CTR %", color: "hsl(var(--chart-2))" }
                       }}
-                      showLegend={true}
+                      showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
-                      benchmark={{ value: 8000, label: "Target 8K" }}
+                      benchmark={{ value: 2, label: "Target 2%" }}
+                      showDots={true}
                       className="h-[200px] w-full"
                       xAxisDataKey="month"
-                      stacked={true}
+                      tooltipKeys={{
+                        spaCtr: { label: 'SPA CTR %', color: 'transparent' },
+                        displayCtr: { label: 'Display CTR %', color: 'transparent' },
+                      }}
                     />
                     <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+92%</Badge>
+                      <Badge variant="success" className="text-xs">+56%</Badge>
                     </div>
                   </CardContent>
                 </Card>

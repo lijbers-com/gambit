@@ -52,19 +52,19 @@ export const MiniSelect: React.FC<{ value: string; options: string[]; onChange: 
 export const ToggleRow: React.FC<{
   label: string; hint?: string; checked: boolean; onCheckedChange: (v: boolean) => void; info?: string; rightText?: string;
 }> = ({ label, hint, checked, onCheckedChange, info, rightText }) => (
-  <div className="flex items-start justify-between gap-4 py-2">
-    <span className="min-w-0">
-      <span className="flex items-center gap-1.5 font-medium text-sm">
+  // The switch leads, like the checkbox of a field: switch and title on one
+  // line, the explanation under the title.
+  <label className="flex cursor-pointer items-start gap-3 py-2">
+    <Switch checked={checked} onCheckedChange={onCheckedChange} className="mt-px shrink-0" aria-label={label} />
+    <span className="min-w-0 flex-1">
+      <span className="flex items-center gap-1.5 text-sm font-medium">
         {label}
         {info && <InfoTip text={info} />}
       </span>
       {hint && <span className="mt-0.5 block text-xs text-muted-foreground">{hint}</span>}
     </span>
-    <div className="flex shrink-0 items-center gap-3">
-      {rightText && <span className="text-sm text-muted-foreground">{rightText}</span>}
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
-    </div>
-  </div>
+    {rightText && <span className="shrink-0 text-sm text-muted-foreground">{rightText}</span>}
+  </label>
 );
 
 /**

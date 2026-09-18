@@ -23,6 +23,10 @@ export interface AdvertiserSelectProps {
   placeholder?: string
   className?: string
   disabled?: boolean
+  /** Drop the building icon — for a filter row that already reads as
+   *  "advertiser" from its neighbours (Brand, Campaign…), where the icon
+   *  is only extra width. */
+  hideIcon?: boolean
 }
 
 const defaultAdvertiserOptions: AdvertiserOption[] = [
@@ -40,6 +44,7 @@ export function AdvertiserSelect({
   placeholder = "Select Advertiser",
   className,
   disabled = false,
+  hideIcon = false,
 }: AdvertiserSelectProps) {
   const selectedOption = options.find((o) => o.value === value)
 
@@ -55,7 +60,7 @@ export function AdvertiserSelect({
           )}
           disabled={disabled}
         >
-          <Building2 className="h-4 w-4 shrink-0" />
+          {!hideIcon && <Building2 className="h-4 w-4 shrink-0" />}
           <span className="truncate">{selectedOption?.label || placeholder}</span>
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>

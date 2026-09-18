@@ -39,6 +39,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Checkbox } from '@/components/ui/checkbox';
 import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { SessionDateRange } from '@/components/ui/session-date-range';
+import { SessionAdvertiserSelect } from '@/components/ui/session-advertiser-select';
 import { CardInsightList, type CardInsight } from '@/components/ui/insights-notifications';
 import { shareOfVoiceCase, salesUpliftTestCase, volumePacingCase, buyerMixCase, budgetRecommendationCase } from '@/lib/case-templates';
 import { Label } from '@/components/ui/label';
@@ -3351,9 +3352,6 @@ export const FunnelView: Story = {
       { name: 'Loyal', value: 23 }
     ];
 
-    // Selected top metrics (can be multiple)
-    const [selectedTopMetrics, setSelectedTopMetrics] = useState<string[]>(['revenueByProposition', 'revenueByProduct', 'iroas']);
-
     // Custom Report Dialog state
     const [customReportOpen, setCustomReportOpen] = useState(false);
     const [selectedReportMetrics, setSelectedReportMetrics] = useState<string[]>([]);
@@ -3364,37 +3362,14 @@ export const FunnelView: Story = {
     type FunnelStageKey = 'awareness' | 'consideration' | 'purchase' | 'loyalty';
     const [selectedStage, setSelectedStage] = useState<FunnelStageKey>('awareness');
 
-    // Handle Goal filter changes - select the matching stage tab and swap sales/reach
+    // Handle Goal filter changes - select the matching stage tab
     useEffect(() => {
-      if (goalFilter.length > 0) {
-        const stageGoal = (['awareness', 'consideration', 'purchase', 'loyalty'] as const).find(g =>
-          goalFilter.includes(g)
-        );
-        if (stageGoal) setSelectedStage(stageGoal);
-
-        if (goalFilter.includes('awareness')) {
-          setSelectedTopMetrics(prev =>
-            prev.includes('sales') ? prev.map(m => (m === 'sales' ? 'reach' : m)) : prev
-          );
-        } else {
-          setSelectedTopMetrics(prev =>
-            prev.includes('reach') ? prev.map(m => (m === 'reach' ? 'sales' : m)) : prev
-          );
-        }
-      } else {
-        setSelectedTopMetrics(prev =>
-          prev.includes('reach') ? prev.map(m => (m === 'reach' ? 'sales' : m)) : prev
-        );
-      }
-    }, [goalFilter]);
-
-    const toggleTopMetric = (metric: string) => {
-      setSelectedTopMetrics(prev =>
-        prev.includes(metric)
-          ? prev.filter(m => m !== metric)
-          : [...prev, metric]
+      if (goalFilter.length === 0) return;
+      const stageGoal = (['awareness', 'consideration', 'purchase', 'loyalty'] as const).find(g =>
+        goalFilter.includes(g)
       );
-    };
+      if (stageGoal) setSelectedStage(stageGoal);
+    }, [goalFilter]);
 
     const toggleReportMetric = (metric: string) => {
       setSelectedReportMetrics(prev =>
@@ -3684,73 +3659,83 @@ export const FunnelView: Story = {
     ];
 
     // Metric definitions for top cards
-    const metricDefinitions: Record<string, { label: string; value: string; badge: string; badgeVariant: "default" | "success" | "warning"; graphColor: string; config: any; dataKey: string }> = {
-      sales: { label: 'Total Sales', value: '€200K', badge: '+78%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { sales: { label: "Sales (K€)", color: "hsl(var(--chart-3))" } }, dataKey: 'sales' },
-      reach: { label: 'Reach', value: '850K', badge: '+102%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { reach: { label: "Reach (K)", color: "hsl(var(--chart-3))" } }, dataKey: 'reach' },
-      salesUplift: { label: 'Sales Uplift', value: '27%', badge: '+4.2%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { salesUplift: { label: "Sales Uplift %", color: "hsl(var(--chart-3))" } }, dataKey: 'salesUplift' },
-      avgRevenuePerCustomer: { label: 'Avg Revenue per Customer', value: '€60', badge: '+33%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { avgRevenuePerCustomer: { label: "Avg Revenue (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'avgRevenuePerCustomer' },
-      customerLifetimeValue: { label: 'Customer Lifetime Value', value: '€355', badge: '+27%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-3))', config: { customerLifetimeValue: { label: "CLV (€)", color: "hsl(var(--chart-3))" } }, dataKey: 'customerLifetimeValue' },
-      spend: { label: 'Total Spend', value: '€42.5K', badge: '85% of budget', badgeVariant: 'default', graphColor: 'hsl(var(--chart-1))', config: { spend: { label: "Spend (K€)", color: "hsl(var(--chart-1))" } }, dataKey: 'spend' },
-      costPerAcquisition: { label: 'Cost per Acquisition', value: '€18', badge: '-36%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-1))', config: { costPerAcquisition: { label: "CPA (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerAcquisition' },
-      costPerClick: { label: 'Cost per Click', value: '€1.60', badge: '-24%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-1))', config: { costPerClick: { label: "CPC (€)", color: "hsl(var(--chart-1))" } }, dataKey: 'costPerClick' },
-      budgetUtilization: { label: 'Budget Utilization', value: '85%', badge: '+31%', badgeVariant: 'warning', graphColor: 'hsl(var(--chart-1))', config: { budgetUtilization: { label: "Budget %", color: "hsl(var(--chart-1))" } }, dataKey: 'budgetUtilization' },
-      roas: { label: 'ROAS', value: '470%', badge: '+80%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { roas: { label: "ROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'roas' },
-      iroas: { label: 'iROAS', value: '420%', badge: '+140%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { iroas: { label: "iROAS", color: "hsl(var(--chart-2))" } }, dataKey: 'iroas' },
-      conversionRate: { label: 'Conversion Rate', value: '4.0%', badge: '+60%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { conversionRate: { label: "Conversion %", color: "hsl(var(--chart-2))" } }, dataKey: 'conversionRate' },
-      newToBrand: { label: 'New-to-brand', value: '48%', badge: '+6 pts', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { newToBrand: { label: "New-to-brand %", color: "hsl(var(--chart-2))" } }, dataKey: 'newToBrand' },
-      clickThroughRate: { label: 'Click-through Rate', value: '5.8%', badge: '+53%', badgeVariant: 'success', graphColor: 'hsl(var(--chart-2))', config: { clickThroughRate: { label: "CTR %", color: "hsl(var(--chart-2))" } }, dataKey: 'clickThroughRate' },
-    };
-
-    // Chart-style metric tiles for the metric row
+    // The eight cards this dashboard always shows, at a locked 14-day
+    // attribution window — no picker, no other metrics to choose from.
+    // Sponsored Products (spa*) is the proposition that targets specific
+    // SKUs, so it stands in for SKU-level reporting; the blended totals
+    // across every proposition stand in for brand-level. Both the headline
+    // number and the chart a click opens read the same months of
+    // purchaseData, so the two never disagree.
     const formatEur = (v: number) => `€${v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : v.toLocaleString()}`;
-    const revenueChartMetrics: MetricDefinition[] = [
+    const formatCount = (v: number) => (v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString());
+    const pctChange = (first: number, last: number) => Math.round(((last - first) / first) * 100);
+    const lastPurchase = purchaseData[purchaseData.length - 1];
+    const firstPurchase = purchaseData[0];
+    const firstTotalUnits = purchaseUnitKeys.reduce((sum, key) => sum + firstPurchase[key], 0);
+    const firstTotalRevenue = firstPurchase.spaRevenue + firstPurchase.displayRevenue + firstPurchase.dmiRevenue + firstPurchase.omiRevenue + firstPurchase.offsiteRevenue;
+    const impressionsTotal = awarenessData.reduce((sum, d) => sum + d.totalVolume, 0);
+
+    const topMetrics: MetricDefinition[] = [
       {
-        key: 'revenueByProposition',
-        label: 'Revenue by Proposition',
-        value: formatEur(
-          purchaseData[purchaseData.length - 1].spaRevenue +
-          purchaseData[purchaseData.length - 1].displayRevenue +
-          purchaseData[purchaseData.length - 1].dmiRevenue +
-          purchaseData[purchaseData.length - 1].omiRevenue +
-          purchaseData[purchaseData.length - 1].offsiteRevenue
-        ),
-        variant: 'donutLegend',
-        donutData: [
-          { name: 'Sponsored Products', value: purchaseData[purchaseData.length - 1].spaRevenue },
-          { name: 'Display', value: purchaseData[purchaseData.length - 1].displayRevenue },
-          { name: 'Digital Media In-store', value: purchaseData[purchaseData.length - 1].dmiRevenue },
-          { name: 'Offline Media In-store', value: purchaseData[purchaseData.length - 1].omiRevenue },
-          { name: 'Display Offsite', value: purchaseData[purchaseData.length - 1].offsiteRevenue },
-        ],
-        donutEngines: ['sponsored-products', 'display', 'digital-instore', 'offline-instore', 'offsite'],
-        valueFormatter: formatEur,
+        key: 'impressions',
+        label: 'Impressions',
+        value: formatCount(impressionsTotal),
+        chartData: awarenessData.map(d => ({ day: d.month, value: d.totalVolume })),
       },
       {
-        key: 'revenueByProduct',
-        label: 'Revenue by Product',
-        value: '€3.2K',
-        variant: 'barHorizontal',
-        productData: [
-          { name: 'Irish Spring 3C Soap', value: 932 },
-          { name: 'SFTSP Coco Btr Scrb', value: 746 },
-          { name: 'SS AB Cln Prt Liq HD', value: 772 },
-          { name: 'SFTSP Ktchn Frsh Hnd', value: 715 },
-          { name: 'SFTSP Frsh Sprs Wtr', value: 415 },
-        ],
-        valueFormatter: formatEur,
+        key: 'spend',
+        label: 'Spend',
+        value: formatEur(lastPurchase.spend),
+        badgeValue: `+${pctChange(firstPurchase.spend, lastPurchase.spend)}%`,
+        chartData: purchaseData.map(d => ({ day: d.month, value: d.spend })),
       },
       {
-        key: 'revenueByDate',
-        label: 'Revenue by Date',
-        value: '€8.6K',
-        variant: 'barVertical',
-        dateData: Array.from({ length: 21 }, (_, i) => {
-          const baseline = 320;
-          const noise = ((i * 73) % 200) - 100;
-          const value = Math.max(120, baseline + noise + (i % 5 === 0 ? 120 : 0));
-          return { date: `Day ${i + 1}`, value };
-        }),
-        valueFormatter: formatEur,
+        key: 'salesSku',
+        label: 'Sales SKU (14 days)',
+        value: formatEur(lastPurchase.spaRevenue),
+        badgeValue: `+${pctChange(firstPurchase.spaRevenue, lastPurchase.spaRevenue)}%`,
+        badgeVariant: 'success',
+        chartData: purchaseData.map(d => ({ day: d.month, value: d.spaRevenue })),
+      },
+      {
+        key: 'salesBrand',
+        label: 'Sales brand (14 days)',
+        value: formatEur(lastPurchase.totalRevenue),
+        badgeValue: `+${pctChange(firstTotalRevenue, lastPurchase.totalRevenue)}%`,
+        badgeVariant: 'success',
+        chartData: purchaseData.map(d => ({ day: d.month, value: d.totalRevenue })),
+      },
+      {
+        key: 'unitsSku',
+        label: 'Units sold SKU (14 days)',
+        value: formatCount(lastPurchase.spaUnitsSold),
+        badgeValue: `+${pctChange(firstPurchase.spaUnitsSold, lastPurchase.spaUnitsSold)}%`,
+        badgeVariant: 'success',
+        chartData: purchaseData.map(d => ({ day: d.month, value: d.spaUnitsSold })),
+      },
+      {
+        key: 'unitsBrand',
+        label: 'Units sold brand (14 days)',
+        value: formatCount(lastPurchase.totalUnitsSold),
+        badgeValue: `+${pctChange(firstTotalUnits, lastPurchase.totalUnitsSold)}%`,
+        badgeVariant: 'success',
+        chartData: purchaseData.map(d => ({ day: d.month, value: d.totalUnitsSold })),
+      },
+      {
+        key: 'roasSku',
+        label: 'ROAS SKU (14 days)',
+        value: `${lastPurchase.spaRoas}%`,
+        badgeValue: `+${pctChange(firstPurchase.spaRoas, lastPurchase.spaRoas)}%`,
+        badgeVariant: 'success',
+        chartData: purchaseData.map(d => ({ day: d.month, value: d.spaRoas })),
+      },
+      {
+        key: 'roasBrand',
+        label: 'ROAS Brand (14 days)',
+        value: `${lastPurchase.roas}%`,
+        badgeValue: `+${pctChange(firstPurchase.roas, lastPurchase.roas)}%`,
+        badgeVariant: 'success',
+        chartData: purchaseData.map(d => ({ day: d.month, value: d.roas })),
       },
     ];
 
@@ -3883,7 +3868,11 @@ export const FunnelView: Story = {
         pageHeaderProps={{
           title: 'Insights dashboard',
           subtitle: 'Complete customer journey from awareness to purchase',
-          headerRight: null,
+          // The advertiser picker moves into the page's own filter row,
+          // next to Brand — an empty node (not null) is what actually
+          // suppresses AppLayout's default header one; null still falls
+          // through to it.
+          headerRight: <></>,
         }}
       >
         <div className="space-y-section">
@@ -3957,6 +3946,12 @@ export const FunnelView: Story = {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              {/* The advertiser picker, moved out of the page header and in
+                  next to the rest of what the numbers cover — no icon, since
+                  its neighbours (Brand, Campaign…) already read as filters
+                  without one. */}
+              <SessionAdvertiserSelect hideIcon />
+
               <div className="flex-1">
                 <FilterBar
                   filters={[
@@ -4014,22 +4009,15 @@ export const FunnelView: Story = {
               </div>
               </>
             }
-            metrics={[
-              // No inline chart on a metric card — the number leads; a chart
-              // opens when the card itself is clicked, like every other
-              // metric row.
-              ...Object.entries(metricDefinitions).map(([key, metric]) => ({
-                key,
-                label: metric.label,
-                value: metric.value,
-                badgeValue: metric.badge,
-                badgeVariant: metric.badgeVariant,
-              })),
-              ...revenueChartMetrics,
-            ]}
-            selectedKeys={selectedTopMetrics}
-            onSelectionChange={setSelectedTopMetrics}
-            maxVisible={3}
+            // The number leads on every card; a chart opens when the card
+            // itself is clicked, like every other metric row.
+            metrics={topMetrics}
+            showCharts
+            maxVisible={8}
+            maxSelectable={8}
+            hideEditButton
+            hideMeasurement
+            removable={false}
           />
 
           {/* Conversion Funnel Breakdown + selected stage section */}

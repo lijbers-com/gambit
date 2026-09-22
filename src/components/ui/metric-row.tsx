@@ -247,7 +247,13 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
                 type="button"
                 variant={editButtonVariant}
                 onClick={() => setDialogOpen(true)}
-                className={cn("gap-1.5", editButtonVariant === 'ghost' && "text-muted-foreground hover:text-foreground")}
+                className={cn(
+                  "gap-1.5",
+                  editButtonVariant === 'ghost' && "text-muted-foreground hover:text-foreground",
+                  // A border and nothing behind it — a control, not another
+                  // filter, so it reads apart from the filled filters beside it.
+                  editButtonVariant === 'outline' && "bg-transparent shadow-none hover:bg-transparent",
+                )}
               >
                 <Settings2 className="h-4 w-4" />
                 Edit metrics

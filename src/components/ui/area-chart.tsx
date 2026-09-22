@@ -59,6 +59,27 @@ const BenchmarkBadge = ({ text, viewBox }: { text: string; viewBox?: { x: number
   )
 }
 
+/** A dashed line's name as a pill on its middle point — the same pill the
+ *  benchmark wears, so a second euro line (Spend, Sales) is read from the
+ *  chart itself rather than only from the tooltip. The middle, not the
+ *  end: the end is where the benchmark's own pill and the right axis
+ *  already sit, and where a flighted line has fallen to nothing. */
+const LineMidBadge = ({ x, y, index, atIndex, text, slot = 0 }: { x?: number; y?: number; index?: number; atIndex: number; text: string; slot?: number }) => {
+  if (x == null || y == null || index !== atIndex) return null
+  const w = text.length * 6.2 + 16
+  const h = 18
+  const bx = x - w / 2
+  // Lines that cross the middle at the same value would put their pills
+  // on the same spot; each later one steps up a row instead.
+  const by = y - h / 2 - slot * (h + 3)
+  return (
+    <g>
+      <rect x={bx} y={by} width={w} height={h} rx={h / 2} fill="hsl(var(--card))" stroke="hsl(var(--border))" />
+      <text x={bx + w / 2} y={by + h / 2 + 3.5} textAnchor="middle" fontSize={11} fill="hsl(var(--foreground))">{text}</text>
+    </g>
+  )
+}
+
 export function AreaChartComponent({
   data,
   config,
@@ -119,6 +140,24 @@ export function AreaChartComponent({
     }
     return out
   }, [config, lineKeys, showStackedTotal, totalLabel, showReturn, outcome])
+
+  // The point each line's pill sits on, and which row it takes there:
+  // lines whose values at that point sit close together (within a tenth
+  // of the largest line value) would stack their pills on one spot, so
+  // each later one steps up a row.
+  const badgeIndex = Math.floor((chartData.length - 1) / 2)
+  const lineSlots = React.useMemo(() => {
+    const rows = chartData as Record<string, unknown>[]
+    const num = (row: Record<string, unknown> | undefined, key: string) => (typeof row?.[key] === 'number' ? (row[key] as number) : 0)
+    const at = rows[badgeIndex]
+    const valueOf = (key: string) => num(at, key)
+    const span = Math.max(...rows.flatMap((d) => lineKeys.map((k) => num(d, k))), 1)
+    const slots: Record<string, number> = {}
+    lineKeys.forEach((key, i) => {
+      slots[key] = lineKeys.slice(0, i).filter((prev) => Math.abs(valueOf(prev) - valueOf(key)) < span * 0.1).length
+    })
+    return slots
+  }, [chartData, lineKeys, badgeIndex])
 
   // Calculate Y-axis ticks for gridlines
   const { yAxisTicks, yAxisDomain } = React.useMemo(() => {
@@ -242,19 +281,40 @@ export function AreaChartComponent({
           )
         })}
         {lineKeys.map((key) => (
-          <Line
-            key={key}
-            dataKey={key}
-            type={curved ? "monotone" : "linear"}
-            stroke={config[key].color ?? 'hsl(var(--foreground))'}
-            strokeWidth={2}
-            strokeDasharray="6 4"
-            dot={false}
-            activeDot={{ r: 4 }}
-            // Every line-kind series rides the same right axis — Spend and
-            // Revenue are both euros, not two different secondary scales.
-            yAxisId={showRightYAxis ? "right" : "left"}
-          />
+          <React.Fragment key={key}>
+            {/* A card-coloured halo under the dashes, so the line still
+                shows where it crosses a band of the same blue. Kept out of
+                the tooltip and legend — it is the same series, not a second. */}
+            <Line
+              id={`${key}-halo`}
+              dataKey={key}
+              type={curved ? "monotone" : "linear"}
+              stroke="hsl(var(--card))"
+              strokeWidth={5}
+              strokeOpacity={0.85}
+              dot={false}
+              activeDot={false}
+              legendType="none"
+              tooltipType="none"
+              yAxisId={showRightYAxis ? "right" : "left"}
+            />
+            <Line
+              id={key}
+              dataKey={key}
+              type={curved ? "monotone" : "linear"}
+              stroke={config[key].color ?? 'hsl(var(--foreground))'}
+              strokeWidth={2}
+              strokeDasharray="6 4"
+              dot={false}
+              activeDot={{ r: 4 }}
+              // Every line-kind series rides the same right axis — Spend and
+              // Revenue are both euros, not two different secondary scales.
+              yAxisId={showRightYAxis ? "right" : "left"}
+              label={(p: { x?: number; y?: number; index?: number }) => (
+                <LineMidBadge {...p} atIndex={badgeIndex} text={String(config[key].label ?? key)} slot={lineSlots[key] ?? 0} />
+              )}
+            />
+          </React.Fragment>
         ))}
         {showStackedTotal && (
           <Line

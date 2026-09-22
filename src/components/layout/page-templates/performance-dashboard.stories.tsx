@@ -41,7 +41,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { SessionDateRange } from '@/components/ui/session-date-range';
 import { CardInsightList, type CardInsight } from '@/components/ui/insights-notifications';
-import { shareOfVoiceCase, salesUpliftTestCase, volumePacingCase, buyerMixCase, budgetRecommendationCase } from '@/lib/case-templates';
+import { shareOfVoiceCase, salesUpliftTestCase, volumePacingCase, buyerMixCase, budgetRecommendationCase, keywordRecommendationCase } from '@/lib/case-templates';
 import { Label } from '@/components/ui/label';
 
 // The Share of Voice card's own insights — template-built cases, shown in
@@ -170,6 +170,63 @@ const roasCardInsights: CardInsight[] = [
     preview: 'The flight is returning 510% against a 400% target, running 28% ahead of where it should be at this point.',
     context: 'Sponsored products · Display · Digital in-store · Offline in-store',
     caseData: volumePacingCase({ delivered: '510%', target: '400%', pacePct: 128, topChannel: 'Sponsored products', unit: 'ROAS' }),
+  },
+];
+
+const topProductsCardInsights: CardInsight[] = [
+  {
+    id: 'INS-products-lead',
+    kind: 'insight',
+    subject: 'Irish Spring 3C Soap carries a quarter of SKU sales',
+    preview: 'The top five SKUs brought in €70K in 14 days against a €60K target — Irish Spring 3C Soap alone €18.2K, the largest share of any product.',
+    context: 'Sponsored products · Display · last 14 days',
+    caseData: volumePacingCase({ delivered: '€70K', target: '€60K', pacePct: 117, topChannel: 'Irish Spring 3C Soap', unit: 'SKU revenue' }),
+  },
+  {
+    id: 'INS-products-keywords',
+    kind: 'recommendation',
+    subject: 'Add 3 keywords Irish Spring 3C Soap is missing',
+    preview: '9.6K monthly searches for bar soap in your category run without your top SKU’s sponsored placement — competitors take the slot on every one.',
+    context: 'Sponsored products · Irish Spring 3C Soap',
+    caseData: keywordRecommendationCase({ keywords: ['bar soap 3 pack', 'irish spring soap', 'deodorant soap bar'], volume: '9.6K', estClicks: '410' }),
+  },
+];
+
+const lowProductsCardInsights: CardInsight[] = [
+  {
+    id: 'INS-products-tail',
+    kind: 'insight',
+    subject: 'Five SKUs sold under €2.2K each in 14 days',
+    preview: 'The bottom five SKUs made €7.2K together — a tenth of what the top five did — with SFTSP Mnt Euclptus at €780 the weakest on the plan.',
+    context: 'Sponsored products · Display · last 14 days',
+    caseData: volumePacingCase({ delivered: '€7.2K', target: '€10K', pacePct: 72, topChannel: 'SFTSP Lvndr Fld Wsh', unit: 'SKU revenue' }),
+  },
+  {
+    id: 'INS-products-drop',
+    kind: 'recommendation',
+    subject: 'Move €800 from SFTSP Mnt Euclptus to Irish Spring 3C Soap',
+    preview: 'SFTSP Mnt Euclptus returned €780 on its placements; the same budget on your top SKU would ride a product already selling €18.2K.',
+    context: 'Sponsored products · last 14 days',
+    caseData: budgetRecommendationCase({ from: 'SFTSP Mnt Euclptus', to: 'Irish Spring 3C Soap', amount: '€800', roasFrom: '€780', roasTo: '€18.2K', metric: 'revenue' }),
+  },
+];
+
+const buyerPropositionCardInsights: CardInsight[] = [
+  {
+    id: 'INS-buyers-spa',
+    kind: 'insight',
+    subject: 'Sponsored Products wins 39% of buyers',
+    preview: 'Sponsored Products won 448 of this month’s 1,148 buyers — 39%, against a 35% target — with Display next at 23%.',
+    context: 'All propositions · this month',
+    caseData: volumePacingCase({ delivered: '448', target: '400', pacePct: 112, topChannel: 'Sponsored products', unit: 'buyers' }),
+  },
+  {
+    id: 'INS-buyers-offsite',
+    kind: 'recommendation',
+    subject: 'Shift €1,000 from display offsite to sponsored products',
+    preview: 'Display Offsite wins 9% of buyers for its share of spend; Sponsored Products wins 39% — the same budget recruits more customers there.',
+    context: 'Holiday Sale Plan',
+    caseData: budgetRecommendationCase({ from: 'Display Offsite', to: 'Sponsored products', amount: '€1,000', roasFrom: '9%', roasTo: '39%', metric: 'buyer share' }),
   },
 ];
 
@@ -4475,6 +4532,8 @@ export const FunnelView: Story = {
                         showYAxis={true}
                         className="h-[220px] w-full"
                       />
+                      {/* What this chart is saying — cases open in the drawer. */}
+                      <CardInsightList insights={topProductsCardInsights} variant="compact" className="mt-4" />
                     </CardContent>
                   </Card>
 
@@ -4506,6 +4565,8 @@ export const FunnelView: Story = {
                         showYAxis={true}
                         className="h-[220px] w-full"
                       />
+                      {/* What this chart is saying — cases open in the drawer. */}
+                      <CardInsightList insights={lowProductsCardInsights} variant="compact" className="mt-4" />
                     </CardContent>
                   </Card>
                 </div>
@@ -4645,6 +4706,8 @@ export const FunnelView: Story = {
                       startAngle={90}
                       endAngle={-270}
                     />
+                    {/* What this chart is saying — cases open in the drawer. */}
+                    <CardInsightList insights={buyerPropositionCardInsights} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
                 </div>

@@ -3727,15 +3727,51 @@ export const FunnelView: Story = {
 
     const purchaseUnitKeys = ['spaUnitsSold', 'displayUnitsSold', 'dmiUnitsSold', 'omiUnitsSold', 'offsiteUnitsSold'] as const;
 
-    const purchaseData = purchaseDataRaw.map(d => ({
-      ...d,
-      totalUnitsSold: purchaseUnitKeys.reduce((sum, key) => sum + d[key], 0),
-      totalRevenue: d.spaRevenue + d.displayRevenue + d.dmiRevenue + d.omiRevenue + d.offsiteRevenue,
-      totalBuyers: Math.round(d.conversions * 0.85),
-      newBuyers: Math.round(d.conversions * 0.3),
-      lapsedBuyers: Math.round(d.conversions * 0.25),
-      existingBuyers: Math.round(d.conversions * 0.3),
-    }));
+    const purchaseData = purchaseDataRaw.map(d => {
+      const totalUnitsSold = purchaseUnitKeys.reduce((sum, key) => sum + d[key], 0);
+      const totalRevenue = d.spaRevenue + d.displayRevenue + d.dmiRevenue + d.omiRevenue + d.offsiteRevenue;
+      const totalBuyers = Math.round(d.conversions * 0.85);
+      const newBuyers = Math.round(d.conversions * 0.3);
+      return {
+        ...d,
+        totalUnitsSold,
+        totalRevenue,
+        totalBuyers,
+        newBuyers,
+        lapsedBuyers: Math.round(d.conversions * 0.25),
+        existingBuyers: Math.round(d.conversions * 0.3),
+        // New-to-brand's share of the month's revenue, in proportion to
+        // its share of buyers — the count alone doesn't say what those
+        // buyers were worth.
+        newBuyerRevenue: Math.round((newBuyers / totalBuyers) * totalRevenue),
+        // Buyers per proposition, in proportion to each one's share of
+        // units sold — the same split the conversions chart shows.
+        spaBuyers: Math.round(totalBuyers * (d.spaUnitsSold / totalUnitsSold)),
+        displayBuyers: Math.round(totalBuyers * (d.displayUnitsSold / totalUnitsSold)),
+        dmiBuyers: Math.round(totalBuyers * (d.dmiUnitsSold / totalUnitsSold)),
+        omiBuyers: Math.round(totalBuyers * (d.omiUnitsSold / totalUnitsSold)),
+        offsiteBuyers: Math.round(totalBuyers * (d.offsiteUnitsSold / totalUnitsSold)),
+      };
+    });
+
+    const buyerLabels: Record<string, string> = {
+      spaBuyers: 'Sponsored Products',
+      displayBuyers: 'Display',
+      dmiBuyers: 'Digital Media In-store',
+      omiBuyers: 'Offline Media In-store',
+      offsiteBuyers: 'Display Offsite',
+    };
+    const buyerEngines: Record<string, EngineId> = {
+      spaBuyers: 'sponsored-products',
+      displayBuyers: 'display',
+      dmiBuyers: 'digital-instore',
+      omiBuyers: 'offline-instore',
+      offsiteBuyers: 'offsite',
+    };
+    const buyerColors: Record<string, string> = Object.fromEntries(
+      Object.entries(buyerEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
+    );
+    const buyerKeys = Object.keys(buyerLabels);
 
     // Loyalty data
     const loyaltyData = [
@@ -4136,6 +4172,7 @@ export const FunnelView: Story = {
             selectedKeys={selectedTopMetrics}
             onSelectionChange={setSelectedTopMetrics}
             maxSelectable={topMetrics.length}
+            editButtonVariant="outline"
           />
 
           {/* Conversion Funnel Breakdown + selected stage section */}
@@ -4330,22 +4367,24 @@ export const FunnelView: Story = {
                         swatch and the exact value for that point. */}
                   </CardHeader>
                   <CardContent>
-                    <AreaChartComponent
+                    <LineChartComponent
                       data={considerationData}
+                      // CTR is a rate, not a volume: one solid line per
+                      // proposition, in the ink its pattern wears everywhere
+                      // else — same as ROAS on the Purchase tab.
                       config={{
-                        spaCtr: { label: ctrLabels.spaCtr, color: ctrColors.spaCtr, engine: ctrEngines.spaCtr, format: (v: number) => `${v}%` },
-                        displayCtr: { label: ctrLabels.displayCtr, color: ctrColors.displayCtr, engine: ctrEngines.displayCtr, format: (v: number) => `${v}%` },
+                        spaCtr: { label: ctrLabels.spaCtr, color: ctrColors.spaCtr, engine: ctrEngines.spaCtr },
+                        displayCtr: { label: ctrLabels.displayCtr, color: ctrColors.displayCtr, engine: ctrEngines.displayCtr },
                       }}
-                      // CTR is a rate, not a volume — each engine's own line
-                      // overlaid rather than stacked, same as ROAS below.
-                      stacked={false}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
+                      showDots={true}
                       benchmark={{ value: 2, label: "Target 2%" }}
                       className="h-[320px] w-full"
+                      xAxisDataKey="month"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
                     <CardInsightList insights={ctrCardInsights} variant="compact" className="mt-4" />
@@ -4491,21 +4530,24 @@ export const FunnelView: Story = {
                         swatch and the exact value for that point. */}
                   </CardHeader>
                   <CardContent>
-                    <AreaChartComponent
+                    <LineChartComponent
                       data={purchaseData}
+                      // ROAS is a rate, not a volume: one solid line per
+                      // proposition, in the ink its pattern wears everywhere
+                      // else. Overlaid patterned areas hid one another; lines
+                      // stay apart whatever their values.
                       config={Object.fromEntries(
-                        (['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas'] as const).map(k => [k, { label: roasLabels[k], color: roasColors[k], engine: roasEngines[k], format: (v: number) => `${Math.round(v)}%` }])
+                        (['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas'] as const).map(k => [k, { label: roasLabels[k], color: roasColors[k], engine: roasEngines[k] }])
                       )}
-                      // ROAS is a rate, not a volume — each engine's own line
-                      // overlaid rather than stacked, same as CTR above.
-                      stacked={false}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
-                      benchmark={{ value: 4, label: "Target 400%" }}
+                      showDots={true}
+                      benchmark={{ value: 400, label: "Target 400%" }}
                       className="h-[320px] w-full"
+                      xAxisDataKey="month"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
                     <CardInsightList insights={roasCardInsights} variant="compact" className="mt-4" />
@@ -4526,42 +4568,71 @@ export const FunnelView: Story = {
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      <Badge variant="secondary" className="text-xs">New-to-brand {purchaseData[purchaseData.length - 1].newBuyers.toLocaleString()}</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Lapsed {purchaseData[purchaseData.length - 1].lapsedBuyers.toLocaleString()}</Badge>
-                      <Plus className="w-3 h-3 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-xs">Existing {purchaseData[purchaseData.length - 1].existingBuyers.toLocaleString()}</Badge>
-                    </div>
-                    {/* New-to-brand's own share of revenue — buyer count alone
-                        doesn't say whether new customers are worth reaching. */}
-                    <div className="mt-1">
-                      <Badge variant="success" className="text-xs">
-                        New-to-brand revenue {formatEur(Math.round((purchaseData[purchaseData.length - 1].newBuyers / purchaseData[purchaseData.length - 1].totalBuyers) * purchaseData[purchaseData.length - 1].totalRevenue))}
-                      </Badge>
-                    </div>
+                    {/* The buyer-type split and new-to-brand revenue used to
+                        sit here as badges — now they only show on hover, in
+                        the chart's own tooltip. */}
                   </CardHeader>
                   <CardContent>
-                    <BarChartComponent
+                    <AreaChartComponent
                       data={purchaseData}
                       config={{
+                        // Buyer types aren't propositions, so they wear flat
+                        // colours, not the proposition patterns.
                         newBuyers: { label: "New-to-brand", color: "hsl(var(--chart-1))" },
                         lapsedBuyers: { label: "Lapsed", color: "hsl(var(--chart-2))" },
                         existingBuyers: { label: "Existing", color: "hsl(var(--chart-3))" },
+                        // New-to-brand's revenue rides the buyers as a euro
+                        // line — the count alone doesn't say what those
+                        // buyers were worth.
+                        newBuyerRevenue: { label: 'New-to-brand revenue', color: 'hsl(var(--chart-700))', kind: 'line' as const, format: (v: number) => `€${Math.round(v / 1000)}K` },
                       }}
-                      showLegend={true}
+                      stacked={true}
+                      totalLabel="Total buyers"
+                      showLegend={false}
                       showGrid={true}
                       showTooltip={true}
                       showXAxis={true}
                       showYAxis={true}
-                      benchmark={{ value: 2500, label: "Target 2.5K" }}
-                      className="h-[200px] w-full"
-                      xAxisDataKey="month"
-                      stacked={true}
+                      showRightYAxis={true}
+                      benchmark={{ value: 1000, label: "Target 1K" }}
+                      className="h-[320px] w-full"
                     />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+99%</Badge>
-                    </div>
+                    {/* What this chart is saying — cases open in the drawer. */}
+                    <CardInsightList insights={buyerCardInsights} variant="compact" className="mt-4" />
+                  </CardContent>
+                </Card>
+
+                {/* Row 4 - Purchase Users by Proposition */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      Purchase Users by Proposition {purchaseData[purchaseData.length - 1].totalBuyers.toLocaleString()}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>The same buyers, split by the proposition that won them — in proportion to each proposition's share of units sold.</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <AreaChartComponent
+                      data={purchaseData}
+                      config={Object.fromEntries(
+                        buyerKeys.map(k => [k, { label: buyerLabels[k], color: buyerColors[k], engine: buyerEngines[k] }])
+                      )}
+                      stacked={true}
+                      totalLabel="Total buyers"
+                      showLegend={false}
+                      showGrid={true}
+                      showTooltip={true}
+                      showXAxis={true}
+                      showYAxis={true}
+                      benchmark={{ value: 1000, label: "Target 1K" }}
+                      className="h-[320px] w-full"
+                    />
                   </CardContent>
                 </Card>
               </div>

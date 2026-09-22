@@ -55,7 +55,7 @@ const formatPercent = (n: number) => {
 /** The last stage never thins to nothing — a line still reads as flow. */
 const MIN_HALF = 4
 /** Room above the flow for each stage's label, share and volume. */
-const LABEL_H = 76
+const LABEL_H = 48
 
 export function ConversionFunnelComponent({
   stages,
@@ -269,13 +269,17 @@ export function ConversionFunnelComponent({
                   }
                 }}
               >
-                <div className="px-4 py-3">
-                  <div className="text-xs text-muted-foreground truncate">{stage.label}</div>
-                  <div className="text-2xl font-semibold leading-tight">{formatPercent(stageRate)}</div>
-                  <div className="text-xs text-muted-foreground">
+                {/* One line, in the weight every other chart card's title
+                    wears — "Awareness 100%", then the volume and drop-off
+                    quieter beside it. */}
+                <div className="flex items-baseline gap-1.5 truncate px-4 py-3">
+                  <span className="truncate text-base font-semibold tracking-tight text-foreground">
+                    {stage.label} {formatPercent(stageRate)}
+                  </span>
+                  <span className="shrink-0 text-sm text-muted-foreground">
                     {valueFormatter(stage.value)}
                     {dropOff !== null && <span className="ml-1">&#8600; {formatPercent(dropOff)}</span>}
-                  </div>
+                  </span>
                 </div>
                 {showTooltip && hoveredIndex === i && (
                   <ConversionFunnelTooltip
@@ -303,7 +307,7 @@ interface TooltipProps {
 
 function ConversionFunnelTooltip({ stage, stageRate, color, valueFormatter }: TooltipProps) {
   return (
-    <div className="pointer-events-none absolute left-1/2 top-[84px] z-10 -translate-x-1/2">
+    <div className="pointer-events-none absolute left-1/2 top-[56px] z-10 -translate-x-1/2">
       <div className="grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
         <div className="font-medium">{stage.label}</div>
         <div className="flex items-center gap-2">

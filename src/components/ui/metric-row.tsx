@@ -108,6 +108,11 @@ export interface MetricRowProps {
   /** The measurement settings (attribution window, which sales count) open
    *  every Edit metrics dialog. Off for rows that measure nothing. */
   hideMeasurement?: boolean
+  /** How the Edit metrics button is drawn. Ghost by default — a quiet
+   *  control beside the tab strip. Outline where the header row already
+   *  carries outlined filters (the insights dashboard), so it matches its
+   *  neighbours instead of sitting beside them in a different weight. */
+  editButtonVariant?: 'ghost' | 'outline'
   /** Lay the cards out in a single horizontally-scrolling row instead of a
    *  responsive grid. Cards keep a fixed min-width and overflow scrolls —
    *  use when a narrow container (e.g. the cell drawer) can't fit them all. */
@@ -142,6 +147,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     dialogExtra,
     hideDateRange,
     hideMeasurement,
+    editButtonVariant = 'ghost',
     scrollable = false,
     bleedEdges = false,
     ...props
@@ -239,9 +245,9 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
             {hasDialogContent && !hideEditButton && (
               <Button
                 type="button"
-                variant="ghost"
+                variant={editButtonVariant}
                 onClick={() => setDialogOpen(true)}
-                className="gap-1.5 text-muted-foreground hover:text-foreground"
+                className={cn("gap-1.5", editButtonVariant === 'ghost' && "text-muted-foreground hover:text-foreground")}
               >
                 <Settings2 className="h-4 w-4" />
                 Edit metrics

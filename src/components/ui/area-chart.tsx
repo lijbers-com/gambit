@@ -30,12 +30,17 @@ export interface AreaChartProps {
    *  area's value, summed — under this label. The areas already say what
    *  makes up the total; this says what the total itself is. */
   totalLabel?: string
+  /** The sum the tooltip writes underneath: which line is the spend and
+   *  which the revenue it bought, so a result row can say what the one
+   *  returned on the other — revenue ÷ spend, as a percentage. */
+  outcome?: { spend: string; revenue: string; label?: string }
 }
 
-/** Key for the synthetic, invisible series a stacked total rides in on —
- *  present only so it lands in the tooltip's payload alongside the real
- *  series, never drawn itself. */
+/** Keys for the synthetic, invisible series a stacked total and a return
+ *  ride in on — present only so they land in the tooltip's payload
+ *  alongside the real series, never drawn themselves. */
 const STACKED_TOTAL_KEY = "__stackedTotal"
+const OUTCOME_RETURN_KEY = "__outcomeReturn"
 
 /** The benchmark's name as a small pill on the chart surface — text over
  *  patterned fills is unreadable, a badge is not. Recharts hands the
@@ -69,6 +74,7 @@ export function AreaChartComponent({
   curved = true,
   benchmark,
   totalLabel,
+  outcome,
 }: AreaChartProps) {
   const allKeys = Object.keys(config).filter(key => config[key].label)
   // Lines ride the right axis when one is shown; the areas own the left.
@@ -80,16 +86,39 @@ export function AreaChartComponent({
   const rightFormat = rightKey ? config[rightKey]?.format : undefined
 
   const showStackedTotal = stacked && !!totalLabel && dataKeys.length > 0
+  const showReturn = !!outcome && lineKeys.includes(outcome.spend) && lineKeys.includes(outcome.revenue)
   const chartData = React.useMemo(() => {
-    if (!showStackedTotal) return data
-    return data.map((d) => ({
-      ...d,
-      [STACKED_TOTAL_KEY]: dataKeys.reduce((sum, key) => sum + (typeof d[key] === 'number' ? (d[key] as number) : 0), 0),
-    }))
-  }, [data, dataKeys, showStackedTotal])
-  const chartConfig = showStackedTotal
-    ? { ...config, [STACKED_TOTAL_KEY]: { label: totalLabel, color: 'transparent' } }
-    : config
+    if (!showStackedTotal && !showReturn) return data
+    return data.map((d) => {
+      const num = (key: string) => (typeof d[key] === 'number' ? (d[key] as number) : 0)
+      const spend = outcome ? num(outcome.spend) : 0
+      return {
+        ...d,
+        ...(showStackedTotal && { [STACKED_TOTAL_KEY]: dataKeys.reduce((sum, key) => sum + num(key), 0) }),
+        ...(showReturn && outcome && { [OUTCOME_RETURN_KEY]: spend > 0 ? (num(outcome.revenue) / spend) * 100 : 0 }),
+      }
+    })
+  }, [data, dataKeys, showStackedTotal, showReturn, outcome])
+
+  // The tooltip reads as a sum: the areas are the parts, the total sits
+  // under a rule beneath them; the lines are what came of it, and the
+  // return sits under its own rule beneath those.
+  const chartConfig = React.useMemo(() => {
+    const out: Record<string, (typeof config)[string] & { tooltipRole?: 'part' | 'sum' | 'outcome' | 'result' }> = {}
+    for (const key of Object.keys(config)) {
+      out[key] = { ...config[key], tooltipRole: lineKeys.includes(key) ? 'outcome' : 'part' }
+    }
+    if (showStackedTotal) out[STACKED_TOTAL_KEY] = { label: totalLabel, color: 'transparent', tooltipRole: 'sum' }
+    if (showReturn) {
+      out[OUTCOME_RETURN_KEY] = {
+        label: outcome?.label ?? 'ROAS',
+        color: 'transparent',
+        tooltipRole: 'result',
+        format: (v: number) => `${Math.round(v)}%`,
+      }
+    }
+    return out
+  }, [config, lineKeys, showStackedTotal, totalLabel, showReturn, outcome])
 
   // Calculate Y-axis ticks for gridlines
   const { yAxisTicks, yAxisDomain } = React.useMemo(() => {
@@ -230,6 +259,17 @@ export function AreaChartComponent({
         {showStackedTotal && (
           <Line
             dataKey={STACKED_TOTAL_KEY}
+            stroke="transparent"
+            strokeWidth={0}
+            dot={false}
+            activeDot={false}
+            legendType="none"
+            yAxisId="left"
+          />
+        )}
+        {showReturn && (
+          <Line
+            dataKey={OUTCOME_RETURN_KEY}
             stroke="transparent"
             strokeWidth={0}
             dot={false}

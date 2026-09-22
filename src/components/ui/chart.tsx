@@ -29,6 +29,13 @@ export type ChartConfig = Record<
     /** The proposition this series stands for — a patterned fill's swatch,
      *  not a flat colour, shows in the tooltip. */
     engine?: PatternKey
+    /** Where a row sits in the tooltip's sum. Parts are listed first; a
+     *  `sum` row sits under a rule beneath them, the way a total is written
+     *  under the figures it adds up; `outcome` rows come after a gap, and a
+     *  `result` row sits under its own rule beneath those. */
+    tooltipRole?: 'part' | 'sum' | 'outcome' | 'result'
+    /** How the row's value is written — for a ratio, a percentage, euros. */
+    format?: (value: number) => string
   } & (
     | { color?: string; theme?: never }
     | { color?: never; theme: Record<keyof typeof THEMES, string> }
@@ -196,80 +203,120 @@ const ChartTooltipContent = React.forwardRef<
             {tooltipLabel}
           </div>
         ) : null}
-        <div className="grid gap-1.5">
-          {payload
-            .filter((item) => item.type !== "none")
-            .map((item, index) => {
-              const key = `${nameKey || item.name || item.dataKey || "value"}`
-              const itemConfig = getPayloadConfigFromPayload(config, item, key)
-              const indicatorColor = color || item.payload?.fill || item.color
+        {(() => {
+          const items = payload.filter((item) => item.type !== "none")
+          const roleOf = (item: any) => {
+            const key = `${nameKey || item.name || item.dataKey || "value"}`
+            return getPayloadConfigFromPayload(config, item, key)?.tooltipRole ?? "part"
+          }
+          const parts = items.filter((i) => roleOf(i) === "part")
+          const sums = items.filter((i) => roleOf(i) === "sum")
+          const outcomes = items.filter((i) => roleOf(i) === "outcome")
+          const results = items.filter((i) => roleOf(i) === "result")
 
-              return (
-                <div
-                  key={item.dataKey ?? index}
-                  className={cn(
-                    "flex w-full items-stretch gap-2 whitespace-nowrap [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
-                    indicator === "dot" && "items-center"
-                  )}
-                >
-                  {formatter && item?.value !== undefined && item.name ? (
-                    formatter(item.value, item.name, item, index, item.payload)
-                  ) : (
-                    <>
-                      {itemConfig?.icon ? (
-                        <itemConfig.icon />
-                      ) : itemConfig?.engine ? (
-                        // A patterned series (fill is a `url(#…)` pattern
-                        // reference, which a CSS background-color cannot
-                        // read) shows the same swatch its legend chip wears.
-                        !hideIndicator && <PropositionSwatch engine={itemConfig.engine} size={10} />
-                      ) : (
-                        !hideIndicator && (
-                          <div
-                            className={cn(
-                              "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
-                              {
-                                "h-2.5 w-2.5": indicator === "dot",
-                                "w-1": indicator === "line",
-                                "w-0 border-[1.5px] border-dashed bg-transparent":
-                                  indicator === "dashed",
-                                "my-0.5": indicator === "dashed",
-                              }
-                            )}
-                            style={
-                              {
-                                "--color-bg": indicatorColor,
-                                "--color-border": indicatorColor,
-                              } as React.CSSProperties
+          const renderRow = (item: any, index: number, emphasis: boolean) => {
+            const key = `${nameKey || item.name || item.dataKey || "value"}`
+            const itemConfig = getPayloadConfigFromPayload(config, item, key)
+            const indicatorColor = color || item.payload?.fill || item.color
+            // A sum or result has no series of its own to swatch; an empty
+            // swatch-sized gap keeps its label flush with the rows above.
+            const swatchless = emphasis || (!itemConfig?.icon && !itemConfig?.engine && itemConfig?.color === "transparent")
+            const value =
+              item.value == null
+                ? null
+                : typeof item.value === "number"
+                  ? (itemConfig?.format ? itemConfig.format(item.value) : item.value.toLocaleString())
+                  : String(item.value)
+
+            return (
+              <div
+                key={item.dataKey ?? index}
+                className={cn(
+                  "flex w-full items-stretch gap-2 whitespace-nowrap [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
+                  indicator === "dot" && "items-center"
+                )}
+              >
+                {formatter && item?.value !== undefined && item.name ? (
+                  formatter(item.value, item.name, item, index, item.payload)
+                ) : (
+                  <>
+                    {itemConfig?.icon ? (
+                      <itemConfig.icon />
+                    ) : itemConfig?.engine ? (
+                      // A patterned series (fill is a `url(#…)` pattern
+                      // reference, which a CSS background-color cannot
+                      // read) shows the same swatch its legend chip wears.
+                      !hideIndicator && <PropositionSwatch engine={itemConfig.engine} size={10} />
+                    ) : swatchless ? (
+                      !hideIndicator && <span className="h-2.5 w-2.5 shrink-0" />
+                    ) : (
+                      !hideIndicator && (
+                        <div
+                          className={cn(
+                            "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
+                            {
+                              "h-2.5 w-2.5": indicator === "dot",
+                              "w-1": indicator === "line",
+                              "w-0 border-[1.5px] border-dashed bg-transparent":
+                                indicator === "dashed",
+                              "my-0.5": indicator === "dashed",
                             }
-                          />
-                        )
+                          )}
+                          style={
+                            {
+                              "--color-bg": indicatorColor,
+                              "--color-border": indicatorColor,
+                            } as React.CSSProperties
+                          }
+                        />
+                      )
+                    )}
+                    <div
+                      className={cn(
+                        "flex flex-1 justify-between gap-4 leading-none",
+                        hideIndicator ? "items-end" : "items-center"
                       )}
-                      <div
-                        className={cn(
-                          "flex flex-1 justify-between gap-4 leading-none",
-                          hideIndicator ? "items-end" : "items-center"
-                        )}
-                      >
-                        <div className="grid gap-1.5">
-                          <span className="whitespace-nowrap text-primary-foreground/80">
-                            {itemConfig?.label ?? item.name}
-                          </span>
-                        </div>
-                        {item.value != null && (
-                          <span className="font-medium tabular-nums text-primary-foreground">
-                            {typeof item.value === "number"
-                              ? item.value.toLocaleString()
-                              : String(item.value)}
-                          </span>
-                        )}
+                    >
+                      <div className="grid gap-1.5">
+                        <span className={cn("whitespace-nowrap", emphasis ? "font-medium text-primary-foreground" : "text-primary-foreground/80")}>
+                          {itemConfig?.label ?? item.name}
+                        </span>
                       </div>
-                    </>
-                  )}
+                      {value != null && (
+                        <span className="font-medium tabular-nums text-primary-foreground">{value}</span>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          }
+
+          // Written like a sum: the parts, a rule, the total under it —
+          // then, after a gap, what came of it, with its own result under
+          // its own rule.
+          const rule = "mt-0.5 border-t border-primary-foreground/25 pt-1.5"
+          return (
+            <div className="grid gap-1.5">
+              {parts.map((item, i) => renderRow(item, i, false))}
+              {sums.length > 0 && (
+                <div className={cn("grid gap-1.5", parts.length > 0 && rule)}>
+                  {sums.map((item, i) => renderRow(item, i, true))}
                 </div>
-              )
-            })}
-        </div>
+              )}
+              {outcomes.length > 0 && (
+                <div className={cn("grid gap-1.5", (parts.length > 0 || sums.length > 0) && "mt-1.5")}>
+                  {outcomes.map((item, i) => renderRow(item, i, false))}
+                </div>
+              )}
+              {results.length > 0 && (
+                <div className={cn("grid gap-1.5", outcomes.length > 0 && rule)}>
+                  {results.map((item, i) => renderRow(item, i, true))}
+                </div>
+              )}
+            </div>
+          )
+        })()}
       </div>
     )
   }

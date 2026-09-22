@@ -3768,9 +3768,6 @@ export const FunnelView: Story = {
       omiBuyers: 'offline-instore',
       offsiteBuyers: 'offsite',
     };
-    const buyerColors: Record<string, string> = Object.fromEntries(
-      Object.entries(buyerEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
-    );
     const buyerKeys = Object.keys(buyerLabels);
 
     // Loyalty data
@@ -4267,6 +4264,7 @@ export const FunnelView: Story = {
                       }}
                       stacked={true}
                       totalLabel="Total impressions"
+                      outcome={{ spend: 'spend', revenue: 'revenue' }}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
@@ -4333,6 +4331,7 @@ export const FunnelView: Story = {
                       }}
                       stacked={true}
                       totalLabel="Total engagements"
+                      outcome={{ spend: 'spend', revenue: 'revenue' }}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
@@ -4431,6 +4430,7 @@ export const FunnelView: Story = {
                       }}
                       stacked={true}
                       totalLabel="Total conversions"
+                      outcome={{ spend: 'spend', revenue: 'totalRevenue' }}
                       showLegend={false}
                       showGrid={true}
                       showTooltip={true}
@@ -4554,7 +4554,8 @@ export const FunnelView: Story = {
                   </CardContent>
                 </Card>
 
-                {/* Row 3 - Purchase Users */}
+                {/* Row 3 - Purchase Users, by buyer type and by proposition side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
@@ -4602,7 +4603,6 @@ export const FunnelView: Story = {
                   </CardContent>
                 </Card>
 
-                {/* Row 4 - Purchase Users by Proposition */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
@@ -4618,23 +4618,36 @@ export const FunnelView: Story = {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <AreaChartComponent
-                      data={purchaseData}
+                    {/* A donut, not a trend: the split is the point here, and a
+                        ring shows five shares at a glance where stacked
+                        months made the reader compare band widths. Each
+                        slice wears its proposition's pattern. */}
+                    <PieChartComponent
+                      // Each slice is labelled with its share; the count
+                      // itself is in the tooltip, and the total in the title.
+                      data={buyerKeys.map(k => {
+                        const last = purchaseData[purchaseData.length - 1] as any;
+                        const value = last[k] as number;
+                        return { name: buyerLabels[k], value, label: `${Math.round((value / last.totalBuyers) * 100)}%` };
+                      })}
                       config={Object.fromEntries(
-                        buyerKeys.map(k => [k, { label: buyerLabels[k], color: buyerColors[k], engine: buyerEngines[k] }])
+                        buyerKeys.map(k => [buyerLabels[k], { label: buyerLabels[k], engine: buyerEngines[k] }])
                       )}
-                      stacked={true}
-                      totalLabel="Total buyers"
                       showLegend={false}
-                      showGrid={true}
                       showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      benchmark={{ value: 1000, label: "Target 1K" }}
                       className="h-[320px] w-full"
+                      nameKey="name"
+                      dataKey="value"
+                      innerRadius={64}
+                      outerRadius={104}
+                      showLabels={true}
+                      labelPosition="inside"
+                      startAngle={90}
+                      endAngle={-270}
                     />
                   </CardContent>
                 </Card>
+                </div>
               </div>
             </CardContent>
           </>

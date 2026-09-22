@@ -11,6 +11,20 @@ import {
 } from "@/components/ui/chart"
 import { ChartDataPoint, ChartConfig, formatYAxisTick } from "./chart-types"
 
+/** Recharts' own tick text wraps a long category label onto a second line —
+ *  and, once a row can't fit that second line, silently drops most of it —
+ *  rather than cut it. A plain SVG text node sidesteps that wrapping
+ *  entirely: one line, cut short with an ellipsis; the tooltip still
+ *  carries the full name. */
+const truncateLabel = (value: string, maxChars = 16) =>
+  typeof value === "string" && value.length > maxChars ? `${value.slice(0, maxChars - 1)}…` : value
+
+const CategoryAxisTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => (
+  <text x={x} y={y} dy={4} textAnchor="end" fontSize={12} fill="#666">
+    {truncateLabel(String(payload?.value ?? ""))}
+  </text>
+)
+
 export interface BarChartProps {
   data: ChartDataPoint[]
   config: ChartConfig
@@ -147,7 +161,7 @@ export function BarChartComponent({
                 axisLine={false}
                 tickMargin={8}
                 width={120}
-                style={{ fontSize: '12px' }}
+                tick={<CategoryAxisTick />}
               />
             )}
           </>

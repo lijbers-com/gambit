@@ -137,17 +137,6 @@ const ctrCardInsights: CardInsight[] = [
   },
 ];
 
-const revenueCardInsights: CardInsight[] = [
-  {
-    id: 'INS-revenue-pace',
-    kind: 'insight',
-    subject: 'Revenue is pacing 13% ahead of plan',
-    preview: 'The flight has brought in €170K against a €150K target, running 13% ahead of where it should be at this point.',
-    context: 'All propositions · this flight',
-    caseData: volumePacingCase({ delivered: '€170K', target: '€150K', pacePct: 113, topChannel: 'Sponsored products', unit: 'revenue' }),
-  },
-];
-
 /** Revenue by product SKU — named products, each tagged with the
  *  proposition that drove the sale. Sums to the Sales SKU (14 days) figure
  *  shown at the top of the dashboard, so the two never disagree. */
@@ -160,6 +149,29 @@ const revenueByProductData: { name: string; value: number; engine: EngineId; col
     { name: 'SFTSP Frsh Sprs Wtr', value: 8200, engine: 'display' as EngineId },
   ]
 ).map((p) => ({ ...p, color: propositionColor(p.engine) }));
+
+/** The bottom of the same catalogue — long-tail SKUs barely moving,
+ *  candidates to drop from the plan or re-target. */
+const leastPerformingProductData: { name: string; value: number; engine: EngineId; color: string }[] = (
+  [
+    { name: 'SFTSP Lvndr Fld Wsh', value: 2100, engine: 'sponsored-products' as EngineId },
+    { name: 'SS AB Frsh Ctrs Spry', value: 1800, engine: 'display' as EngineId },
+    { name: 'SFTSP Ocn Brz Btl', value: 1450, engine: 'sponsored-products' as EngineId },
+    { name: 'SS AB Wht Musk Rfl', value: 1100, engine: 'display' as EngineId },
+    { name: 'SFTSP Mnt Euclptus', value: 780, engine: 'sponsored-products' as EngineId },
+  ]
+).map((p) => ({ ...p, color: propositionColor(p.engine) }));
+
+const roasCardInsights: CardInsight[] = [
+  {
+    id: 'INS-roas-pace',
+    kind: 'insight',
+    subject: 'ROAS is pacing 28% ahead of plan',
+    preview: 'The flight is returning 510% against a 400% target, running 28% ahead of where it should be at this point.',
+    context: 'Sponsored products · Display · Digital in-store · Offline in-store',
+    caseData: volumePacingCase({ delivered: '510%', target: '400%', pacePct: 128, topChannel: 'Sponsored products', unit: 'ROAS' }),
+  },
+];
 
 const buyerCardInsights: CardInsight[] = [
   {
@@ -3412,11 +3424,6 @@ export const FunnelView: Story = {
     const [purchaseMetrics, setPurchaseMetrics] = useState<string[]>(['roas', 'iroas', 'purchaseBehavior', 'customerSegmentation']);
     const [loyaltyMetrics, setLoyaltyMetrics] = useState<string[]>(['repeatPurchaseRate', 'customerLifetimeValue', 'churnRate']);
 
-    // Per-chart channel filters (badges-as-filters)
-    const [roasChannels, setRoasChannels] = useState<string[]>(['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas']);
-    const toggleChannel = (setter: React.Dispatch<React.SetStateAction<string[]>>, key: string) =>
-      setter(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
-
     // Customer segmentation data for Purchase card
     const customerSegmentationData = [
       { name: 'First-time', value: 35 },
@@ -3672,25 +3679,6 @@ export const FunnelView: Story = {
       Object.entries(ctrEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
     );
 
-    const revenueLabels: Record<string, string> = {
-      spaRevenue: 'Sponsored Products',
-      displayRevenue: 'Display',
-      dmiRevenue: 'Digital Media In-store',
-      omiRevenue: 'Offline Media In-store',
-      offsiteRevenue: 'Display Offsite',
-    };
-    const revenueEngines: Record<string, EngineId> = {
-      spaRevenue: 'sponsored-products',
-      displayRevenue: 'display',
-      dmiRevenue: 'digital-instore',
-      omiRevenue: 'offline-instore',
-      offsiteRevenue: 'offsite',
-    };
-    const revenueColors: Record<string, string> = Object.fromEntries(
-      Object.entries(revenueEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
-    );
-    const revenueKeys = Object.keys(revenueLabels) as (keyof typeof revenueLabels)[];
-
     const channelSovTooltips: Record<string, string> = {
       spaImpressions: 'Number of positions won / all possible positions — SUM(wonAnyPosition) / SUM(numberOfPositions)',
       impressions: 'Overall visibility relative to competitors — (impressions / adsServed) × 100%',
@@ -3748,8 +3736,6 @@ export const FunnelView: Story = {
       lapsedBuyers: Math.round(d.conversions * 0.25),
       existingBuyers: Math.round(d.conversions * 0.3),
     }));
-
-    const totalRevenueLabel = `€${Math.round(purchaseData[purchaseData.length - 1].totalRevenue / 1000)}K`;
 
     // Loyalty data
     const loyaltyData = [
@@ -4420,73 +4406,70 @@ export const FunnelView: Story = {
                   </CardContent>
                 </Card>
 
-                {/* Row 1.5 - Revenue by Proposition */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-1.5">
-                      Revenue by Proposition {totalRevenueLabel}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>Purchase revenue attributed to each proposition — Sponsored Products, Display, Digital Media In-store, Offline Media In-store and Display Offsite.</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <AreaChartComponent
-                      data={purchaseData}
-                      config={Object.fromEntries(
-                        revenueKeys.map(k => [k, { label: revenueLabels[k], color: revenueColors[k], engine: revenueEngines[k], format: (v: number) => `€${Math.round(v / 1000)}K` }])
-                      )}
-                      stacked={true}
-                      totalLabel="Total revenue"
-                      showLegend={false}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      benchmark={{ value: 150000, label: "Target 150K" }}
-                      className="h-[320px] w-full"
-                    />
-                    {/* What this chart is saying — cases open in the drawer. */}
-                    <CardInsightList insights={revenueCardInsights} variant="compact" className="mt-4" />
-                  </CardContent>
-                </Card>
+                {/* Row 1.5 - Revenue by Product SKU: best and worst side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-1.5">
+                        Top Products SKU (14 days) {formatEur(revenueByProductData.reduce((sum, p) => sum + p.value, 0))}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>The named products behind Sales SKU (14 days), highest revenue first.</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <BarChartComponent
+                        data={revenueByProductData}
+                        config={{ value: { label: 'Revenue', color: 'hsl(var(--chart-2))' } }}
+                        horizontal
+                        colorByPoint="color"
+                        xAxisDataKey="name"
+                        showLegend={false}
+                        showGrid={true}
+                        showTooltip={true}
+                        showXAxis={true}
+                        showYAxis={true}
+                        className="h-[220px] w-full"
+                      />
+                    </CardContent>
+                  </Card>
 
-                {/* Row 1.6 - Revenue by Product SKU */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-1.5">
-                      Revenue by Product SKU (14 days) {formatEur(revenueByProductData.reduce((sum, p) => sum + p.value, 0))}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>The named products behind Sales SKU (14 days) — the products a shopper interacted with via Sponsored Products, or bought after a Display impression.</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <BarChartComponent
-                      data={revenueByProductData}
-                      config={{ value: { label: 'Revenue', color: 'hsl(var(--chart-2))' } }}
-                      horizontal
-                      colorByPoint="color"
-                      xAxisDataKey="name"
-                      showLegend={false}
-                      showGrid={true}
-                      showTooltip={true}
-                      showXAxis={true}
-                      showYAxis={true}
-                      className="h-[220px] w-full"
-                    />
-                  </CardContent>
-                </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-1.5">
+                        Lowest Performing Products {formatEur(leastPerformingProductData.reduce((sum, p) => sum + p.value, 0))}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>The named products selling the least in the last 14 days — candidates to drop from the plan or re-target.</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <BarChartComponent
+                        data={leastPerformingProductData}
+                        config={{ value: { label: 'Revenue', color: 'hsl(var(--chart-2))' } }}
+                        horizontal
+                        colorByPoint="color"
+                        xAxisDataKey="name"
+                        showLegend={false}
+                        showGrid={true}
+                        showTooltip={true}
+                        showXAxis={true}
+                        showYAxis={true}
+                        className="h-[220px] w-full"
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
 
                 {/* Row 2 - ROAS */}
                 <Card>
@@ -4502,34 +4485,19 @@ export const FunnelView: Story = {
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
-                    <div className="flex items-center gap-1 flex-wrap mt-1">
-                      {(['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas'] as const).map((key) => {
-                        const active = roasChannels.includes(key);
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => toggleChannel(setRoasChannels, key)}
-                            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
-                          >
-                            <Badge
-                              variant={active ? "secondary" : "outline"}
-                              className={cn("text-xs cursor-pointer transition-opacity", !active && "opacity-50")}
-                            >
-                              <PropositionSwatch engine={roasEngines[key]} className="mr-1.5" />
-                              {roasLabels[key]} {(purchaseData[purchaseData.length - 1] as any)[key]}%
-                            </Badge>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {/* The per-channel breakdown used to sit here as a row of
+                        badges — now it only shows on hover, in the chart's
+                        own tooltip, which already carries the same pattern
+                        swatch and the exact value for that point. */}
                   </CardHeader>
                   <CardContent>
                     <AreaChartComponent
                       data={purchaseData}
                       config={Object.fromEntries(
-                        roasChannels.map(k => [k, { label: roasLabels[k], color: roasColors[k], engine: roasEngines[k], format: (v: number) => `${Math.round(v)}%` }])
+                        (['spaRoas', 'displayRoas', 'dmiRoas', 'omiRoas'] as const).map(k => [k, { label: roasLabels[k], color: roasColors[k], engine: roasEngines[k], format: (v: number) => `${Math.round(v)}%` }])
                       )}
+                      // ROAS is a rate, not a volume — each engine's own line
+                      // overlaid rather than stacked, same as CTR above.
                       stacked={false}
                       showLegend={false}
                       showGrid={true}
@@ -4537,11 +4505,10 @@ export const FunnelView: Story = {
                       showXAxis={true}
                       showYAxis={true}
                       benchmark={{ value: 4, label: "Target 400%" }}
-                      className="h-[200px] w-full"
+                      className="h-[320px] w-full"
                     />
-                    <div className="flex justify-end mt-2">
-                      <Badge variant="success" className="text-xs">+82%</Badge>
-                    </div>
+                    {/* What this chart is saying — cases open in the drawer. */}
+                    <CardInsightList insights={roasCardInsights} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
 

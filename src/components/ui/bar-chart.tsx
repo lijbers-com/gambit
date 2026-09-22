@@ -90,6 +90,11 @@ export function BarChartComponent({
       <BarChart
         accessibilityLayer
         data={data}
+        // Recharts calls the ordinary up-down bar layout "horizontal" (the
+        // category axis runs horizontally) and sideways bars "vertical" —
+        // the inverse of what this component's own `horizontal` prop means
+        // to its caller, so the two are deliberately swapped here.
+        layout={horizontal ? "vertical" : "horizontal"}
         margin={{
           left: showYAxis ? 0 : 0,
           right: showRightYAxis ? 0 : 0,
@@ -100,16 +105,16 @@ export function BarChartComponent({
         {showGrid && yAxisTicks.map(tick => (
           <ReferenceLine
             key={tick}
-            y={tick}
+            {...(horizontal ? { x: tick } : { y: tick })}
             stroke="hsl(var(--border))"
             strokeOpacity={0.5}
-            yAxisId="left"
+            yAxisId={horizontal ? undefined : "left"}
           />
         ))}
         {benchmark != null && (
           <ReferenceLine
-            y={benchmark.value}
-            yAxisId="left"
+            {...(horizontal ? { x: benchmark.value } : { y: benchmark.value })}
+            yAxisId={horizontal ? undefined : "left"}
             stroke="hsl(var(--muted-foreground))"
             strokeDasharray="4 4"
             strokeOpacity={0.8}
@@ -120,41 +125,71 @@ export function BarChartComponent({
             }
           />
         )}
-        {showXAxis && (
-          <XAxis
-            dataKey={xAxisDataKey}
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-          />
-        )}
-        {showYAxis && (
-          <YAxis
-            yAxisId="left"
-            orientation="left"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            ticks={yAxisTicks}
-            domain={yAxisDomain}
-            width={44}
-            style={{ fontSize: '12px' }}
-            tickFormatter={formatYAxisTick}
-          />
-        )}
-        {showRightYAxis && (
-          <YAxis
-            yAxisId="right"
-            orientation="right"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            ticks={yAxisTicks}
-            domain={yAxisDomain}
-            width={40}
-            style={{ fontSize: '12px' }}
-            tick={{ dy: 4 }}
-          />
+        {horizontal ? (
+          <>
+            {showXAxis && (
+              <XAxis
+                type="number"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                ticks={yAxisTicks}
+                domain={yAxisDomain}
+                style={{ fontSize: '12px' }}
+                tickFormatter={formatYAxisTick}
+              />
+            )}
+            {showYAxis && (
+              <YAxis
+                type="category"
+                dataKey={xAxisDataKey}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                width={120}
+                style={{ fontSize: '12px' }}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            {showXAxis && (
+              <XAxis
+                dataKey={xAxisDataKey}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+              />
+            )}
+            {showYAxis && (
+              <YAxis
+                yAxisId="left"
+                orientation="left"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                ticks={yAxisTicks}
+                domain={yAxisDomain}
+                width={44}
+                style={{ fontSize: '12px' }}
+                tickFormatter={formatYAxisTick}
+              />
+            )}
+            {showRightYAxis && (
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                ticks={yAxisTicks}
+                domain={yAxisDomain}
+                width={40}
+                style={{ fontSize: '12px' }}
+                tick={{ dy: 4 }}
+              />
+            )}
+          </>
         )}
         {dataKeys.map((key) => (
           <Bar
@@ -165,7 +200,7 @@ export function BarChartComponent({
             /* The standard's rounded bar — except when stacked, where a
                rounded joint between segments would read as a gap. */
             radius={stacked ? 0 : 4}
-            yAxisId={rightAxisDataKey && key === rightAxisDataKey ? "right" : "left"}
+            yAxisId={horizontal ? undefined : (rightAxisDataKey && key === rightAxisDataKey ? "right" : "left")}
           >
             {colorByPoint &&
               data.map((point, i) => (
@@ -185,4 +220,4 @@ export function BarChartComponent({
       </BarChart>
     </ChartContainer>
   )
-} 
+}

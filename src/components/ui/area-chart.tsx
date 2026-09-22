@@ -193,7 +193,11 @@ export function AreaChartComponent({
               dataKey={key}
               type={curved ? "monotone" : "linear"}
               fill={engine ? patternFill(engine) : `var(--color-${key})`}
-              fillOpacity={engine ? (stacked ? 1 : 0.55) : 0.4}
+              // Stacked bands never overlap, so full strength reads cleanly.
+              // Overlaid (non-stacked) series do overlap — bold enough that
+              // each proposition still reads as the same colour it wears
+              // everywhere else, without one fully hiding another.
+              fillOpacity={engine ? (stacked ? 1 : 0.7) : 0.4}
               // A full-strength stroke reads fine around a thick band, but
               // where a flighted series tapers to a sliver it becomes most
               // of what's visible — the outline, not the fill — and that

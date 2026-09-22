@@ -21,7 +21,7 @@ export interface FilterBarFilter {
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
-    type?: 'text' | 'number';
+    type?: 'text' | 'number' | 'date';
   };
   /** Force the search field in the popover even when options is small. */
   forceSearch?: boolean;
@@ -114,8 +114,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const TriggerIcon = activeOption?.icon ?? ViewIcon;
 
   return (
-    <div ref={barRef} className={cn("flex flex-wrap items-center gap-inline w-full", className)}>
-      <div className="flex flex-wrap items-center gap-inline">
+    // Two columns, never a wrapped row: the filters take the left and fold
+    // onto further lines as they need; the search (and action) keep the
+    // top right of the first line however many filters there are.
+    <div ref={barRef} className={cn("flex items-start gap-inline w-full", className)}>
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-inline">
         {filters.map((filter) => (
           <Filter
             key={filter.name}
@@ -130,13 +133,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       </div>
       {(!hideSearch || showViewDropdown || action) && (
         <>
-          <div className="flex-1" data-spacer />
-          {/* The search gives way before anything overflows: it shrinks to a
-              usable minimum, and the whole group drops to its own line when
-              even that does not fit. */}
-          <div className="flex min-w-0 flex-1 basis-[240px] items-center justify-end gap-inline">
+          <div className="flex shrink-0 items-center justify-end gap-inline">
             {!hideSearch && (
-              <div className="w-full min-w-[160px] max-w-[300px]">
+              <div className="w-[240px]">
                 <SearchInput
                   value={searchValue}
                   onChange={(e) => onSearchChange(e.target.value)}

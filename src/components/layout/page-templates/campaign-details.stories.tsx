@@ -1571,12 +1571,20 @@ export const OfflineInstoreRunning: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
+    // Offline in-store's own filters — what a physical booking promotes,
+    // where it hangs, and whether the print is ready in time.
+    const [bookingBrand, setBookingBrand] = useState<string[]>([]);
+    const [bookingProduct, setBookingProduct] = useState<string[]>([]);
+    const [bookingLocation, setBookingLocation] = useState<string[]>([]);
+    const [bookingDeadline, setBookingDeadline] = useState<string>('');
+    const [bookingReadiness, setBookingReadiness] = useState<string[]>([]);
+    const [bookingSearch, setBookingSearch] = useState<string>('');
     const bookingData = [
-      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
-      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
-      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget', adSpend: '€7,778', impressions: '450,101', clicks: '5,895', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€10,243', onlineSkuUnits: '829', onlineSkuConversions: '512', instoreSkuRevenue: '€12,298', instoreSkuUnits: '1,174', instoreSkuConversions: '739', totalSkuRevenue: '€22,541', totalSkuUnits: '2,003', totalSkuConversions: '1,251' },
-      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend', adSpend: '€5,846', impressions: '337,575', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,682', onlineSkuUnits: '622', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '554', totalSkuRevenue: '€16,905', totalSkuUnits: '1,503', totalSkuConversions: '938' },
-      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget', adSpend: '€5,846', impressions: '337,576', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,683', onlineSkuUnits: '623', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '553', totalSkuRevenue: '€16,906', totalSkuUnits: '1,504', totalSkuConversions: '937' },
+      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', brand: 'Dove', retailProduct: 'Dove Body Wash 250ml', location: 'Amsterdam Centrum', readiness: 'Ready', creativeDeadline: '2024-05-20', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
+      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', brand: 'Knorr', retailProduct: 'Knorr Stock Cubes', location: 'Rotterdam Zuid', readiness: 'Ready', creativeDeadline: '2024-06-19', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
+      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget', brand: 'Lipton', retailProduct: 'Lipton Ice Tea 1.5L', location: 'Utrecht Overvecht', readiness: 'Creative missing', creativeDeadline: '2024-07-29', adSpend: '€7,778', impressions: '450,101', clicks: '5,895', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€10,243', onlineSkuUnits: '829', onlineSkuConversions: '512', instoreSkuRevenue: '€12,298', instoreSkuUnits: '1,174', instoreSkuConversions: '739', totalSkuRevenue: '€22,541', totalSkuUnits: '2,003', totalSkuConversions: '1,251' },
+      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend', brand: 'Magnum', retailProduct: 'Magnum Classic 4-pack', location: 'Eindhoven Woensel', readiness: 'Awaiting approval', creativeDeadline: '2024-10-18', adSpend: '€5,846', impressions: '337,575', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,682', onlineSkuUnits: '622', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '554', totalSkuRevenue: '€16,905', totalSkuUnits: '1,503', totalSkuConversions: '938' },
+      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget', brand: 'Dove', retailProduct: 'Dove Body Wash 250ml', location: 'Amsterdam Centrum', readiness: 'Ready', creativeDeadline: '2024-11-15', adSpend: '€5,846', impressions: '337,576', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,683', onlineSkuUnits: '623', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '553', totalSkuRevenue: '€16,906', totalSkuUnits: '1,504', totalSkuConversions: '937' },
     ];
 
     const logData = [
@@ -1859,10 +1867,67 @@ export const OfflineInstoreRunning: Story = {
                         selectedValues: placement,
                         onChange: setPlacement,
                       },
+                      // A physical booking promotes a product for a brand,
+                      // hangs in a store, and needs its print in by a date.
+                      {
+                        name: 'Brand',
+                        options: [
+                          { label: 'Dove', value: 'Dove' },
+                          { label: 'Knorr', value: 'Knorr' },
+                          { label: 'Lipton', value: 'Lipton' },
+                          { label: 'Magnum', value: 'Magnum' },
+                        ],
+                        selectedValues: bookingBrand,
+                        onChange: setBookingBrand,
+                      },
+                      {
+                        name: 'Retail product',
+                        options: [
+                          { label: 'Dove Body Wash 250ml', value: 'Dove Body Wash 250ml' },
+                          { label: 'Knorr Stock Cubes', value: 'Knorr Stock Cubes' },
+                          { label: 'Lipton Ice Tea 1.5L', value: 'Lipton Ice Tea 1.5L' },
+                          { label: 'Magnum Classic 4-pack', value: 'Magnum Classic 4-pack' },
+                        ],
+                        selectedValues: bookingProduct,
+                        onChange: setBookingProduct,
+                      },
+                      {
+                        name: 'Location',
+                        options: [
+                          { label: 'Amsterdam Centrum', value: 'Amsterdam Centrum' },
+                          { label: 'Rotterdam Zuid', value: 'Rotterdam Zuid' },
+                          { label: 'Utrecht Overvecht', value: 'Utrecht Overvecht' },
+                          { label: 'Eindhoven Woensel', value: 'Eindhoven Woensel' },
+                        ],
+                        selectedValues: bookingLocation,
+                        onChange: setBookingLocation,
+                      },
+                      {
+                        name: 'Creative deadline',
+                        options: [],
+                        selectedValues: [],
+                        onChange: () => {},
+                        customInput: {
+                          label: 'Print needed by',
+                          value: bookingDeadline,
+                          onChange: setBookingDeadline,
+                          type: 'date' as const,
+                        },
+                      },
+                      {
+                        name: 'Readiness',
+                        options: [
+                          { label: 'Ready', value: 'Ready' },
+                          { label: 'Creative missing', value: 'Creative missing' },
+                          { label: 'Awaiting approval', value: 'Awaiting approval' },
+                        ],
+                        selectedValues: bookingReadiness,
+                        onChange: setBookingReadiness,
+                      },
                     ]}
-                    searchValue={''}
-                    onSearchChange={() => {}}
-                    searchPlaceholder="Search bookings..."
+                    searchValue={bookingSearch}
+                    onSearchChange={setBookingSearch}
+                    searchPlaceholder="Search for ID, Name"
                   />
                   <Table
                     columns={[
@@ -1890,9 +1955,17 @@ export const OfflineInstoreRunning: Story = {
                       { key: 'totalSkuConversions', header: 'Total SKU Conversions' },
                     ]}
                     data={bookingData.filter(row => {
+                      const q = bookingSearch.trim().toLowerCase();
                       const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const placementMatch = placement.length === 0 || placement.includes(row.placement);
-                      return statusMatch && placementMatch;
+                      const brandMatch = bookingBrand.length === 0 || bookingBrand.includes(row.brand);
+                      const productMatch = bookingProduct.length === 0 || bookingProduct.includes(row.retailProduct);
+                      const locationMatch = bookingLocation.length === 0 || bookingLocation.includes(row.location);
+                      const readinessMatch = bookingReadiness.length === 0 || bookingReadiness.includes(row.readiness);
+                      // A deadline filter keeps what has to be in by that day.
+                      const deadlineMatch = bookingDeadline.length === 0 || row.creativeDeadline <= bookingDeadline;
+                      const searchMatch = q.length === 0 || row.id.toLowerCase().includes(q) || row.name.toLowerCase().includes(q);
+                      return statusMatch && placementMatch && brandMatch && productMatch && locationMatch && readinessMatch && deadlineMatch && searchMatch;
                     })}
                     rowKey={row => row.id}
                     onRowClick={(row) => window.location.href = `/campaigns/offline-instore/booking/${row.id}`}

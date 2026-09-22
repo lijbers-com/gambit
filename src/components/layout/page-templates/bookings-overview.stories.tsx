@@ -64,6 +64,14 @@ type BookingRow = {
   spend: number;
   impressions: number;
   aiRecommendation: 'Optimize Budget' | 'Increase Spend' | 'Pause' | 'Extend' | 'No action';
+  /** Offline in-store only: a physical booking is filtered by what it
+   *  promotes, where it hangs, and whether the print is ready in time. */
+  brand?: string;
+  retailProduct?: string;
+  location?: string;
+  readiness?: 'Ready' | 'Creative missing' | 'Awaiting approval';
+  /** ISO date the print creative has to be in by. */
+  creativeDeadline?: string;
 };
 
 // Shared dataset — covers every proposition with a realistic spread of
@@ -88,9 +96,9 @@ const bookingData: BookingRow[] = [
   { id: 'LI-303', status: 'Paused',    engine: 'digital-instore',    advertiser: 'AdPartners',  campaign: 'BF Store Screens',      campaignId: 'C-004', name: 'BF aisle loop',     placement: 'Aisle endcaps',       start: '2026-11-01', end: '2026-11-30', spend: 4800,  impressions: 280000,  aiRecommendation: 'Pause' },
 
   // Offline in-store
-  { id: 'LI-401', status: 'Live',   engine: 'offline-instore',    advertiser: 'Acme Media',  campaign: 'Holiday POS',           campaignId: 'C-001', name: 'Shelf talkers',     placement: 'Shelf strips',        start: '2026-06-01', end: '2026-06-30', spend: 380,   impressions: 12000,   aiRecommendation: 'Optimize Budget' },
-  { id: 'LI-402', status: 'In review', engine: 'offline-instore',    advertiser: 'BrandX',      campaign: 'Summer POS',            campaignId: 'C-002', name: 'Floor decals',      placement: 'Aisle floor',         start: '2026-07-01', end: '2026-07-31', spend: 0,     impressions: 0,       aiRecommendation: 'No action' },
-  { id: 'LI-403', status: 'Paused',    engine: 'offline-instore',    advertiser: 'AdPartners',  campaign: 'BF Shelf Talkers',      campaignId: 'C-004', name: 'BF shelf strips',   placement: 'Shelf strips',        start: '2026-11-01', end: '2026-11-30', spend: 3850, impressions: 96000,    aiRecommendation: 'Extend' },
+  { id: 'LI-401', status: 'Live',   engine: 'offline-instore',    advertiser: 'Acme Media',  campaign: 'Holiday POS',           campaignId: 'C-001', name: 'Shelf talkers',     placement: 'Shelf strips',        start: '2026-06-01', end: '2026-06-30', spend: 380,   impressions: 12000,   aiRecommendation: 'Optimize Budget', brand: 'Dove',   retailProduct: 'Dove Body Wash 250ml',  location: 'Amsterdam Centrum',  readiness: 'Ready',             creativeDeadline: '2026-05-20' },
+  { id: 'LI-402', status: 'In review', engine: 'offline-instore',    advertiser: 'BrandX',      campaign: 'Summer POS',            campaignId: 'C-002', name: 'Floor decals',      placement: 'Aisle floor',         start: '2026-07-01', end: '2026-07-31', spend: 0,     impressions: 0,       aiRecommendation: 'No action',       brand: 'Knorr',  retailProduct: 'Knorr Stock Cubes',     location: 'Rotterdam Zuid',     readiness: 'Creative missing',  creativeDeadline: '2026-06-19' },
+  { id: 'LI-403', status: 'Paused',    engine: 'offline-instore',    advertiser: 'AdPartners',  campaign: 'BF Shelf Talkers',      campaignId: 'C-004', name: 'BF shelf strips',   placement: 'Shelf strips',        start: '2026-11-01', end: '2026-11-30', spend: 3850, impressions: 96000,    aiRecommendation: 'Extend',          brand: 'Lipton', retailProduct: 'Lipton Ice Tea 1.5L',   location: 'Utrecht Overvecht',  readiness: 'Awaiting approval', creativeDeadline: '2026-10-16' },
 
   // Offsite
   { id: 'LI-501', status: 'Live',   engine: 'offsite',            advertiser: 'Acme Media',  campaign: 'Holiday Open Web',      campaignId: 'C-001', name: 'Open web banners',  placement: 'Programmatic',        start: '2026-06-01', end: '2026-06-30', spend: 150,   impressions: 380000,  aiRecommendation: 'Increase Spend' },
@@ -157,6 +165,14 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const [activeTab, setActiveTab] = React.useState<string>('bookings');
     const [search, setSearch] = React.useState<string>('');
+    // Offline in-store's own filters — what a physical booking promotes,
+    // where it hangs, and whether the print is ready in time.
+    const [brand, setBrand] = React.useState<string[]>([]);
+    const [retailProduct, setRetailProduct] = React.useState<string[]>([]);
+    const [location, setLocation] = React.useState<string[]>([]);
+    const [placement, setPlacement] = React.useState<string[]>([]);
+    const [creativeDeadline, setCreativeDeadline] = React.useState<string>('');
+    const [readiness, setReadiness] = React.useState<string[]>([]);
 
     // Same session-wide range the campaign overview uses, so the window a user
     // set there is still applied here (see lib/session-filters).
@@ -174,7 +190,15 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
         row.name.toLowerCase().includes(search.toLowerCase()) ||
         row.id.toLowerCase().includes(search.toLowerCase()) ||
         row.campaign.toLowerCase().includes(search.toLowerCase());
-      return engineMatch && dateMatch && statusMatch && advertiserMatch && aiMatch && searchMatch;
+      const brandMatch = brand.length === 0 || (!!row.brand && brand.includes(row.brand));
+      const productMatch = retailProduct.length === 0 || (!!row.retailProduct && retailProduct.includes(row.retailProduct));
+      const locationMatch = location.length === 0 || (!!row.location && location.includes(row.location));
+      const placementMatch = placement.length === 0 || placement.includes(row.placement);
+      const readinessMatch = readiness.length === 0 || (!!row.readiness && readiness.includes(row.readiness));
+      // A deadline filter keeps what has to be in by that day.
+      const deadlineMatch = creativeDeadline.length === 0 || (!!row.creativeDeadline && row.creativeDeadline <= creativeDeadline);
+      return engineMatch && dateMatch && statusMatch && advertiserMatch && aiMatch && searchMatch
+        && brandMatch && productMatch && locationMatch && placementMatch && readinessMatch && deadlineMatch;
     });
 
     // What the filters left in view, against the whole proposition.
@@ -184,7 +208,9 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
     // user: on any other tab they fall back to the proposition's totals, and
     // pick the filtered numbers back up when the bookings tab returns.
     const tableFiltersActive =
-      status.length > 0 || advertiser.length > 0 || aiRec.length > 0 || search.length > 0;
+      status.length > 0 || advertiser.length > 0 || aiRec.length > 0 || search.length > 0 ||
+      brand.length > 0 || retailProduct.length > 0 || location.length > 0 || placement.length > 0 ||
+      readiness.length > 0 || creativeDeadline.length > 0;
     const followTable = activeTab === 'bookings' && tableFiltersActive;
     const scopedRows = followTable ? filteredBookingData : engineRows;
     const visibleSpend = scopedRows.reduce((sum, row) => sum + row.spend, 0);
@@ -276,10 +302,84 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                             selectedValues: aiRec,
                             onChange: setAiRec,
                           },
+                          // Offline in-store is the one proposition where a
+                          // booking is a physical thing: it promotes a product
+                          // for a brand, hangs in a store, and needs its print
+                          // in by a date. Those are its filters.
+                          ...(normalizedEngine === 'offline-instore'
+                            ? [
+                                {
+                                  name: 'Brand',
+                                  options: [
+                                    { label: 'Dove', value: 'Dove' },
+                                    { label: 'Knorr', value: 'Knorr' },
+                                    { label: 'Lipton', value: 'Lipton' },
+                                    { label: 'Magnum', value: 'Magnum' },
+                                  ],
+                                  selectedValues: brand,
+                                  onChange: setBrand,
+                                },
+                                {
+                                  name: 'Retail product',
+                                  options: [
+                                    { label: 'Dove Body Wash 250ml', value: 'Dove Body Wash 250ml' },
+                                    { label: 'Knorr Stock Cubes', value: 'Knorr Stock Cubes' },
+                                    { label: 'Lipton Ice Tea 1.5L', value: 'Lipton Ice Tea 1.5L' },
+                                    { label: 'Magnum Classic 4-pack', value: 'Magnum Classic 4-pack' },
+                                  ],
+                                  selectedValues: retailProduct,
+                                  onChange: setRetailProduct,
+                                },
+                                {
+                                  name: 'Location',
+                                  options: [
+                                    { label: 'Amsterdam Centrum', value: 'Amsterdam Centrum' },
+                                    { label: 'Rotterdam Zuid', value: 'Rotterdam Zuid' },
+                                    { label: 'Utrecht Overvecht', value: 'Utrecht Overvecht' },
+                                    { label: 'Eindhoven Woensel', value: 'Eindhoven Woensel' },
+                                  ],
+                                  selectedValues: location,
+                                  onChange: setLocation,
+                                },
+                                {
+                                  name: 'Placement',
+                                  options: [
+                                    { label: 'Shelf strips', value: 'Shelf strips' },
+                                    { label: 'Aisle floor', value: 'Aisle floor' },
+                                    { label: 'End cap', value: 'End cap' },
+                                    { label: 'Checkout', value: 'Checkout' },
+                                  ],
+                                  selectedValues: placement,
+                                  onChange: setPlacement,
+                                },
+                                {
+                                  name: 'Creative deadline',
+                                  options: [],
+                                  selectedValues: [],
+                                  onChange: () => {},
+                                  customInput: {
+                                    label: 'Print needed by',
+                                    value: creativeDeadline,
+                                    onChange: setCreativeDeadline,
+                                    type: 'date' as const,
+                                  },
+                                },
+                                {
+                                  name: 'Readiness',
+                                  options: [
+                                    { label: 'Ready', value: 'Ready' },
+                                    { label: 'Creative missing', value: 'Creative missing' },
+                                    { label: 'Awaiting approval', value: 'Awaiting approval' },
+                                  ],
+                                  selectedValues: readiness,
+                                  onChange: setReadiness,
+                                },
+                              ]
+                            : []),
                         ]}
                         searchValue={search}
                         onSearchChange={(v: string) => setSearch(v)}
-                        searchPlaceholder={`Search ${engineType} bookings...`}
+                        searchPlaceholder={normalizedEngine === 'offline-instore' ? 'Search for ID, Name' : `Search ${engineType} bookings...`}
                       />
                       <Table
                         columns={[

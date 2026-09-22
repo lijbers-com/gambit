@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { X, Search, Store } from 'lucide-react';
+import { X, Search, Store, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Popover, PopoverTrigger, PopoverContent } from './popover';
@@ -22,7 +22,7 @@ export interface FilterProps {
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
-    type?: 'text' | 'number';
+    type?: 'text' | 'number' | 'date';
   };
   /** Force the search field to render even when the option list is short.
    *  Useful for filters whose option set grows over time (e.g. Channel,
@@ -136,7 +136,7 @@ export const Filter: React.FC<FilterProps> = ({
           <div className="sticky top-0 z-10 bg-white border-b border-border">
             <div className="relative flex items-center">
               <span className="absolute left-3 text-muted-foreground">
-                <Store className="w-4 h-4" />
+                {customInput.type === 'date' ? <CalendarIcon className="w-4 h-4" /> : <Store className="w-4 h-4" />}
               </span>
               <input
                 type={customInput.type || 'text'}
@@ -158,6 +158,9 @@ export const Filter: React.FC<FilterProps> = ({
             </div>
           </div>
         )}
+        {/* A filter that is only its input (a date, a number) has no list
+            to show — and no "No results" to apologise for. */}
+        {(options.length > 0 || !customInput) && (
         <div className={cn(
           showSearch ? "max-h-96 overflow-y-auto divide-y divide-transparent p-1" : "p-1"
         )}>
@@ -190,6 +193,7 @@ export const Filter: React.FC<FilterProps> = ({
             ))
           )}
         </div>
+        )}
       </PopoverContent>
     </Popover>
   );

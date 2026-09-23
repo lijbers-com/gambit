@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import type { PatternKey } from '@/lib/proposition-patterns';
+import { propositionColor, engineIdFromShort } from '@/lib/proposition-colors';
+import type { EngineId } from '@/lib/db';
 import {
   Card,
   CardContent,
@@ -637,23 +638,10 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
     // Per-proposition budget vs spend — drives both the collapsed-card budget bar
     // and (recomputed) the Budget metric card below. Kept in sync via the same palette.
-    const collapsedPropColorById: Record<string, string> = {
-      display: 'hsl(var(--chart-1))',
-      sponsored: 'hsl(var(--chart-2))',
-      digital: 'hsl(var(--chart-3))',
-      offline: 'hsl(var(--chart-4))',
-      offsite: 'hsl(var(--chart-5))',
-    };
-    const collapsedPropColor = (id: string) => collapsedPropColorById[id] ?? 'hsl(var(--chart-1))';
-    // The card's engine ids are the short ones; the pattern system keys on
-    // the proposition ids every chart uses.
-    const collapsedPatternKeyById: Record<string, PatternKey> = {
-      display: 'display',
-      sponsored: 'sponsored-products',
-      digital: 'digital-instore',
-      offline: 'offline-instore',
-      offsite: 'offsite',
-    };
+    // The card's engine ids are the short ones; the proposition rule keys
+    // on the ids every chart uses. Tint and pattern both come from there.
+    const collapsedPatternKeyById = (id: string): EngineId => engineIdFromShort[id] ?? 'display';
+    const collapsedPropColor = (id: string) => propositionColor(collapsedPatternKeyById(id));
     const collapsedEnabledEngines = currentEngines.filter(e => e.enabled);
     const collapsedBudgetByEngine = collapsedEnabledEngines.map(engine => ({
       value: parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0,
@@ -667,7 +655,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         : Math.round((collapsedBudgetByEngine[i].value / collapsedTotalEngineBudget) * collapsedCampaignSpend),
       budget: collapsedBudgetByEngine[i].value,
       color: collapsedPropColor(engine.id),
-      engine: collapsedPatternKeyById[engine.id],
+      engine: collapsedPatternKeyById(engine.id),
     }));
     const collapsedTotalBudget = collapsedBudgetData.reduce((s, d) => s + d.budget, 0);
     // The plan's own budget is what the bar is scaled to: the campaigns'
@@ -1298,14 +1286,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               {!isGuidedSettingsPhase && (() => {
                 // Single source of truth for the per-proposition palette — keeps
                 // the budget segments, ROAS bars, and donut legends in sync.
-                const propositionColorById: Record<string, string> = {
-                  display: 'hsl(var(--chart-1))',
-                  sponsored: 'hsl(var(--chart-2))',
-                  digital: 'hsl(var(--chart-3))',
-                  offline: 'hsl(var(--chart-4))',
-                  offsite: 'hsl(var(--chart-5))',
-                };
-                const propColor = (id: string) => propositionColorById[id] ?? 'hsl(var(--chart-1))';
+                const propColor = (id: string) => propositionColor(engineIdFromShort[id] ?? 'display');
                 // Only propositions actually used in the media plan (enabled engines).
                 const enabledEngines = currentEngines.filter(e => e.enabled);
                 const budgetByEngine = enabledEngines.map(engine => ({

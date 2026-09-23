@@ -10,6 +10,7 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 import { ChartDataPoint, ChartConfig, formatYAxisTick } from "./chart-types"
+import { PropositionPatternDefs, patternFill, type PatternKey } from "@/lib/proposition-patterns"
 
 /** Recharts' own tick text wraps a long category label onto a second line —
  *  and, once a row can't fit that second line, silently drops most of it —
@@ -47,6 +48,10 @@ export interface BarChartProps {
    * splits by engine (see lib/proposition-colors). Single-series charts only.
    */
   colorByPoint?: string
+  /** Key on each data point holding its proposition id — the bar then wears
+   *  that proposition's tint and pattern (the app-wide rule) instead of a
+   *  flat colour. Single-series charts only. */
+  patternByPoint?: string
 }
 
 export function BarChartComponent({
@@ -65,6 +70,7 @@ export function BarChartComponent({
   xAxisDataKey = "month",
   benchmark,
   colorByPoint,
+  patternByPoint,
 }: BarChartProps) {
   const dataKeys = Object.keys(config).filter(key => config[key].label)
 
@@ -116,6 +122,7 @@ export function BarChartComponent({
           bottom: 0,
         }}
       >
+        {patternByPoint && <PropositionPatternDefs />}
         {showGrid && yAxisTicks.map(tick => (
           <ReferenceLine
             key={tick}
@@ -216,9 +223,16 @@ export function BarChartComponent({
             radius={stacked ? 0 : 4}
             yAxisId={horizontal ? undefined : (rightAxisDataKey && key === rightAxisDataKey ? "right" : "left")}
           >
-            {colorByPoint &&
+            {(patternByPoint || colorByPoint) &&
               data.map((point, i) => (
-                <Cell key={i} fill={(point[colorByPoint] as string) ?? `var(--color-${key})`} />
+                <Cell
+                  key={i}
+                  fill={
+                    patternByPoint && point[patternByPoint]
+                      ? patternFill(point[patternByPoint] as PatternKey)
+                      : ((colorByPoint && (point[colorByPoint] as string)) ?? `var(--color-${key})`)
+                  }
+                />
               ))}
           </Bar>
         ))}

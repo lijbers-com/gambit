@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { propositionColor } from '@/lib/proposition-colors';
 import React, { useState } from 'react';
 import { AppLayout } from '../app-layout';
 import { PageHeader } from '@/components/ui/page-header';
@@ -102,9 +103,9 @@ export const StrategyAllocation = {
     };
 
     const propositionConfig = {
-      display: { label: "Display Engine", color: "hsl(var(--chart-1))" },
-      sponsoredProducts: { label: "Sponsored Products", color: "hsl(var(--chart-2))" },
-      digitalInstore: { label: "Digital In-Store", color: "hsl(var(--chart-3))" }
+      display: { label: "Display Engine", color: propositionColor('display') },
+      sponsoredProducts: { label: "Sponsored Products", color: propositionColor('sponsored-products') },
+      digitalInstore: { label: "Digital In-Store", color: propositionColor('digital-instore') }
     };
 
     const performanceConfig = {

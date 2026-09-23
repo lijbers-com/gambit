@@ -537,10 +537,15 @@ export const BarHorizontalDetail = ({
 const BudgetSegment = ({ widthPct, color, engine, tint }: { widthPct: number; color: string; engine?: PatternKey; tint?: boolean }) => {
   if (widthPct <= 0) return null;
   const p = engine ? patternFor(engine) : undefined;
+  // Blue means spent. An allocation not yet spent is grey — still wearing
+  // its proposition's pattern, in grey ink, so it is known to be that
+  // campaign's money without ever reading as money already gone.
+  const base = tint ? 'rgb(var(--neutral-200))' : p ? p.base : color;
+  const ink = tint ? 'rgb(var(--neutral-500))' : p?.ink;
   return (
-    <div className="relative shrink-0" style={{ width: `${widthPct}%`, backgroundColor: p ? p.base : color, opacity: tint ? 0.3 : 1 }}>
+    <div className="relative shrink-0" style={{ width: `${widthPct}%`, backgroundColor: base }}>
       {p && engine && (
-        <div className="absolute inset-0" style={{ ...patternBackground(engine, { ink: p.ink, size: 8 }), opacity: 0.45 }} />
+        <div className="absolute inset-0" style={{ ...patternBackground(engine, { ink, size: 8 }), opacity: 0.45 }} />
       )}
     </div>
   );
@@ -558,7 +563,7 @@ const BudgetSwatch = ({ color, engine, round }: { color: string; engine?: Patter
 /** Open budget — money the plan has but no campaign has been given yet.
  *  Hatched so it never reads as a tinted allocation or as spend. */
 const OPEN_BUDGET_FILL: React.CSSProperties = {
-  backgroundColor: 'rgb(var(--neutral-100))',
+  backgroundColor: 'hsl(var(--background))',
   backgroundImage: 'repeating-linear-gradient(135deg, rgb(var(--neutral-300)) 0 1.5px, transparent 1.5px 5px)',
 };
 

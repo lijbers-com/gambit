@@ -2,15 +2,24 @@ import * as React from 'react';
 import type { EngineId } from '@/lib/db';
 
 /**
- * One pattern per proposition — the mark a proposition wears everywhere it is
- * drawn: a chart series, a legend swatch, a tile background on its own pages.
+ * THE RULE for drawing propositions, everywhere in the app:
  *
- * Tints of one blue, not five hues: the pattern carries identity, so five
- * stacked series still read apart without five colours, in print, and for
- * every kind of colour vision. The patterns are deliberately faint and
- * simple — a texture, not decoration — and diagonal, so they never read as
- * gridlines. Each proposition also sits on its own grey step, so a stack
- * separates even where a pattern is too small to see.
+ *   Each proposition has ONE tint of the chart blue and ONE pattern, fixed
+ *   here and nowhere else. A chart series, a legend swatch, a budget-bar
+ *   segment, a product bar, a line — whatever shows a proposition wears its
+ *   tint under its pattern (`base` + `kind`), or its `ink` when it is a line.
+ *
+ *   The five tints are consecutive steps of the one blue ramp, all clearly
+ *   blue: nothing pale enough to pass for white or grey. That leaves white
+ *   and grey free to mean "not a proposition" — open budget, an unspent
+ *   allocation, a remainder — so used and unused read apart at a glance.
+ *
+ *   Tints of one blue, not five hues: the pattern carries identity, so five
+ *   stacked series still read apart in print and for every kind of colour
+ *   vision. The patterns are faint and diagonal — a texture, not decoration.
+ *
+ * Callers take colours from `patternFor(engine)` (or `propositionColor` /
+ * `propositionInk` in lib/proposition-colors), never from a chart-N slot.
  */
 
 export type PatternKind = 'diagonal' | 'diagonal-reverse' | 'dots' | 'crosshatch' | 'checker' | 'solid';
@@ -27,13 +36,13 @@ export interface PropositionPattern {
 }
 
 export const PROPOSITION_PATTERNS: Record<EngineId, PropositionPattern> = {
-  // The shade does the separating; the pattern is a whisper on top — one
-  // step of ink over the base, wide and thin — there to be recognised, not
-  // to be read at a glance.
-  // Never the page's own shade: the lightest step is well above the surface.
-  'sponsored-products': { kind: 'dots',             base: 'hsl(var(--chart-200))', ink: 'hsl(var(--chart-500))' },
-  display:              { kind: 'diagonal',         base: 'hsl(var(--chart-300))', ink: 'hsl(var(--chart-600))' },
-  'digital-instore':    { kind: 'crosshatch',       base: 'hsl(var(--chart-400))', ink: 'hsl(var(--chart-700))' },
+  // Five consecutive steps, 300 → 700: close enough to read as one family,
+  // each a clear blue, none pale enough to be mistaken for the surface or a
+  // grey. The pattern is a whisper on top — ink two steps darker, wide and
+  // thin — there to be recognised, not to be read at a glance.
+  'sponsored-products': { kind: 'dots',             base: 'hsl(var(--chart-300))', ink: 'hsl(var(--chart-500))' },
+  display:              { kind: 'diagonal',         base: 'hsl(var(--chart-400))', ink: 'hsl(var(--chart-600))' },
+  'digital-instore':    { kind: 'crosshatch',       base: 'hsl(var(--chart-500))', ink: 'hsl(var(--chart-700))' },
   'offline-instore':    { kind: 'checker',          base: 'hsl(var(--chart-600))', ink: 'hsl(var(--chart-800))' },
   offsite:              { kind: 'diagonal-reverse', base: 'hsl(var(--chart-700))', ink: 'hsl(var(--chart-900))' },
 };

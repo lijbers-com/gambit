@@ -399,7 +399,7 @@ export const MediaPlanDetail: Story = {
       value: e.spend > 0 && e.budget > 0 ? Math.round((2.4 + (e.spend / e.budget) * 2.2) * 10) / 10 : 0,
       color: e.color,
     }));
-    const budgetVsSpend = byEngine.map((e) => ({ name: e.name, spent: e.spend, budget: e.budget, color: e.color }));
+    const budgetVsSpend = byEngine.map((e) => ({ name: e.name, spent: e.spend, budget: e.budget, color: e.color, engine: e.engine }));
     const propositionColors = byEngine.map((e) => e.color);
 
     const impressionsTotal = impressionsByEngine.reduce((s, e) => s + e.value, 0);

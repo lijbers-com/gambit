@@ -4524,6 +4524,7 @@ export const FunnelView: Story = {
                         config={{ value: { label: 'Revenue', color: 'hsl(var(--chart-2))' } }}
                         horizontal
                         colorByPoint="color"
+                        patternByPoint="engine"
                         xAxisDataKey="name"
                         showLegend={false}
                         showGrid={true}
@@ -4557,6 +4558,7 @@ export const FunnelView: Story = {
                         config={{ value: { label: 'Revenue', color: 'hsl(var(--chart-2))' } }}
                         horizontal
                         colorByPoint="color"
+                        patternByPoint="engine"
                         xAxisDataKey="name"
                         showLegend={false}
                         showGrid={true}

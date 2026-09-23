@@ -1,20 +1,28 @@
 import type { EngineId } from '@/lib/db';
+import { patternFor } from '@/lib/proposition-patterns';
 
 /**
- * One colour per proposition, so a proposition keeps its colour across every
- * chart that splits by engine — the budget bar, the impressions donut, the ROAS
- * bars and their legends all agree.
+ * A proposition's colours, taken from the one place they are decided —
+ * lib/proposition-patterns. `propositionColor` is the tint a filled mark
+ * wears (a bar, a segment, a donut slice); `propositionInk` is the darker
+ * step a line or a swatch border wears. Never a chart-N slot: those are for
+ * series that are not propositions.
  */
-const byEngine: Record<EngineId, string> = {
-  'display': 'hsl(var(--chart-1))',
-  'sponsored-products': 'hsl(var(--chart-2))',
-  'digital-instore': 'hsl(var(--chart-3))',
-  'offline-instore': 'hsl(var(--chart-4))',
-  'offsite': 'hsl(var(--chart-5))',
-};
+export const propositionColor = (engine: EngineId): string => patternFor(engine).base;
+export const propositionInk = (engine: EngineId): string => patternFor(engine).ink;
 
-export const propositionColor = (engine: EngineId): string =>
-  byEngine[engine] ?? 'hsl(var(--chart-1))';
+/** The short engine ids some older surfaces still carry (`sponsored`,
+ *  `digital`…) mapped onto the proposition ids the rest of the app uses. */
+export const engineIdFromShort: Record<string, EngineId> = {
+  display: 'display',
+  sponsored: 'sponsored-products',
+  'sponsored-products': 'sponsored-products',
+  digital: 'digital-instore',
+  'digital-instore': 'digital-instore',
+  offline: 'offline-instore',
+  'offline-instore': 'offline-instore',
+  offsite: 'offsite',
+};
 
 /** Display label for a proposition, matching the rest of the UI. */
 export const propositionLabel = (engine: EngineId): string =>

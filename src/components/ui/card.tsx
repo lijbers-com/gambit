@@ -678,6 +678,8 @@ export const BudgetStackedMini = ({
   budgetData,
   caption,
   total,
+  labelled = false,
+  emptyLabel,
 }: {
   budgetData: NonNullable<MetricCardProps['budgetData']>;
   /** Small line above the bar — where the bar's own scale is stated, so the
@@ -687,13 +689,22 @@ export const BudgetStackedMini = ({
    *  the bar is scaled to it and the difference shows as open budget —
    *  money not yet given to any campaign. Defaults to the campaigns' sum. */
   total?: number;
+  /** A taller bar that states its own figures — spent and allocated at the
+   *  left, open at the right — so the card needs no budget line under it. */
+  labelled?: boolean;
+  /** What the empty track says when there is nothing to show (labelled only). */
+  emptyLabel?: string;
 }) => {
   const allocated = budgetData.reduce((sum, d) => sum + d.budget, 0);
+  const spent = budgetData.reduce((sum, d) => sum + Math.min(d.spent, d.budget), 0);
   const scale = Math.max(total ?? 0, allocated);
   const open = Math.max(scale - allocated, 0);
   const fmtBar = (n: number) =>
     n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n).toLocaleString()}`;
   const pct = (n: number) => (scale > 0 ? (n / scale) * 100 : 0);
+  // The figures ride on the bar as small chips, so they read on any segment
+  // colour under them — a dark spend block or the bare open track alike.
+  const chip = 'rounded bg-background/85 px-1.5 py-px text-[11px] font-medium tabular-nums text-foreground';
   return (
     <div>
     {caption && (
@@ -706,7 +717,7 @@ export const BudgetStackedMini = ({
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex h-2.5 cursor-default rounded-full overflow-hidden border border-border bg-background">
+          <div className={cn('relative flex cursor-default overflow-hidden border border-border bg-background', labelled ? 'h-7 rounded-md' : 'h-2.5 rounded-full')}>
             {budgetData.map((d, i) => (
               <React.Fragment key={`${d.name}-${i}`}>
                 <div style={{ width: `${pct(Math.min(d.spent, d.budget))}%`, backgroundColor: colorFromIndex(i, d.color) }} />
@@ -714,6 +725,20 @@ export const BudgetStackedMini = ({
               </React.Fragment>
             ))}
             <div className="flex-1" style={total !== undefined ? OPEN_BUDGET_FILL : { backgroundColor: 'rgb(var(--neutral-200))' }} />
+            {labelled && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-between gap-2 px-1.5">
+                {scale > 0 ? (
+                  <>
+                    <span className={cn(chip, 'truncate')}>
+                      {fmtBar(spent)} spent · {fmtBar(allocated)} allocated
+                    </span>
+                    {open > 0 && <span className={cn(chip, 'shrink-0')}>{fmtBar(open)} open</span>}
+                  </>
+                ) : (
+                  emptyLabel && <span className={cn(chip, 'text-muted-foreground')}>{emptyLabel}</span>
+                )}
+              </div>
+            )}
           </div>
         </TooltipTrigger>
         <TooltipContent side="top" className="p-2.5">

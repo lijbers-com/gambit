@@ -702,9 +702,9 @@ export const BudgetStackedMini = ({
   const fmtBar = (n: number) =>
     n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n).toLocaleString()}`;
   const pct = (n: number) => (scale > 0 ? (n / scale) * 100 : 0);
-  // The figures ride on the bar as small chips, so they read on any segment
+  // The figures ride on the bar as badges, so they read on any segment
   // colour under them — a dark spend block or the bare open track alike.
-  const chip = 'rounded bg-background/85 px-1.5 py-px text-[11px] font-medium tabular-nums text-foreground';
+  const chip = 'tabular-nums';
   return (
     <div>
     {caption && (
@@ -717,7 +717,7 @@ export const BudgetStackedMini = ({
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn('relative flex cursor-default overflow-hidden border border-border bg-background', labelled ? 'h-7 rounded-md' : 'h-2.5 rounded-full')}>
+          <div className={cn('relative flex cursor-default overflow-hidden rounded-full border border-border bg-background', labelled ? 'h-7' : 'h-2.5')}>
             {budgetData.map((d, i) => (
               <React.Fragment key={`${d.name}-${i}`}>
                 <div style={{ width: `${pct(Math.min(d.spent, d.budget))}%`, backgroundColor: colorFromIndex(i, d.color) }} />
@@ -726,16 +726,16 @@ export const BudgetStackedMini = ({
             ))}
             <div className="flex-1" style={total !== undefined ? OPEN_BUDGET_FILL : { backgroundColor: 'rgb(var(--neutral-200))' }} />
             {labelled && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-between gap-2 px-1.5">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-between gap-2 px-1">
                 {scale > 0 ? (
                   <>
-                    <span className={cn(chip, 'truncate')}>
-                      {fmtBar(spent)} spent · {fmtBar(allocated)} allocated
-                    </span>
-                    {open > 0 && <span className={cn(chip, 'shrink-0')}>{fmtBar(open)} open</span>}
+                    <Badge className={cn(chip, 'min-w-0')}>
+                      <span className="truncate">{fmtBar(spent)} spent · {fmtBar(allocated)} allocated</span>
+                    </Badge>
+                    {open > 0 && <Badge className={cn(chip, 'shrink-0')}>{fmtBar(open)} open</Badge>}
                   </>
                 ) : (
-                  emptyLabel && <span className={cn(chip, 'text-muted-foreground')}>{emptyLabel}</span>
+                  emptyLabel && <Badge variant="info">{emptyLabel}</Badge>
                 )}
               </div>
             )}

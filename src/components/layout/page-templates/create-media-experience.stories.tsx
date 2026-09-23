@@ -31,7 +31,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { queueToast } from '@/components/ui/toast';
 import { LinkPickerDialog } from '@/components/ui/link-picker';
-import { Link2, Pencil, Trash2 } from 'lucide-react';
+import { ChevronUp, Link2, Pencil, Trash2 } from 'lucide-react';
 import { getDb, createMediaPlan, updateMediaPlan, createCampaign, updateCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 import {
@@ -1576,6 +1576,10 @@ export const GoalSelection: Story = {
                               </span>
                             }
                             title={`${prop.name} campaign`}
+                            /* The header folds the card back to its row — the
+                               mirror of the closed row, where the whole row
+                               opens it. */
+                            onHeaderClick={() => updateRow(row.id, { open: false })}
                             description={
                               row.existingId
                                 ? 'Existing campaign · joins this plan on save'
@@ -1606,6 +1610,18 @@ export const GoalSelection: Story = {
                                     </span>
                                   </label>
                                 )}
+                                {/* Same slot the pencil holds on the closed
+                                    row, so the toggle stays put as the card
+                                    opens and closes. */}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 w-8 shrink-0 p-0"
+                                  aria-label={`Collapse ${prop.name} campaign`}
+                                  onClick={() => updateRow(row.id, { open: false })}
+                                >
+                                  <ChevronUp size={14} />
+                                </Button>
                               </>
                             }
                           >
@@ -1726,9 +1742,9 @@ export const GoalSelection: Story = {
                                 cannot be taken for a close. */}
                             <div className="flex items-center justify-between gap-inline pt-1">
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
-                                className="text-muted-foreground hover:text-destructive"
+                                className="hover:text-destructive"
                                 aria-label={`Remove ${prop.name} campaign`}
                                 onClick={() => removeRow(row.id)}
                               >

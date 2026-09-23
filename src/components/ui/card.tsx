@@ -529,27 +529,29 @@ export const BarHorizontalDetail = ({
   );
 };
 
-/** One segment of a budget bar. With an `engine` it is the proposition's
- *  base tint with the proposition's pattern laid faintly over it — the same
- *  mark the proposition wears on every chart; without one, a flat colour.
- *  `tint` is the allocated-but-unspent part: the same fill, most of the way
- *  to the surface. */
-const BudgetSegment = ({ widthPct, color, engine, tint }: { widthPct: number; color: string; engine?: PatternKey; tint?: boolean }) => {
+/** One segment of a budget bar — a campaign's ALLOCATION, in its
+ *  proposition's tint with the proposition's pattern laid faintly over it,
+ *  the same mark it wears on every chart. Without an engine, a flat colour. */
+const BudgetSegment = ({ widthPct, color, engine }: { widthPct: number; color: string; engine?: PatternKey }) => {
   if (widthPct <= 0) return null;
   const p = engine ? patternFor(engine) : undefined;
-  // Blue means spent. An allocation not yet spent is grey — still wearing
-  // its proposition's pattern, in grey ink, so it is known to be that
-  // campaign's money without ever reading as money already gone.
-  const base = tint ? 'rgb(var(--neutral-200))' : p ? p.base : color;
-  const ink = tint ? 'rgb(var(--neutral-500))' : p?.ink;
   return (
-    <div className="relative shrink-0" style={{ width: `${widthPct}%`, backgroundColor: base }}>
+    <div className="relative shrink-0" style={{ width: `${widthPct}%`, backgroundColor: p ? p.base : color }}>
       {p && engine && (
-        <div className="absolute inset-0" style={{ ...patternBackground(engine, { ink, size: 8 }), opacity: 0.45 }} />
+        <div className="absolute inset-0" style={{ ...patternBackground(engine, { ink: p.ink, size: 8 }), opacity: 0.45 }} />
       )}
     </div>
   );
 };
+
+/** Spend, drawn under the allocations as one thin dark line from the left —
+ *  a progress mark, not another colour, so the bar stays the split of the
+ *  budget and the eye reads "this far in" without a second palette. */
+const BudgetSpentLine = ({ widthPct }: { widthPct: number }) => (
+  <div className="pointer-events-none absolute inset-x-1.5 bottom-[3px] h-[3px]">
+    <div className="h-full rounded-full bg-foreground/55" style={{ width: `${Math.min(widthPct, 100)}%` }} />
+  </div>
+);
 
 /** The swatch for a segment in a tooltip — the pattern itself when the
  *  segment has a proposition, a colour dot otherwise. */
@@ -560,12 +562,12 @@ const BudgetSwatch = ({ color, engine, round }: { color: string; engine?: Patter
     <span className={cn('h-2.5 w-2.5 shrink-0', round ? 'rounded-full' : 'rounded-sm')} style={{ backgroundColor: color }} />
   );
 
-/** Open budget — money the plan has but no campaign has been given yet.
- *  Hatched so it never reads as a tinted allocation or as spend. */
-const OPEN_BUDGET_FILL: React.CSSProperties = {
-  backgroundColor: 'hsl(var(--background))',
-  backgroundImage: 'repeating-linear-gradient(135deg, rgb(var(--neutral-300)) 0 1.5px, transparent 1.5px 5px)',
-};
+/** The spend line's swatch in a tooltip. */
+const SpentSwatch = () => <span className="inline-block h-[3px] w-2.5 shrink-0 rounded-full bg-foreground/55" />;
+
+/** Open budget — money the plan has but no campaign has been given yet:
+ *  the bare track, plain, so nothing competes with the allocations. */
+const OPEN_BUDGET_FILL: React.CSSProperties = { backgroundColor: 'hsl(var(--background))' };
 
 export const BudgetStackedDetail = ({
   budgetData,
@@ -575,27 +577,27 @@ export const BudgetStackedDetail = ({
   budgetData: NonNullable<MetricCardProps['budgetData']>;
   valueFormatter?: MetricCardProps['valueFormatter'];
   /** The plan's own budget. The "Media plan" row is then scaled to it: each
-   *  campaign's spend in full colour, the rest of its allocation in a tint,
-   *  and whatever no campaign has yet as the bare track — open budget. */
+   *  campaign's allocation in its tint and pattern, whatever no campaign has
+   *  yet as the bare track — open budget — and spend as the line beneath. */
   total?: number;
 }) => {
   const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
-  const remainingColor = 'rgb(var(--neutral-200))';
   const hasPlanTotal = total !== undefined;
   const allocated = budgetData.reduce((sum, d) => sum + d.budget, 0);
   const totalBudget = Math.max(total ?? 0, allocated);
   const openBudget = Math.max(totalBudget - allocated, 0);
-  type Segment = { name: string; value: number; color: string; engine?: PatternKey; tint?: boolean };
-  const totalSegments: Segment[] = budgetData.flatMap((d, i) => [
-    { name: d.name, value: Math.min(d.spent, d.budget), color: colorFromIndex(i, d.color), engine: d.engine },
-    { name: d.name, value: Math.max(d.budget - d.spent, 0), color: colorFromIndex(i, d.color), engine: d.engine, tint: true },
-  ]);
+  type Segment = { name: string; value: number; spent: number; color: string; engine?: PatternKey };
   const rows: Array<{ name: string; budget: number; segments: Segment[]; isTotal: boolean }> = [
-    { name: 'Media plan', budget: totalBudget, segments: totalSegments, isTotal: true },
+    {
+      name: 'Media plan',
+      budget: totalBudget,
+      segments: budgetData.map((d, i) => ({ name: d.name, value: d.budget, spent: Math.min(d.spent, d.budget), color: colorFromIndex(i, d.color), engine: d.engine })),
+      isTotal: true,
+    },
     ...budgetData.map((d, i) => ({
       name: d.name,
       budget: d.budget,
-      segments: [{ name: d.name, value: d.spent, color: colorFromIndex(i, d.color), engine: d.engine }],
+      segments: [{ name: d.name, value: d.budget, spent: Math.min(d.spent, d.budget), color: colorFromIndex(i, d.color), engine: d.engine }],
       isTotal: false,
     })),
   ];
@@ -603,7 +605,7 @@ export const BudgetStackedDetail = ({
     <TooltipProvider>
       <ul className="space-y-3 text-sm">
         {rows.map((row, idx) => {
-          const rowSpent = row.segments.filter((seg) => !seg.tint).reduce((s, seg) => s + seg.value, 0);
+          const rowSpent = row.segments.reduce((s, seg) => s + seg.spent, 0);
           const pct = row.budget > 0 ? Math.round((rowSpent / row.budget) * 100) : 0;
           const remaining = Math.max(row.budget - rowSpent, 0);
           const share = (n: number) => (row.budget > 0 ? Math.round((n / row.budget) * 100) : 0);
@@ -614,7 +616,7 @@ export const BudgetStackedDetail = ({
                   {row.name}
                 </span>
                 <span className="tabular-nums whitespace-nowrap text-muted-foreground">
-                  {row.isTotal && total !== undefined ? (
+                  {row.isTotal && hasPlanTotal ? (
                     <>
                       <span className="font-medium text-foreground">{fmt(allocated)}</span> allocated · <span className="font-medium text-foreground">{fmt(openBudget)}</span> open · <span className="font-medium text-foreground">{pct}%</span> spent
                     </>
@@ -628,17 +630,17 @@ export const BudgetStackedDetail = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="cursor-pointer w-full">
-                    <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
+                    <div className="relative flex h-4 overflow-hidden rounded-full border border-border bg-background">
                       {row.segments.map((seg, segIdx) => (
                         <BudgetSegment
                           key={`${seg.name}-${segIdx}`}
                           widthPct={row.budget > 0 ? (seg.value / row.budget) * 100 : 0}
                           color={seg.color}
                           engine={seg.engine}
-                          tint={seg.tint}
                         />
                       ))}
-                      <div className="flex-1" style={row.isTotal && hasPlanTotal ? OPEN_BUDGET_FILL : { backgroundColor: remainingColor }} />
+                      <div className="flex-1" style={OPEN_BUDGET_FILL} />
+                      <BudgetSpentLine widthPct={row.budget > 0 ? (rowSpent / row.budget) * 100 : 0} />
                     </div>
                   </div>
                 </TooltipTrigger>
@@ -650,36 +652,35 @@ export const BudgetStackedDetail = ({
                       <span className="text-muted-foreground flex-1">Total budget</span>
                       <span className="font-medium tabular-nums text-foreground">{fmt(row.budget)}</span>
                     </div>
-                    {row.segments.filter((seg) => !seg.tint).map((seg, segIdx) => (
+                    {row.isTotal && row.segments.map((seg, segIdx) => (
                       <div key={`${seg.name}-${segIdx}`} className="flex items-center gap-2">
                         <BudgetSwatch color={seg.color} engine={seg.engine} />
-                        <span className="text-muted-foreground flex-1">{row.isTotal ? `${seg.name} spend` : 'Spend'}</span>
+                        <span className="text-muted-foreground flex-1">{seg.name}</span>
                         <span className="font-medium tabular-nums text-foreground">
                           {fmt(seg.value)}
                           {row.budget > 0 ? ` (${share(seg.value)}%)` : ''}
                         </span>
                       </div>
                     ))}
-                    {row.isTotal && total !== undefined ? (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 shrink-0" />
-                          <span className="text-muted-foreground flex-1">Allocated to campaigns</span>
-                          <span className="font-medium tabular-nums text-foreground">
-                            {fmt(allocated)} ({share(allocated)}%)
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-sm shrink-0 border border-border" style={OPEN_BUDGET_FILL} />
-                          <span className="text-muted-foreground flex-1">Open budget</span>
-                          <span className="font-medium tabular-nums text-foreground">
-                            {fmt(openBudget)} ({share(openBudget)}%)
-                          </span>
-                        </div>
-                      </>
-                    ) : (
+                    {row.isTotal && hasPlanTotal && (
                       <div className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: remainingColor }} />
+                        <span className="h-2.5 w-2.5 rounded-sm shrink-0 border border-border" style={OPEN_BUDGET_FILL} />
+                        <span className="text-muted-foreground flex-1">Open budget</span>
+                        <span className="font-medium tabular-nums text-foreground">
+                          {fmt(openBudget)} ({share(openBudget)}%)
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <SpentSwatch />
+                      <span className="text-muted-foreground flex-1">Spent</span>
+                      <span className="font-medium tabular-nums text-foreground">
+                        {fmt(rowSpent)} ({pct}%)
+                      </span>
+                    </div>
+                    {!row.isTotal && (
+                      <div className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 shrink-0" />
                         <span className="text-muted-foreground flex-1">Remaining</span>
                         <span className="font-medium tabular-nums text-foreground">
                           {fmt(remaining)} ({100 - pct}%)
@@ -722,7 +723,8 @@ export const BudgetStackedMini = ({
    *  money not yet given to any campaign. Defaults to the campaigns' sum. */
   total?: number;
   /** A taller bar that states its own figures — spent and allocated at the
-   *  left, open at the right — so the card needs no budget line under it. */
+   *  left, open at the right — and draws spend as a line beneath the
+   *  allocations, so the card needs no budget line under it. */
   labelled?: boolean;
   /** What the empty track says when there is nothing to show (labelled only). */
   emptyLabel?: string;
@@ -735,28 +737,25 @@ export const BudgetStackedMini = ({
     n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n).toLocaleString()}`;
   const pct = (n: number) => (scale > 0 ? (n / scale) * 100 : 0);
   // The figures ride on the bar as badges, so they read on any segment
-  // colour under them — a dark spend block or the bare open track alike.
+  // colour under them.
   const chip = 'bg-background tabular-nums';
   return (
     <div>
     {caption && (
       <div className={cn('mb-1', CHART_FIGURE)}>{caption}</div>
     )}
-    {/* The bar shows proportions; the split itself — who has what — is one
-        hover away, so the legend never has to crowd the card. Each campaign
-        is its spend in full colour, then the rest of its allocation in a
-        tint; what no campaign has yet is the bare track at the end. */}
+    {/* The bar is the split of the budget: each campaign's allocation in its
+        proposition's tint and pattern, what no campaign has yet as the bare
+        track. Spend is the one thin line beneath — how far in the plan is. */}
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
           <div className={cn('relative flex cursor-default overflow-hidden rounded-full border border-border bg-background', labelled ? 'h-8' : 'h-2.5')}>
             {budgetData.map((d, i) => (
-              <React.Fragment key={`${d.name}-${i}`}>
-                <BudgetSegment widthPct={pct(Math.min(d.spent, d.budget))} color={colorFromIndex(i, d.color)} engine={d.engine} />
-                <BudgetSegment widthPct={pct(Math.max(d.budget - d.spent, 0))} color={colorFromIndex(i, d.color)} engine={d.engine} tint />
-              </React.Fragment>
+              <BudgetSegment key={`${d.name}-${i}`} widthPct={pct(d.budget)} color={colorFromIndex(i, d.color)} engine={d.engine} />
             ))}
-            <div className="flex-1" style={total !== undefined ? OPEN_BUDGET_FILL : { backgroundColor: 'rgb(var(--neutral-200))' }} />
+            <div className="flex-1" style={OPEN_BUDGET_FILL} />
+            {labelled && scale > 0 && <BudgetSpentLine widthPct={pct(spent)} />}
             {labelled && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-between gap-2 px-1">
                 {scale > 0 ? (
@@ -782,9 +781,7 @@ export const BudgetStackedMini = ({
                   {d.name}
                 </span>
                 <span className="tabular-nums">
-                  {d.spent === d.budget
-                    ? fmtBar(d.budget)
-                    : `${fmtBar(d.spent)} of ${fmtBar(d.budget)}`}
+                  {fmtBar(d.budget)}
                   {scale > 0 && (
                     <span className="ml-1 text-muted-foreground">
                       ({Math.round(pct(d.budget))}%)
@@ -793,24 +790,28 @@ export const BudgetStackedMini = ({
                 </span>
               </div>
             ))}
-            {total !== undefined && (
-              <div className="space-y-1.5 border-t border-border/60 pt-1.5">
-                <div className="flex items-center justify-between gap-4 text-xs">
-                  <span className="text-muted-foreground">Allocated to campaigns</span>
-                  <span className="tabular-nums">{fmtBar(allocated)}</span>
-                </div>
-                <div className="flex items-center justify-between gap-4 text-xs">
-                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                    <span className="h-2 w-2 shrink-0 rounded-sm border border-border" style={OPEN_BUDGET_FILL} />
-                    Open
-                  </span>
-                  <span className="tabular-nums">
-                    {fmtBar(open)}
-                    {scale > 0 && <span className="ml-1 text-muted-foreground">({Math.round(pct(open))}%)</span>}
-                  </span>
-                </div>
+            {total !== undefined && open > 0 && (
+              <div className="flex items-center justify-between gap-4 text-xs">
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <span className="h-2 w-2 shrink-0 rounded-sm border border-border" style={OPEN_BUDGET_FILL} />
+                  Open
+                </span>
+                <span className="tabular-nums">
+                  {fmtBar(open)}
+                  {scale > 0 && <span className="ml-1 text-muted-foreground">({Math.round(pct(open))}%)</span>}
+                </span>
               </div>
             )}
+            <div className="flex items-center justify-between gap-4 border-t border-border/60 pt-1.5 text-xs">
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <SpentSwatch />
+                Spent
+              </span>
+              <span className="tabular-nums">
+                {fmtBar(spent)}
+                {scale > 0 && <span className="ml-1 text-muted-foreground">({Math.round(pct(spent))}%)</span>}
+              </span>
+            </div>
           </div>
         </TooltipContent>
       </Tooltip>

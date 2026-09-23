@@ -31,7 +31,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { cn } from '@/lib/utils';
 import { queueToast } from '@/components/ui/toast';
 import { LinkPickerDialog } from '@/components/ui/link-picker';
-import { Link2, Pencil } from 'lucide-react';
+import { Link2, Pencil, Trash2 } from 'lucide-react';
 import { getDb, createMediaPlan, updateMediaPlan, createCampaign, updateCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 import {
@@ -49,7 +49,6 @@ import {
   ShoppingCart,
   Heart,
   Check,
-  X,
   Users,
   Tag,
   LayoutGrid,
@@ -1607,15 +1606,6 @@ export const GoalSelection: Story = {
                                     </span>
                                   </label>
                                 )}
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-                                  aria-label={`Remove ${prop.name} campaign`}
-                                  onClick={() => removeRow(row.id)}
-                                >
-                                  <X size={14} />
-                                </Button>
                               </>
                             }
                           >
@@ -1731,8 +1721,20 @@ export const GoalSelection: Story = {
                             )}
                             {/* Done folds the card back to its row; nothing is
                                 reviewed here — that happens on the plan once
-                                the campaigns exist as drafts. */}
-                            <div className="flex items-center justify-end gap-inline pt-1">
+                                the campaigns exist as drafts. Remove sits at
+                                the other end of the same line, named, so it
+                                cannot be taken for a close. */}
+                            <div className="flex items-center justify-between gap-inline pt-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-muted-foreground hover:text-destructive"
+                                aria-label={`Remove ${prop.name} campaign`}
+                                onClick={() => removeRow(row.id)}
+                              >
+                                <Trash2 size={14} />
+                                Remove
+                              </Button>
                               <Button variant="outline" size="sm" onClick={() => updateRow(row.id, { open: false })}>Done</Button>
                             </div>
                           </OptionCard>

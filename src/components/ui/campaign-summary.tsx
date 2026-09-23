@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import type { PatternKey } from '@/lib/proposition-patterns';
 import {
   Card,
   CardContent,
@@ -644,6 +645,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       offsite: 'hsl(var(--chart-5))',
     };
     const collapsedPropColor = (id: string) => collapsedPropColorById[id] ?? 'hsl(var(--chart-1))';
+    // The card's engine ids are the short ones; the pattern system keys on
+    // the proposition ids every chart uses.
+    const collapsedPatternKeyById: Record<string, PatternKey> = {
+      display: 'display',
+      sponsored: 'sponsored-products',
+      digital: 'digital-instore',
+      offline: 'offline-instore',
+      offsite: 'offsite',
+    };
     const collapsedEnabledEngines = currentEngines.filter(e => e.enabled);
     const collapsedBudgetByEngine = collapsedEnabledEngines.map(engine => ({
       value: parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0,
@@ -657,6 +667,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         : Math.round((collapsedBudgetByEngine[i].value / collapsedTotalEngineBudget) * collapsedCampaignSpend),
       budget: collapsedBudgetByEngine[i].value,
       color: collapsedPropColor(engine.id),
+      engine: collapsedPatternKeyById[engine.id],
     }));
     const collapsedTotalBudget = collapsedBudgetData.reduce((s, d) => s + d.budget, 0);
     // The plan's own budget is what the bar is scaled to: the campaigns'

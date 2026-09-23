@@ -1,5 +1,5 @@
 import * as React from "react"
-import { PropositionPatternDefs, PropositionSwatch, patternFill, type PatternKey } from "@/lib/proposition-patterns"
+import { PropositionPatternDefs, PropositionSwatch, patternFill, patternFor, patternBackground, type PatternKey } from "@/lib/proposition-patterns"
 import { LineChart, Line, PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts'
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -250,7 +250,9 @@ export interface MetricCardProps {
   /** For barVertical variant — time-series with a value per period */
   dateData?: Array<{ date: string; value: number; color?: string }>;
   /** For budgetStacked variant — per-proposition spent vs total budget */
-  budgetData?: Array<{ name: string; spent: number; budget: number; color?: string }>;
+  /** `engine` lets a segment wear its proposition's tint and pattern — the
+   *  same mark it has on every chart — instead of a flat colour. */
+  budgetData?: Array<{ name: string; spent: number; budget: number; color?: string; engine?: PatternKey }>;
   /** For barHorizontal / donutLegend — an aggregate row shown bold at the top */
   totalRow?: { label: string; value: number };
   /** Optional formatter for chart values (e.g. currency). Defaults to toLocaleString. */
@@ -527,6 +529,32 @@ export const BarHorizontalDetail = ({
   );
 };
 
+/** One segment of a budget bar. With an `engine` it is the proposition's
+ *  base tint with the proposition's pattern laid faintly over it — the same
+ *  mark the proposition wears on every chart; without one, a flat colour.
+ *  `tint` is the allocated-but-unspent part: the same fill, most of the way
+ *  to the surface. */
+const BudgetSegment = ({ widthPct, color, engine, tint }: { widthPct: number; color: string; engine?: PatternKey; tint?: boolean }) => {
+  if (widthPct <= 0) return null;
+  const p = engine ? patternFor(engine) : undefined;
+  return (
+    <div className="relative shrink-0" style={{ width: `${widthPct}%`, backgroundColor: p ? p.base : color, opacity: tint ? 0.3 : 1 }}>
+      {p && engine && (
+        <div className="absolute inset-0" style={{ ...patternBackground(engine, { ink: p.ink, size: 8 }), opacity: 0.45 }} />
+      )}
+    </div>
+  );
+};
+
+/** The swatch for a segment in a tooltip — the pattern itself when the
+ *  segment has a proposition, a colour dot otherwise. */
+const BudgetSwatch = ({ color, engine, round }: { color: string; engine?: PatternKey; round?: boolean }) =>
+  engine ? (
+    <PropositionSwatch engine={engine} size={10} className="shrink-0" />
+  ) : (
+    <span className={cn('h-2.5 w-2.5 shrink-0', round ? 'rounded-full' : 'rounded-sm')} style={{ backgroundColor: color }} />
+  );
+
 /** Open budget — money the plan has but no campaign has been given yet.
  *  Hatched so it never reads as a tinted allocation or as spend. */
 const OPEN_BUDGET_FILL: React.CSSProperties = {
@@ -552,17 +580,17 @@ export const BudgetStackedDetail = ({
   const allocated = budgetData.reduce((sum, d) => sum + d.budget, 0);
   const totalBudget = Math.max(total ?? 0, allocated);
   const openBudget = Math.max(totalBudget - allocated, 0);
-  type Segment = { name: string; value: number; color: string; tint?: boolean };
+  type Segment = { name: string; value: number; color: string; engine?: PatternKey; tint?: boolean };
   const totalSegments: Segment[] = budgetData.flatMap((d, i) => [
-    { name: d.name, value: Math.min(d.spent, d.budget), color: colorFromIndex(i, d.color) },
-    { name: d.name, value: Math.max(d.budget - d.spent, 0), color: colorFromIndex(i, d.color), tint: true },
+    { name: d.name, value: Math.min(d.spent, d.budget), color: colorFromIndex(i, d.color), engine: d.engine },
+    { name: d.name, value: Math.max(d.budget - d.spent, 0), color: colorFromIndex(i, d.color), engine: d.engine, tint: true },
   ]);
   const rows: Array<{ name: string; budget: number; segments: Segment[]; isTotal: boolean }> = [
     { name: 'Media plan', budget: totalBudget, segments: totalSegments, isTotal: true },
     ...budgetData.map((d, i) => ({
       name: d.name,
       budget: d.budget,
-      segments: [{ name: d.name, value: d.spent, color: colorFromIndex(i, d.color) }],
+      segments: [{ name: d.name, value: d.spent, color: colorFromIndex(i, d.color), engine: d.engine }],
       isTotal: false,
     })),
   ];
@@ -597,13 +625,12 @@ export const BudgetStackedDetail = ({
                   <div className="cursor-pointer w-full">
                     <div className="flex h-2.5 rounded-full overflow-hidden border border-border bg-background">
                       {row.segments.map((seg, segIdx) => (
-                        <div
+                        <BudgetSegment
                           key={`${seg.name}-${segIdx}`}
-                          style={{
-                            width: `${row.budget > 0 ? (seg.value / row.budget) * 100 : 0}%`,
-                            backgroundColor: seg.color,
-                            opacity: seg.tint ? 0.3 : 1,
-                          }}
+                          widthPct={row.budget > 0 ? (seg.value / row.budget) * 100 : 0}
+                          color={seg.color}
+                          engine={seg.engine}
+                          tint={seg.tint}
                         />
                       ))}
                       <div className="flex-1" style={row.isTotal && hasPlanTotal ? OPEN_BUDGET_FILL : { backgroundColor: remainingColor }} />
@@ -620,7 +647,7 @@ export const BudgetStackedDetail = ({
                     </div>
                     {row.segments.filter((seg) => !seg.tint).map((seg, segIdx) => (
                       <div key={`${seg.name}-${segIdx}`} className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: seg.color }} />
+                        <BudgetSwatch color={seg.color} engine={seg.engine} />
                         <span className="text-muted-foreground flex-1">{row.isTotal ? `${seg.name} spend` : 'Spend'}</span>
                         <span className="font-medium tabular-nums text-foreground">
                           {fmt(seg.value)}
@@ -704,7 +731,7 @@ export const BudgetStackedMini = ({
   const pct = (n: number) => (scale > 0 ? (n / scale) * 100 : 0);
   // The figures ride on the bar as badges, so they read on any segment
   // colour under them — a dark spend block or the bare open track alike.
-  const chip = 'tabular-nums';
+  const chip = 'bg-background tabular-nums';
   return (
     <div>
     {caption && (
@@ -717,11 +744,11 @@ export const BudgetStackedMini = ({
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn('relative flex cursor-default overflow-hidden rounded-full border border-border bg-background', labelled ? 'h-7' : 'h-2.5')}>
+          <div className={cn('relative flex cursor-default overflow-hidden rounded-full border border-border bg-background', labelled ? 'h-8' : 'h-2.5')}>
             {budgetData.map((d, i) => (
               <React.Fragment key={`${d.name}-${i}`}>
-                <div style={{ width: `${pct(Math.min(d.spent, d.budget))}%`, backgroundColor: colorFromIndex(i, d.color) }} />
-                <div style={{ width: `${pct(Math.max(d.budget - d.spent, 0))}%`, backgroundColor: colorFromIndex(i, d.color), opacity: 0.3 }} />
+                <BudgetSegment widthPct={pct(Math.min(d.spent, d.budget))} color={colorFromIndex(i, d.color)} engine={d.engine} />
+                <BudgetSegment widthPct={pct(Math.max(d.budget - d.spent, 0))} color={colorFromIndex(i, d.color)} engine={d.engine} tint />
               </React.Fragment>
             ))}
             <div className="flex-1" style={total !== undefined ? OPEN_BUDGET_FILL : { backgroundColor: 'rgb(var(--neutral-200))' }} />
@@ -735,7 +762,7 @@ export const BudgetStackedMini = ({
                     {open > 0 && <Badge className={cn(chip, 'shrink-0')}>{fmtBar(open)} open</Badge>}
                   </>
                 ) : (
-                  emptyLabel && <Badge variant="info">{emptyLabel}</Badge>
+                  emptyLabel && <Badge variant="info" className="bg-background">{emptyLabel}</Badge>
                 )}
               </div>
             )}
@@ -746,10 +773,7 @@ export const BudgetStackedMini = ({
             {budgetData.map((d, i) => (
               <div key={`${d.name}-tip-${i}`} className="flex items-center justify-between gap-4 text-xs">
                 <span className="inline-flex items-center gap-1.5">
-                  <span
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: colorFromIndex(i, d.color) }}
-                  />
+                  <BudgetSwatch color={colorFromIndex(i, d.color)} engine={d.engine} round />
                   {d.name}
                 </span>
                 <span className="tabular-nums">

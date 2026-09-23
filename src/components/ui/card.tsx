@@ -544,11 +544,12 @@ const BudgetSegment = ({ widthPct, color, engine }: { widthPct: number; color: s
   );
 };
 
-/** Spend, drawn under the allocations as one thin dark line from the left —
+/** Spend, drawn across the allocations as one thin dark line from the left,
+ *  centred in the bar (the badges sit over it) —
  *  a progress mark, not another colour, so the bar stays the split of the
  *  budget and the eye reads "this far in" without a second palette. */
 const BudgetSpentLine = ({ widthPct }: { widthPct: number }) => (
-  <div className="pointer-events-none absolute inset-x-1.5 bottom-[3px] h-[3px]">
+  <div className="pointer-events-none absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2">
     <div className="h-full rounded-full bg-foreground/55" style={{ width: `${Math.min(widthPct, 100)}%` }} />
   </div>
 );

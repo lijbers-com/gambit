@@ -1433,6 +1433,19 @@ export const GoalSelection: Story = {
                     <CardDescription>
                       The campaigns in this plan, one per proposition, proposed and prefilled. Split the budget and run time between them; open one to change the rest, and add any that are missing.
                     </CardDescription>
+                    {/* What there is to split — the plan's own budget and run
+                        time, stated once above the rows that divide them. */}
+                    {(() => {
+                      const fmtPlanDay = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                      const planBudget = Number(budgetAmount) > 0 ? `€${Number(budgetAmount).toLocaleString()}` : 'no budget set';
+                      const planRunTime = dateRange?.from && dateRange?.to ? `${fmtPlanDay(dateRange.from)} – ${fmtPlanDay(dateRange.to)}` : 'no run time set';
+                      return (
+                        <p className="pt-1 text-sm text-muted-foreground">
+                          Plan budget <span className="font-medium text-foreground">{planBudget}</span>
+                          {' · '}Run time <span className="font-medium text-foreground">{planRunTime}</span>
+                        </p>
+                      );
+                    })()}
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
@@ -1499,7 +1512,17 @@ export const GoalSelection: Story = {
                             // Closed and open share one anatomy — icon, title,
                             // sub line, header padding — so opening a row
                             // never shifts anything; only the body appears.
-                            <div key={row.id} className="rounded-md border border-border bg-neutral-50">
+                            // The whole closed row opens it — the pencil is
+                            // where the eye lands, not the only place to click.
+                            <div
+                              key={row.id}
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`Edit ${rowName}`}
+                              onClick={() => updateRow(row.id, { open: true })}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); updateRow(row.id, { open: true }); } }}
+                              className="cursor-pointer rounded-md border border-border bg-neutral-50 transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
                               <div className="flex items-center gap-3 p-3">
                               <div className="flex min-w-0 flex-1 items-center gap-3">
                                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
@@ -1519,9 +1542,10 @@ export const GoalSelection: Story = {
                                 </div>
                               </div>
                               <div className="flex shrink-0 items-center gap-2">
-                                {/* The mode stays at hand on a closed row too. */}
+                                {/* The mode stays at hand on a closed row too —
+                                    and flipping it is not opening the row. */}
                                 {!row.existingId && (
-                                  <label className="flex shrink-0 cursor-pointer items-center gap-2">
+                                  <label className="flex shrink-0 cursor-pointer items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                     <Switch
                                       checked={isAssisted}
                                       onCheckedChange={(checked: boolean) => updateRow(row.id, { mode: checked ? 'preset' : 'expert' })}
@@ -1532,7 +1556,7 @@ export const GoalSelection: Story = {
                                     </span>
                                   </label>
                                 )}
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground" title="Edit campaign" aria-label={`Edit ${rowName}`} onClick={() => updateRow(row.id, { open: true })}>
+                                <Button variant="outline" size="sm" className="h-8 w-8 p-0" title="Edit campaign" aria-label={`Edit ${rowName}`} onClick={(e) => { e.stopPropagation(); updateRow(row.id, { open: true }); }}>
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                               </div>

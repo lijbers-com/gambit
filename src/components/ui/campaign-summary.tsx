@@ -664,6 +664,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // the plan, not the allocations, so a plan that is half allocated does
     // not read as half spent.
     const planTotalBudget = Math.max(budgetNumForMetrics, collapsedTotalBudget);
+    // Spend is only a fact for a plan that is running or paused. In review
+    // nothing has been spent yet; once completed the split is what matters.
+    // A card without a plan in the database keeps showing it.
+    const cardPlanStatus = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId)?.status : undefined;
+    const showsSpend = cardPlanStatus ? cardPlanStatus === 'running' || cardPlanStatus === 'paused' : true;
 
     // Recommendations shown in the media-plan card. Extracted so both the
     // saved-plan layout and the guided-create sidebar render the same list.
@@ -1008,11 +1013,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             hasBudget && collapsedBudgetData.length > 0 ? (
               isCollapsed ? (
                 <div className="pt-1">
-                  <BudgetStackedMini budgetData={collapsedBudgetData} total={planTotalBudget} labelled />
+                  <BudgetStackedMini budgetData={collapsedBudgetData} total={planTotalBudget} labelled showSpend={showsSpend} />
                 </div>
               ) : (
                 <div className="pt-1" onClick={(e) => e.stopPropagation()}>
-                  <BudgetStackedDetail budgetData={collapsedBudgetData} valueFormatter={fmtCurrency} total={planTotalBudget} />
+                  <BudgetStackedDetail budgetData={collapsedBudgetData} valueFormatter={fmtCurrency} total={planTotalBudget} showSpend={showsSpend} />
                 </div>
               )
             ) : (

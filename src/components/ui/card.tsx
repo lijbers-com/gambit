@@ -573,9 +573,13 @@ export const BudgetStackedDetail = ({
   budgetData,
   valueFormatter,
   total,
+  showSpend = true,
 }: {
   budgetData: NonNullable<MetricCardProps['budgetData']>;
   valueFormatter?: MetricCardProps['valueFormatter'];
+  /** See BudgetStackedMini — spend is only drawn and stated for a plan that
+   *  is running or paused. */
+  showSpend?: boolean;
   /** The plan's own budget. The "Media plan" row is then scaled to it: each
    *  campaign's allocation in its tint and pattern, whatever no campaign has
    *  yet as the bare track — open budget — and spend as the line beneath. */
@@ -618,12 +622,15 @@ export const BudgetStackedDetail = ({
                 <span className="tabular-nums whitespace-nowrap text-muted-foreground">
                   {row.isTotal && hasPlanTotal ? (
                     <>
-                      <span className="font-medium text-foreground">{fmt(allocated)}</span> allocated · <span className="font-medium text-foreground">{fmt(openBudget)}</span> open · <span className="font-medium text-foreground">{pct}%</span> spent
+                      <span className="font-medium text-foreground">{fmt(allocated)}</span> allocated · <span className="font-medium text-foreground">{fmt(openBudget)}</span> open
+                      {showSpend && <> · <span className="font-medium text-foreground">{pct}%</span> spent</>}
                     </>
-                  ) : (
+                  ) : showSpend ? (
                     <>
                       <span className="font-medium text-foreground">{fmt(rowSpent)}</span> of {fmt(row.budget)} · <span className="font-medium text-foreground">{pct}%</span> spent
                     </>
+                  ) : (
+                    <><span className="font-medium text-foreground">{fmt(row.budget)}</span> allocated</>
                   )}
                 </span>
               </div>
@@ -640,7 +647,7 @@ export const BudgetStackedDetail = ({
                         />
                       ))}
                       <div className="flex-1" style={OPEN_BUDGET_FILL} />
-                      <BudgetSpentLine widthPct={row.budget > 0 ? (rowSpent / row.budget) * 100 : 0} />
+                      {showSpend && <BudgetSpentLine widthPct={row.budget > 0 ? (rowSpent / row.budget) * 100 : 0} />}
                     </div>
                   </div>
                 </TooltipTrigger>
@@ -671,14 +678,16 @@ export const BudgetStackedDetail = ({
                         </span>
                       </div>
                     )}
-                    <div className="flex items-center gap-2">
-                      <SpentSwatch />
-                      <span className="text-muted-foreground flex-1">Spent</span>
-                      <span className="font-medium tabular-nums text-foreground">
-                        {fmt(rowSpent)} ({pct}%)
-                      </span>
-                    </div>
-                    {!row.isTotal && (
+                    {showSpend && (
+                      <div className="flex items-center gap-2">
+                        <SpentSwatch />
+                        <span className="text-muted-foreground flex-1">Spent</span>
+                        <span className="font-medium tabular-nums text-foreground">
+                          {fmt(rowSpent)} ({pct}%)
+                        </span>
+                      </div>
+                    )}
+                    {showSpend && !row.isTotal && (
                       <div className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 shrink-0" />
                         <span className="text-muted-foreground flex-1">Remaining</span>
@@ -713,6 +722,7 @@ export const BudgetStackedMini = ({
   total,
   labelled = false,
   emptyLabel,
+  showSpend = true,
 }: {
   budgetData: NonNullable<MetricCardProps['budgetData']>;
   /** Small line above the bar — where the bar's own scale is stated, so the
@@ -728,6 +738,10 @@ export const BudgetStackedMini = ({
   labelled?: boolean;
   /** What the empty track says when there is nothing to show (labelled only). */
   emptyLabel?: string;
+  /** Whether spend is a fact worth showing. A plan still in review has none;
+   *  a completed plan's is history. Only a running or paused plan is
+   *  "this far in", so only then is the line drawn and the figure stated. */
+  showSpend?: boolean;
 }) => {
   const allocated = budgetData.reduce((sum, d) => sum + d.budget, 0);
   const spent = budgetData.reduce((sum, d) => sum + Math.min(d.spent, d.budget), 0);
@@ -755,13 +769,13 @@ export const BudgetStackedMini = ({
               <BudgetSegment key={`${d.name}-${i}`} widthPct={pct(d.budget)} color={colorFromIndex(i, d.color)} engine={d.engine} />
             ))}
             <div className="flex-1" style={OPEN_BUDGET_FILL} />
-            {labelled && scale > 0 && <BudgetSpentLine widthPct={pct(spent)} />}
+            {labelled && showSpend && scale > 0 && <BudgetSpentLine widthPct={pct(spent)} />}
             {labelled && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-between gap-2 px-1">
                 {scale > 0 ? (
                   <>
                     <Badge className={cn(chip, 'min-w-0')}>
-                      <span className="truncate">{fmtBar(spent)} spent · {fmtBar(allocated)} allocated</span>
+                      <span className="truncate">{showSpend ? `${fmtBar(spent)} spent · ` : ''}{fmtBar(allocated)} allocated</span>
                     </Badge>
                     {open > 0 && <Badge className={cn(chip, 'shrink-0')}>{fmtBar(open)} open</Badge>}
                   </>
@@ -802,16 +816,18 @@ export const BudgetStackedMini = ({
                 </span>
               </div>
             )}
-            <div className="flex items-center justify-between gap-4 border-t border-border/60 pt-1.5 text-xs">
-              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                <SpentSwatch />
-                Spent
-              </span>
-              <span className="tabular-nums">
-                {fmtBar(spent)}
-                {scale > 0 && <span className="ml-1 text-muted-foreground">({Math.round(pct(spent))}%)</span>}
-              </span>
-            </div>
+            {showSpend && (
+              <div className="flex items-center justify-between gap-4 border-t border-border/60 pt-1.5 text-xs">
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <SpentSwatch />
+                  Spent
+                </span>
+                <span className="tabular-nums">
+                  {fmtBar(spent)}
+                  {scale > 0 && <span className="ml-1 text-muted-foreground">({Math.round(pct(spent))}%)</span>}
+                </span>
+              </div>
+            )}
           </div>
         </TooltipContent>
       </Tooltip>

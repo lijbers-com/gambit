@@ -527,22 +527,36 @@ export const BarHorizontalDetail = ({
   );
 };
 
+/** Open budget — money the plan has but no campaign has been given yet.
+ *  Hatched so it never reads as a tinted allocation or as spend. */
+const OPEN_BUDGET_FILL: React.CSSProperties = {
+  backgroundColor: 'rgb(var(--neutral-100))',
+  backgroundImage: 'repeating-linear-gradient(135deg, rgb(var(--neutral-300)) 0 1.5px, transparent 1.5px 5px)',
+};
+
 export const BudgetStackedDetail = ({
   budgetData,
   valueFormatter,
+  total,
 }: {
   budgetData: NonNullable<MetricCardProps['budgetData']>;
   valueFormatter?: MetricCardProps['valueFormatter'];
+  /** The plan's own budget. The "Media plan" row is then scaled to it: each
+   *  campaign's spend in full colour, the rest of its allocation in a tint,
+   *  and whatever no campaign has yet as the bare track — open budget. */
+  total?: number;
 }) => {
   const fmt = valueFormatter ?? ((v: number) => v.toLocaleString());
   const remainingColor = 'rgb(var(--neutral-200))';
-  const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
-  type Segment = { name: string; value: number; color: string };
-  const totalSegments: Segment[] = budgetData.map((d, i) => ({
-    name: d.name,
-    value: d.spent,
-    color: colorFromIndex(i, d.color),
-  }));
+  const hasPlanTotal = total !== undefined;
+  const allocated = budgetData.reduce((sum, d) => sum + d.budget, 0);
+  const totalBudget = Math.max(total ?? 0, allocated);
+  const openBudget = Math.max(totalBudget - allocated, 0);
+  type Segment = { name: string; value: number; color: string; tint?: boolean };
+  const totalSegments: Segment[] = budgetData.flatMap((d, i) => [
+    { name: d.name, value: Math.min(d.spent, d.budget), color: colorFromIndex(i, d.color) },
+    { name: d.name, value: Math.max(d.budget - d.spent, 0), color: colorFromIndex(i, d.color), tint: true },
+  ]);
   const rows: Array<{ name: string; budget: number; segments: Segment[]; isTotal: boolean }> = [
     { name: 'Media plan', budget: totalBudget, segments: totalSegments, isTotal: true },
     ...budgetData.map((d, i) => ({
@@ -556,9 +570,10 @@ export const BudgetStackedDetail = ({
     <TooltipProvider>
       <ul className="space-y-3 text-sm">
         {rows.map((row, idx) => {
-          const rowSpent = row.segments.reduce((s, seg) => s + seg.value, 0);
+          const rowSpent = row.segments.filter((seg) => !seg.tint).reduce((s, seg) => s + seg.value, 0);
           const pct = row.budget > 0 ? Math.round((rowSpent / row.budget) * 100) : 0;
           const remaining = Math.max(row.budget - rowSpent, 0);
+          const share = (n: number) => (row.budget > 0 ? Math.round((n / row.budget) * 100) : 0);
           return (
             <li key={`${row.name}-${idx}`} className={cn('space-y-1', row.isTotal && 'pb-2')}>
               <div className="flex items-center justify-between gap-2">
@@ -566,7 +581,15 @@ export const BudgetStackedDetail = ({
                   {row.name}
                 </span>
                 <span className="tabular-nums whitespace-nowrap text-muted-foreground">
-                  <span className="font-medium text-foreground">{fmt(rowSpent)}</span> of {fmt(row.budget)} · <span className="font-medium text-foreground">{pct}%</span> spent
+                  {row.isTotal && total !== undefined ? (
+                    <>
+                      <span className="font-medium text-foreground">{fmt(allocated)}</span> allocated · <span className="font-medium text-foreground">{fmt(openBudget)}</span> open · <span className="font-medium text-foreground">{pct}%</span> spent
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-medium text-foreground">{fmt(rowSpent)}</span> of {fmt(row.budget)} · <span className="font-medium text-foreground">{pct}%</span> spent
+                    </>
+                  )}
                 </span>
               </div>
               <Tooltip>
@@ -579,10 +602,11 @@ export const BudgetStackedDetail = ({
                           style={{
                             width: `${row.budget > 0 ? (seg.value / row.budget) * 100 : 0}%`,
                             backgroundColor: seg.color,
+                            opacity: seg.tint ? 0.3 : 1,
                           }}
                         />
                       ))}
-                      <div className="flex-1" style={{ backgroundColor: remainingColor }} />
+                      <div className="flex-1" style={row.isTotal && hasPlanTotal ? OPEN_BUDGET_FILL : { backgroundColor: remainingColor }} />
                     </div>
                   </div>
                 </TooltipTrigger>
@@ -594,23 +618,42 @@ export const BudgetStackedDetail = ({
                       <span className="text-muted-foreground flex-1">Total budget</span>
                       <span className="font-medium tabular-nums text-foreground">{fmt(row.budget)}</span>
                     </div>
-                    {row.segments.map((seg, segIdx) => (
+                    {row.segments.filter((seg) => !seg.tint).map((seg, segIdx) => (
                       <div key={`${seg.name}-${segIdx}`} className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: seg.color }} />
-                        <span className="text-muted-foreground flex-1">{row.isTotal ? seg.name : 'Spend'}</span>
+                        <span className="text-muted-foreground flex-1">{row.isTotal ? `${seg.name} spend` : 'Spend'}</span>
                         <span className="font-medium tabular-nums text-foreground">
                           {fmt(seg.value)}
-                          {row.budget > 0 ? ` (${Math.round((seg.value / row.budget) * 100)}%)` : ''}
+                          {row.budget > 0 ? ` (${share(seg.value)}%)` : ''}
                         </span>
                       </div>
                     ))}
-                    <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: remainingColor }} />
-                      <span className="text-muted-foreground flex-1">Remaining</span>
-                      <span className="font-medium tabular-nums text-foreground">
-                        {fmt(remaining)} ({100 - pct}%)
-                      </span>
-                    </div>
+                    {row.isTotal && total !== undefined ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 shrink-0" />
+                          <span className="text-muted-foreground flex-1">Allocated to campaigns</span>
+                          <span className="font-medium tabular-nums text-foreground">
+                            {fmt(allocated)} ({share(allocated)}%)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-sm shrink-0 border border-border" style={OPEN_BUDGET_FILL} />
+                          <span className="text-muted-foreground flex-1">Open budget</span>
+                          <span className="font-medium tabular-nums text-foreground">
+                            {fmt(openBudget)} ({share(openBudget)}%)
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: remainingColor }} />
+                        <span className="text-muted-foreground flex-1">Remaining</span>
+                        <span className="font-medium tabular-nums text-foreground">
+                          {fmt(remaining)} ({100 - pct}%)
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -634,36 +677,43 @@ const CHART_FIGURE = 'text-[11px] font-medium tabular-nums text-muted-foreground
 export const BudgetStackedMini = ({
   budgetData,
   caption,
+  total,
 }: {
   budgetData: NonNullable<MetricCardProps['budgetData']>;
   /** Small line above the bar — where the bar's own scale is stated, so the
    *  card keeps the same shape as the others: figure, then chart. */
   caption?: React.ReactNode;
+  /** The plan's own budget. When it is more than the campaigns add up to,
+   *  the bar is scaled to it and the difference shows as open budget —
+   *  money not yet given to any campaign. Defaults to the campaigns' sum. */
+  total?: number;
 }) => {
-  const totalBudget = budgetData.reduce((sum, d) => sum + d.budget, 0);
+  const allocated = budgetData.reduce((sum, d) => sum + d.budget, 0);
+  const scale = Math.max(total ?? 0, allocated);
+  const open = Math.max(scale - allocated, 0);
   const fmtBar = (n: number) =>
     n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n).toLocaleString()}`;
+  const pct = (n: number) => (scale > 0 ? (n / scale) * 100 : 0);
   return (
     <div>
     {caption && (
       <div className={cn('mb-1', CHART_FIGURE)}>{caption}</div>
     )}
     {/* The bar shows proportions; the split itself — who has what — is one
-        hover away, so the legend never has to crowd the card. */}
+        hover away, so the legend never has to crowd the card. Each campaign
+        is its spend in full colour, then the rest of its allocation in a
+        tint; what no campaign has yet is the bare track at the end. */}
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="flex h-2.5 cursor-default rounded-full overflow-hidden border border-border bg-background">
             {budgetData.map((d, i) => (
-              <div
-                key={`${d.name}-${i}`}
-                style={{
-                  width: `${totalBudget > 0 ? (d.spent / totalBudget) * 100 : 0}%`,
-                  backgroundColor: colorFromIndex(i, d.color),
-                }}
-              />
+              <React.Fragment key={`${d.name}-${i}`}>
+                <div style={{ width: `${pct(Math.min(d.spent, d.budget))}%`, backgroundColor: colorFromIndex(i, d.color) }} />
+                <div style={{ width: `${pct(Math.max(d.budget - d.spent, 0))}%`, backgroundColor: colorFromIndex(i, d.color), opacity: 0.3 }} />
+              </React.Fragment>
             ))}
-            <div className="flex-1" style={{ backgroundColor: 'rgb(var(--neutral-200))' }} />
+            <div className="flex-1" style={total !== undefined ? OPEN_BUDGET_FILL : { backgroundColor: 'rgb(var(--neutral-200))' }} />
           </div>
         </TooltipTrigger>
         <TooltipContent side="top" className="p-2.5">
@@ -681,14 +731,32 @@ export const BudgetStackedMini = ({
                   {d.spent === d.budget
                     ? fmtBar(d.budget)
                     : `${fmtBar(d.spent)} of ${fmtBar(d.budget)}`}
-                  {totalBudget > 0 && (
+                  {scale > 0 && (
                     <span className="ml-1 text-muted-foreground">
-                      ({Math.round((d.spent / totalBudget) * 100)}%)
+                      ({Math.round(pct(d.budget))}%)
                     </span>
                   )}
                 </span>
               </div>
             ))}
+            {total !== undefined && (
+              <div className="space-y-1.5 border-t border-border/60 pt-1.5">
+                <div className="flex items-center justify-between gap-4 text-xs">
+                  <span className="text-muted-foreground">Allocated to campaigns</span>
+                  <span className="tabular-nums">{fmtBar(allocated)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4 text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                    <span className="h-2 w-2 shrink-0 rounded-sm border border-border" style={OPEN_BUDGET_FILL} />
+                    Open
+                  </span>
+                  <span className="tabular-nums">
+                    {fmtBar(open)}
+                    {scale > 0 && <span className="ml-1 text-muted-foreground">({Math.round(pct(open))}%)</span>}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </TooltipContent>
       </Tooltip>

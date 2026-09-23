@@ -660,7 +660,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     }));
     const collapsedTotalBudget = collapsedBudgetData.reduce((s, d) => s + d.budget, 0);
     const collapsedTotalSpend = collapsedBudgetData.reduce((s, d) => s + d.spent, 0);
-    const collapsedSpentPct = collapsedTotalBudget > 0 ? Math.round((collapsedTotalSpend / collapsedTotalBudget) * 100) : 0;
+    // The plan's own budget is what the bar is scaled to: the campaigns'
+    // allocations take their share of it and what is left is open budget —
+    // money the user still has to give to a campaign. Spend is read against
+    // the plan, not the allocations, so a plan that is half allocated does
+    // not read as half spent.
+    const planTotalBudget = Math.max(budgetNumForMetrics, collapsedTotalBudget);
+    const allocatedBudget = collapsedTotalBudget;
+    const openBudget = Math.max(planTotalBudget - allocatedBudget, 0);
+    const collapsedSpentPct = planTotalBudget > 0 ? Math.round((collapsedTotalSpend / planTotalBudget) * 100) : 0;
 
     // Recommendations shown in the media-plan card. Extracted so both the
     // saved-plan layout and the guided-create sidebar render the same list.
@@ -735,7 +743,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           <DollarSign className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground">Budget:</span>
           <span className="font-medium text-foreground">
-            {hasBudget ? `${collapsedSpentPct}% spent` : 'No budget set'}
+            {hasBudget
+              ? `${fmtCurrency(allocatedBudget)} allocated · ${fmtCurrency(openBudget)} open · ${collapsedSpentPct}% spent`
+              : 'No budget set'}
           </span>
         </span>
         <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
@@ -1009,11 +1019,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             hasBudget && collapsedBudgetData.length > 0 ? (
               isCollapsed ? (
                 <div className="pt-1">
-                  <BudgetStackedMini budgetData={collapsedBudgetData} />
+                  <BudgetStackedMini budgetData={collapsedBudgetData} total={planTotalBudget} />
                 </div>
               ) : (
                 <div className="pt-1" onClick={(e) => e.stopPropagation()}>
-                  <BudgetStackedDetail budgetData={collapsedBudgetData} valueFormatter={fmtCurrency} />
+                  <BudgetStackedDetail budgetData={collapsedBudgetData} valueFormatter={fmtCurrency} total={planTotalBudget} />
                 </div>
               )
             ) : (

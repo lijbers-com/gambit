@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, Clock, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TabActionGroup } from './tab-actions';
 import { useDb, useSession, readWorkflow, workflowOrDefault, targetFor, type Booking, type WorkflowScope, type WorkflowStep, type WorkflowStepState, type WorkflowTarget } from '@/lib/db';
@@ -97,7 +97,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
       : status === 'upcoming' ? `${OWNER_LABEL[step.owner]}${due}`
       : turn === 'auto' ? `Edge checks this automatically${due}${sla}`
       : turn === 'mine' ? `${OWNER_LABEL[step.owner]} — your move${due}${sla}`
-      : `Waiting for the ${OWNER_LABEL[step.owner].toLowerCase()}${due}${sla}`;
+      : `${OWNER_LABEL[step.owner]}${due}${sla}`;
     return (
       <li key={step.id} className={cn('flex items-center gap-3 px-3 py-2 text-sm', status === 'done' && 'text-muted-foreground')}>
         <span className={cn(
@@ -110,7 +110,21 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
           <span className={cn('block truncate', status === 'done' && 'line-through', status === 'open' && 'font-medium text-foreground')}>{step.name}</span>
           <span className="block truncate text-xs text-muted-foreground">{second}</span>
         </span>
+        {/* The right side answers "what now?": the button when it is your
+            move, otherwise who is being waited for. */}
         {extra}
+        {!extra && status === 'open' && turn === 'theirs' && (
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" />
+            Waiting for the {OWNER_LABEL[step.owner].toLowerCase()} to approve
+          </span>
+        )}
+        {!extra && status === 'open' && turn === 'auto' && (
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground">
+            <Zap className="h-3.5 w-3.5" />
+            Automatic
+          </span>
+        )}
       </li>
     );
   };
@@ -200,7 +214,12 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
   const stageBarWithSteps = (
     <ol className="flex flex-wrap items-center gap-y-2">
       {stages.map((st, i) => (
-        <li key={st.id} className="flex items-center">
+        <li key={st.id} className="relative flex items-center">
+          {/* The card beneath belongs to the current stage: a caret joins
+              the two, so the list reads as that chip opened. */}
+          {expanded && i === currentIndex && (
+            <span aria-hidden className="absolute left-1/2 top-full z-10 mt-[7px] h-3 w-3 -translate-x-1/2 rotate-45 border-l border-t border-border bg-background" />
+          )}
           <Popover>
             <PopoverTrigger asChild>
               <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">

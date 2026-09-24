@@ -544,13 +544,13 @@ const BudgetSegment = ({ widthPct, color, engine }: { widthPct: number; color: s
   );
 };
 
-/** Spend, drawn across the allocations as one thin dark line from the left,
+/** Spend, drawn across the allocations as one white line from the left,
  *  centred in the bar (the badges sit over it) —
  *  a progress mark, not another colour, so the bar stays the split of the
  *  budget and the eye reads "this far in" without a second palette. */
 const BudgetSpentLine = ({ widthPct }: { widthPct: number }) => (
-  <div className="pointer-events-none absolute inset-x-1.5 top-1/2 h-[3px] -translate-y-1/2">
-    <div className="h-full rounded-full bg-foreground/55" style={{ width: `${Math.min(widthPct, 100)}%` }} />
+  <div className="pointer-events-none absolute inset-x-1.5 top-1/2 h-[5px] -translate-y-1/2">
+    <div className="h-full rounded-full bg-background shadow-[0_0_0_1px_rgba(0,0,0,0.12)]" style={{ width: `${Math.min(widthPct, 100)}%` }} />
   </div>
 );
 
@@ -564,7 +564,7 @@ const BudgetSwatch = ({ color, engine, round }: { color: string; engine?: Patter
   );
 
 /** The spend line's swatch in a tooltip. */
-const SpentSwatch = () => <span className="inline-block h-[3px] w-2.5 shrink-0 rounded-full bg-foreground/55" />;
+const SpentSwatch = () => <span className="inline-block h-[5px] w-2.5 shrink-0 rounded-full bg-background shadow-[0_0_0_1px_rgba(0,0,0,0.2)]" />;
 
 /** Open budget — money the plan has but no campaign has been given yet:
  *  the bare track, plain, so nothing competes with the allocations. */
@@ -776,7 +776,7 @@ export const BudgetStackedMini = ({
               <BudgetSegment key={`${d.name}-${i}`} widthPct={pct(d.budget)} color={colorFromIndex(i, d.color)} engine={d.engine} />
             ))}
             <div className="flex-1" style={OPEN_BUDGET_FILL} />
-            {labelled && showSpend && scale > 0 && <BudgetSpentLine widthPct={pct(spent)} />}
+            {barSize !== 'sm' && showSpend && scale > 0 && <BudgetSpentLine widthPct={pct(spent)} />}
             {labelled && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-between gap-2 px-1">
                 {scale > 0 ? (

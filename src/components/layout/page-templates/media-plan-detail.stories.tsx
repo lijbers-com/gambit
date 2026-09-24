@@ -1163,7 +1163,8 @@ export const MediaPlanDetail: Story = {
                   .reduce((sum, c) => sum + c.budget, 0)}
                 allocations={db.campaigns
                   .filter((c) => c.mediaPlanId === plan?.id)
-                  .map((c) => ({ name: c.name, budget: c.budget, engine: c.engine }))}
+                  .map((c) => ({ name: c.name, budget: c.budget, spent: c.spend, engine: c.engine }))}
+                showSpend={plan?.status === 'running' || plan?.status === 'paused'}
                 onApply={(nextTotal) => {
                   if (!plan) return;
                   const prevBudget = plan.budget;
@@ -1402,7 +1403,8 @@ export const MediaPlanDetail: Story = {
                               .reduce((sum, c) => sum + c.budget, 0)}
                             allocations={db.campaigns
                               .filter((c) => c.mediaPlanId === plan?.id)
-                              .map((c) => ({ name: c.name, budget: c.budget, engine: c.engine }))}
+                              .map((c) => ({ name: c.name, budget: c.budget, spent: c.spend, engine: c.engine }))}
+                            showSpend={plan?.status === 'running' || plan?.status === 'paused'}
                             onApply={(nextTotal) => {
                               if (!plan) return;
                               const prevBudget = plan.budget;

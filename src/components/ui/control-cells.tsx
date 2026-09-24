@@ -27,17 +27,22 @@ export const BudgetPopover: React.FC<{
   /** The claims one by one, so the bar is the same split the plan card
    *  draws: each campaign's allocation in its proposition's tint and
    *  pattern. Without it the bar is one flat claim of `committed`. */
-  allocations?: Array<{ name: string; budget: number; engine?: PatternKey }>;
+  allocations?: Array<{ name: string; budget: number; spent?: number; engine?: PatternKey }>;
+  /** Whether spend is a fact here — only for a plan that is running or
+   *  paused. Then the bar carries the spend line and the figures lead with
+   *  what is spent. */
+  showSpend?: boolean;
   hint?: string;
   onApply: (next: number) => void;
   className?: string;
-}> = ({ total, committed, allocations, hint, onApply, className }) => {
+}> = ({ total, committed, allocations, showSpend = false, hint, onApply, className }) => {
   const [open, setOpen] = React.useState(false);
   const [draft, setDraft] = React.useState(String(total));
   React.useEffect(() => { if (open) setDraft(String(total)); }, [open, total]);
   const next = parseFloat(draft) || 0;
   const free = Math.max(next - committed, 0);
-  const budgetData = (allocations ?? [{ name: 'Committed', budget: committed }]).map((a) => ({ ...a, spent: 0 }));
+  const budgetData = (allocations ?? [{ name: 'Committed', budget: committed }]).map((a) => ({ ...a, spent: a.spent ?? 0 }));
+  const spent = budgetData.reduce((sum, d) => sum + Math.min(d.spent, d.budget), 0);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -54,9 +59,9 @@ export const BudgetPopover: React.FC<{
         <div className="space-y-2">
           {/* The plan card's bar, with its figures beneath rather than on it:
               the popover is narrow and the number is being typed just above. */}
-          <BudgetStackedMini budgetData={budgetData} total={Math.max(next, committed)} size="md" showSpend={false} />
+          <BudgetStackedMini budgetData={budgetData} total={Math.max(next, committed)} size="md" showSpend={showSpend} />
           <div className="text-[11px] tabular-nums text-muted-foreground">
-            €{committed.toLocaleString()} allocated · €{free.toLocaleString()} open
+            {showSpend && <>€{spent.toLocaleString()} spent · </>}€{committed.toLocaleString()} allocated · €{free.toLocaleString()} open
           </div>
           {next < committed && (
             <p className="text-xs text-warning-700">

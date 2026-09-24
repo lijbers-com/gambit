@@ -685,15 +685,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         );
       }
       items.push({ badge: 'AI Insight', tone: 'insight', title: 'Improve CTR with targeting', message: `"${internalTitle}" could improve CTR by ~23% with optimised targeting parameters.`, explain: ctrTargetingExplain() });
-      // Action-needed items come from the derived to-do engine when the card is
-      // store-backed, so the notification feed and users' task lists align.
+      // Action-needed items are the workflow's to-dos and reminders when the
+      // card is store-backed, so the notification feed and users' task lists
+      // align — each with the steps of its stage for the panel.
       const dbPlanForTasks = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
       if (dbPlanForTasks) {
         deriveTasksForPlan(db, dbPlanForTasks.id)
           .filter((t) => t.kind === 'action')
           .slice(0, 3)
           .forEach((t) => {
-            items.push({ badge: 'Action needed', tone: 'alert', title: t.title, message: t.detail });
+            items.push({ badge: t.reminder ? 'Reminder' : 'Action needed', tone: 'alert', title: t.title, message: t.detail, steps: t.steps, reminder: t.reminder });
           });
       } else {
         const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;

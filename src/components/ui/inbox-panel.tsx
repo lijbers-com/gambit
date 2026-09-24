@@ -130,6 +130,7 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
     // Inbox tab that still tells you which campaign or booking is meant.
     context: m.context,
     level: m.level,
+    reminder: m.reminder,
   }));
 
   const open = (item: InboxItem) => {
@@ -164,6 +165,8 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
           level={active.level}
           message={active.preview}
           businessCase={businessCaseFor(active)}
+          steps={active.steps}
+          reminder={active.reminder}
           // A recommendation is a proposal, so its two answers are the
           // proposal's: take it or turn it down. Either way it is answered —
           // both close the case as done. They render inside the template.

@@ -5,6 +5,7 @@ import { Button } from './button';
 import { Inbox, type InboxItem } from './inbox';
 import type { MessageStatus } from '@/lib/db';
 import { MessageDrawer } from './message-drawer';
+import type { CaseStep } from './case-card';
 import type { ChartDataPoint, ChartConfig } from './chart-types';
 
 export type AdviceTone = 'insight' | 'alert' | 'tip' | 'success';
@@ -39,6 +40,9 @@ export type Advice = {
   action?: { label: string; onClick: () => void };
   /** Rich explanation (stats + chart + insights) shown in the modal. */
   explain?: AdviceExplain;
+  /** An action from the workflow: the steps of its stage, for the panel. */
+  steps?: CaseStep[];
+  reminder?: boolean;
   /** Seed this recommendation as already actioned — it renders under "Done". */
   done?: boolean;
 };
@@ -437,6 +441,8 @@ export const OptimisationCard: React.FC<OptimisationCardProps> = ({ items = [], 
           subject={subjectOf(active)}
           message={active.message}
           businessCase={active.explain}
+          steps={active.steps}
+          reminder={active.reminder}
           footer={
             activeHealth ? (
               <Button variant="outline" className="ml-auto" onClick={close}>Close</Button>

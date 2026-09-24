@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Check, ChevronDown, MessageSquare, Settings2, X } from 'lucide-react';
+import { Check, ChevronDown, Circle, MessageSquare, Settings2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AreaChartComponent } from './area-chart';
 import { BarChartComponent } from './bar-chart';
@@ -297,6 +297,63 @@ export const CaseCard: React.FC<CaseCardProps> = ({
           </DialogContent>
         </Dialog>
       )}
+    </div>
+  );
+};
+
+/** One step of a workflow stage, as the action's card lists it. */
+export interface CaseStep {
+  id: string;
+  name: string;
+  description?: string;
+  owner: 'advertiser' | 'retailer' | 'edge' | 'external';
+  done: boolean;
+  mandatory: boolean;
+  /** The step the notification is about. */
+  current: boolean;
+  due?: string;
+}
+
+const OWNER_LABEL = { advertiser: 'Advertiser', retailer: 'Retailer', edge: 'Edge', external: 'Partner' } as const;
+
+/**
+ * The case template for an ACTION: not figures and a chart but the steps
+ * of the stage the to-do belongs to — what is done, what is still to do,
+ * and which step this notification is about — so the reader sees the work
+ * around the one item, the way the workflow bar shows it on the page.
+ */
+export const StepsCard: React.FC<{
+  steps: CaseStep[];
+  title?: string;
+  className?: string;
+}> = ({ steps, title = 'What is still to do', className }) => {
+  const done = steps.filter((s) => s.done).length;
+  return (
+    <div className={cn('space-y-3 rounded-lg border bg-muted/20 p-4', className)}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-semibold text-foreground">{title}</div>
+        <span className="text-xs tabular-nums text-muted-foreground">{done} of {steps.length} done</span>
+      </div>
+      <ul className="divide-y rounded-md border bg-background">
+        {steps.map((step) => (
+          <li
+            key={step.id}
+            className={cn('flex items-center gap-3 px-3 py-2 text-sm', step.done && 'text-muted-foreground', step.current && !step.done && 'bg-surface-selected')}
+          >
+            <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border', step.done ? 'border-success-200 bg-success-50 text-success-700' : step.current ? 'border-foreground bg-foreground text-background' : 'bg-background text-muted-foreground')}>
+              {step.done ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-2 w-2 fill-current" />}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className={cn('block truncate', step.done && 'line-through', step.current && !step.done && 'font-medium')}>{step.name}</span>
+              <span className="block truncate text-xs text-muted-foreground">
+                {OWNER_LABEL[step.owner]}
+                {step.due ? ` · due ${step.due}` : ''}
+              </span>
+            </span>
+            {step.mandatory && !step.done && <span className="shrink-0 rounded-sm bg-neutral-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-neutral-600">Mandatory</span>}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

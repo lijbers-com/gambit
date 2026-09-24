@@ -1,12 +1,16 @@
 import type { DbData, EngineId, MediaPlan, UserSide } from './types';
 import { keywordWeek, recommendationsForKeyword, type Recommendation } from '../recommendations';
+import { deriveWorkflowTodos, type WorkflowTodoStep } from './workflow-todos';
 
 /**
  * Derived to-dos — the alignment layer between statuses, tasks, health,
  * recommendations and insights.
  *
- * Nothing here is stored: every to-do is DERIVED from the data state (a
- * missing creative, an unplaced booking, an empty campaign, pacing…). That
+ * Nothing here is stored: every item is DERIVED from the data state. The
+ * ACTIONS come from the workflows: a retailer's board says, per step, when
+ * Edge creates a to-do or shows a reminder, and workflow-todos.ts turns each
+ * open step that asks for one into an action (with the stage's steps
+ * attached). Recommendations and insights come from the numbers below. That
  * keeps statuses clean (one lifecycle, see types.ts) while users still get
  * concrete, role-scoped work items. The same list drives:
  *
@@ -14,9 +18,6 @@ import { keywordWeek, recommendationsForKeyword, type Recommendation } from '../
  *  - the media-plan health check (red = blocking issues on a live plan)
  *  - the notifications feed on the media-plan card (action / recommendation /
  *    insight kinds map 1:1 to the notification types)
- *
- * Rules are intentionally simple and enumerable so they can be refined
- * together — each rule states WHO acts (roles), WHAT kind it is, and WHY.
  */
 
 export type TaskKind = 'action' | 'recommendation' | 'insight';
@@ -54,91 +55,18 @@ export interface DerivedTask {
   opensWizard?: boolean;
   /** Wizard step to open on — 'creatives' when that is all that is missing. */
   wizardStep?: string;
+  /** An action from a workflow: the steps of the stage it belongs to, with
+   *  what is done — the notification's card. */
+  steps?: WorkflowTodoStep[];
+  /** A reminder (the board's in-app notification on an open step) rather
+   *  than work to do; it never blocks. */
+  reminder?: boolean;
 }
 
 /** All derived to-dos for the whole database, most severe first. */
 export function deriveTasks(db: DbData): DerivedTask[] {
-  const tasks: DerivedTask[] = [];
-
-  for (const plan of db.mediaPlans) {
-    const campaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
-    const live = plan.status === 'running';
-
-    // ── Plan-level rules ─────────────────────────────────────────────
-    if (plan.budget <= 0) {
-      tasks.push({
-        id: `${plan.id}-budget`, kind: 'action', severity: 'blocking', level: 'media-plan',
-        entityId: plan.id, mediaPlanId: plan.id,
-        title: 'Set a budget', detail: `"${plan.name}" has no budget — campaigns cannot be planned without one.`,
-        side: 'both', personaKeys: ['campaign-builder', 'media-agency-advertiser'],
-      });
-    }
-    if (campaigns.length === 0) {
-      tasks.push({
-        id: `${plan.id}-campaigns`, kind: 'action', severity: 'attention', level: 'media-plan',
-        entityId: plan.id, mediaPlanId: plan.id,
-        title: 'Add campaigns', detail: `"${plan.name}" has no campaigns yet — add at least one proposition.`,
-        side: 'both', personaKeys: ['campaign-builder', 'media-agency-advertiser'],
-      });
-    }
-    const spend = campaigns.reduce((s, c) => s + c.spend, 0);
-    if (live && plan.budget > 0 && spend / plan.budget >= 0.9) {
-      tasks.push({
-        id: `${plan.id}-pacing`, kind: 'action', severity: 'blocking', level: 'media-plan',
-        entityId: plan.id, mediaPlanId: plan.id,
-        title: 'Review budget pacing', detail: `"${plan.name}" has spent ${Math.round((spend / plan.budget) * 100)}% of its budget — review pacing to avoid early depletion.`,
-        side: 'retailer', personaKeys: ['campaign-manager-managed', 'yield-manager'],
-      });
-    }
-
-    // ── Campaign-level rules ─────────────────────────────────────────
-    for (const campaign of campaigns) {
-      const bookings = db.bookings.filter((b) => b.campaignId === campaign.id);
-
-      // One guided-setup offer per campaign instead of a to-do per missing
-      // fact. "Add bookings", "Upload creative" and "Choose a placement" all
-      // meant the same thing — the campaign's setup wizard hasn't been
-      // finished — so the inbox now says that once, as an offer of help, and
-      // acting on it opens the wizard that walks through all of it.
-      if (campaign.status !== 'completed') {
-        const open = bookings.filter((b) => b.status !== 'completed');
-        const missing: string[] = [];
-        if (bookings.length === 0) {
-          missing.push(campaign.engine === 'sponsored-products' ? 'a booking with products and keywords' : 'bookings');
-        } else if (campaign.engine === 'sponsored-products') {
-          if (open.some((b) => b.positionIds.length === 0)) missing.push('products and keywords');
-        } else {
-          if (open.some((b) => b.creativeStatus === 'missing')) missing.push('creatives');
-          if (open.some((b) => b.positionIds.length === 0)) missing.push('placements');
-        }
-        if (missing.length > 0) {
-          tasks.push({
-            id: `${campaign.id}-setup`, kind: 'action', severity: 'blocking',
-            level: 'campaign', entityId: campaign.id, mediaPlanId: plan.id, engine: campaign.engine,
-            title: 'Get help setting up this campaign',
-            detail: `"${campaign.name}" still needs ${missing.join(' and ')}. Open the guided setup and we'll walk you through the remaining steps.`,
-            side: 'both', personaKeys: ['campaign-builder', 'media-agency-advertiser'],
-            opensWizard: true,
-            // Only creatives left → straight to the wizard's creative step.
-            wizardStep: missing.length === 1 && missing[0] === 'creatives' ? 'creatives' : undefined,
-          });
-        }
-      }
-
-      // Creative approval stays its own to-do — it is the retailer's review
-      // step, not part of the advertiser's setup.
-      for (const booking of bookings) {
-        if (booking.creativeStatus === 'submitted' && booking.status !== 'completed') {
-          tasks.push({
-            id: `${booking.id}-approve`, kind: 'action', severity: 'attention',
-            level: 'booking', entityId: booking.id, mediaPlanId: plan.id, engine: campaign.engine,
-            title: 'Approve creative', detail: `The creative for "${booking.name}" awaits approval.`,
-            side: 'retailer', personaKeys: ['campaign-manager-managed', 'self-service-support-specialist'],
-          });
-        }
-      }
-    }
-  }
+  // The actions: what the workflows ask for, step by step.
+  const tasks: DerivedTask[] = deriveWorkflowTodos(db);
 
   tasks.push(...deriveGuidance(db));
   tasks.push(...deriveKeywordRecommendations(db));

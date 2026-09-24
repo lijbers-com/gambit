@@ -72,7 +72,7 @@ export const Home: Story = {
     const db = useDb();
     const releaseNotes = db.releaseNotes.filter((n) => n.published).sort((a, b) => a.order - b.order);
     const myTasks = useMyTasks();
-    const creativeTaskCount = myTasks.filter((t) => t.id.endsWith('-creative') || t.id.endsWith('-approve')).length;
+    const creativeTaskCount = myTasks.filter((t) => t.kind === 'action' && /creative/i.test(t.title)).length;
     const inOptionBookings = db.bookings.filter((b) => b.status === 'in-option').length;
     // The user's own notifications, and the newest insight among them — both
     // from the same derived messages the Notifications page renders.

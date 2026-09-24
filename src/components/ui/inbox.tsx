@@ -36,6 +36,8 @@ export interface InboxItem {
   /** Only read for health messages, where "at risk" and "needs attention" are
    *  the same kind but must not look the same. */
   severity?: 'blocking' | 'attention' | 'info';
+  /** An action that is a reminder from the workflow, not work that blocks. */
+  reminder?: boolean;
 }
 
 /** The hierarchy icons, matching HierarchyBadge so a booking looks like a
@@ -58,6 +60,9 @@ const kindBadge: Record<MessageKind, { label: string; className: string }> = {
 const badgeFor = (item: InboxItem) => {
   if (item.kind === 'health' && item.severity !== 'blocking') {
     return { label: 'Needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' };
+  }
+  if (item.kind === 'action' && item.reminder) {
+    return { label: 'Reminder', className: 'border-border bg-neutral-50 text-neutral-600' };
   }
   return kindBadge[item.kind];
 };

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { MessageSquare, WalletCards, Rows3, LayoutList, ArrowLeft } from 'lucide-react';
 import { stashAgentContext } from '@/lib/agent-context';
-import { CaseCard, type CaseCardData } from './case-card';
+import { CaseCard, StepsCard, type CaseCardData, type CaseStep } from './case-card';
 import { Badge } from './badge';
 import { Button } from './button';
 import {
@@ -67,6 +67,10 @@ export interface MessageDrawerProps {
   message: React.ReactNode;
   /** Figures, chart and key points behind a recommendation or insight. */
   businessCase?: MessageBusinessCase;
+  /** An action's workflow context — the steps of its stage. */
+  steps?: CaseStep[];
+  /** A reminder from the workflow rather than work that blocks. */
+  reminder?: boolean;
   /** Opens the Campaign Agent with this message as the starting question.
    *  Every insight and recommendation offers this — omitting the prop gets
    *  the house behaviour (hand the subject to /chat), not no button. */
@@ -89,6 +93,8 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
   level,
   message,
   businessCase,
+  steps,
+  reminder,
   onAskAgent,
   onAccept,
   acceptLabel,
@@ -99,7 +105,9 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
   const badge =
     kind === 'health' && severity !== 'blocking'
       ? { label: 'Needs attention', variant: 'warning' as const }
-      : kindBadge[kind];
+      : kind === 'action' && reminder
+        ? { label: 'Reminder', variant: 'outline' as const }
+        : kindBadge[kind];
 
   const hasCase = !!(
     businessCase?.stats?.length || businessCase?.chart || businessCase?.insights?.length || businessCase?.move?.length
@@ -129,6 +137,9 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
           already establish the hierarchy, so the body reads as body text. */}
       <p className="text-sm leading-relaxed text-foreground">{message}</p>
 
+      {/* An action's case is the work around it: the stage's steps. */}
+      {steps && steps.length > 0 && <StepsCard steps={steps} />}
+
       {hasCase && (
         <CaseCard
           title="The case for this"
@@ -145,7 +156,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
       {/* Going deeper is a deliberate step, not the default reading mode. The
           case template carries its own Ask-the-agent; this block covers the
           messages without a case. */}
-      {!hasCase && (
+      {!hasCase && !(steps && steps.length > 0) && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
           <p className="text-sm text-muted-foreground">Want more detail on this message?</p>
           <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={askAgent}>

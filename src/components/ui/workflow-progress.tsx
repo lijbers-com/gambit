@@ -4,8 +4,8 @@ import * as React from 'react';
 import { Bell, Check, CheckCircle2, ChevronDown, Flag, GitBranch, ShieldCheck, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TabActionGroup } from './tab-actions';
-import { useDb, setupStepDone, setupStepDoneForBooking, setupStepDoneForPlan, walkSteps, workflowFor, type Booking, type Campaign, type MediaPlan, type WorkflowScope, type WorkflowStep, type WorkflowStepKind } from '@/lib/db';
-import { LIFECYCLE_LABEL, PLAN_STATUS_TO_LIFECYCLE, type LifecycleStatus } from '@/lib/status-vocabulary';
+import { useDb, readWorkflow, workflowOrDefault, targetFor, type Booking, type WorkflowScope, type WorkflowStep, type WorkflowStepKind, type WorkflowTarget } from '@/lib/db';
+import { LIFECYCLE_LABEL } from '@/lib/status-vocabulary';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 
 /**
@@ -25,19 +25,6 @@ const KIND_ICON: Record<WorkflowStepKind, React.ComponentType<{ className?: stri
   stage: Flag, approval: ShieldCheck, check: CheckCircle2, fulfilment: Truck, notification: Bell, gate: GitBranch,
 };
 const OWNER_LABEL = { advertiser: 'Advertiser', retailer: 'Retailer', edge: 'Edge', external: 'Partner' } as const;
-
-/** Names retailers give the shared stages (OMI: Sales, Preparation, …). */
-const STAGE_SYNONYMS: Record<LifecycleStatus, string[]> = {
-  draft: ['draft', 'sales', 'new'],
-  'in-review': ['in review', 'review', 'sales'],
-  approved: ['approved', 'preparation', 'prep'],
-  scheduled: ['scheduled', 'production', 'ready'],
-  live: ['live', 'run', 'running', 'active'],
-  completed: ['completed', 'done', 'complete'],
-  'changes-requested': ['changes requested'],
-  paused: ['paused'],
-  cancelled: ['cancelled'],
-};
 
 const daysBefore = (iso: string, days: number) => {
   const d = new Date(iso);
@@ -66,10 +53,8 @@ export interface WorkflowProgressProps {
 
 export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, mediaPlanId, variant = 'full', hideNext, expanded, renderStepExtra, trailing, className }) => {
   const db = useDb();
-  const workflow = workflowFor(db, engine);
-  const foundBooking = bookingId ? db.bookings.find((b) => b.id === bookingId) : undefined;
-  const foundCampaign = campaignId ? db.campaigns.find((c) => c.id === campaignId) : undefined;
-  const foundPlan = mediaPlanId ? db.mediaPlans.find((pl) => pl.id === mediaPlanId) : undefined;
+  const workflow = workflowOrDefault(db, engine);
+  const stored = targetFor(db, { bookingId, campaignId, mediaPlanId });
 
   // A demo entity the store does not hold still reads the workflow: in
   // review, two weeks out, creatives as linked, no placement yet.
@@ -81,74 +66,17 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
     positionIds: [], creativeStatus: linked.some((c) => c.status === 'approved') ? 'approved' : linked.length ? 'submitted' : 'missing',
     createdAt: '', updatedAt: '',
   });
-  // A campaign reads as the sum of its bookings: creatives approved when all
-  // are, placed when any is.
-  const campaignAsBooking = (c: Campaign): Booking => {
-    const bs = db.bookings.filter((b) => b.campaignId === c.id);
-    return {
-      id: c.id, campaignId: c.id, name: c.name, status: c.status, budget: c.budget, spend: c.spend,
-      startDate: c.startDate, endDate: c.endDate,
-      positionIds: bs.flatMap((b) => b.positionIds),
-      creativeStatus: bs.length && bs.every((b) => b.creativeStatus === 'approved') ? 'approved' : bs.some((b) => b.creativeStatus !== 'missing') ? 'submitted' : 'missing',
-      createdAt: c.createdAt, updatedAt: c.updatedAt,
-    };
-  };
-  // A plan reads as the sum of its campaigns' bookings.
-  const planAsBooking = (pl: MediaPlan): Booking => {
-    const cs = db.campaigns.filter((c) => c.mediaPlanId === pl.id);
-    const bs = db.bookings.filter((b) => cs.some((c) => c.id === b.campaignId));
-    return {
-      id: pl.id, campaignId: '', name: pl.name, status: pl.status, budget: pl.budget, spend: cs.reduce((sum, c) => sum + c.spend, 0),
-      startDate: pl.startDate, endDate: pl.endDate,
-      positionIds: bs.flatMap((b) => b.positionIds),
-      creativeStatus: bs.length && bs.every((b) => b.creativeStatus === 'approved') ? 'approved' : bs.some((b) => b.creativeStatus !== 'missing') ? 'submitted' : 'missing',
-      createdAt: pl.createdAt, updatedAt: pl.updatedAt,
-    };
-  };
-  const entity: Booking | undefined = foundBooking ?? (foundCampaign ? campaignAsBooking(foundCampaign) : foundPlan ? planAsBooking(foundPlan) : bookingId ? fallback(bookingId) : campaignId ? fallback(campaignId) : undefined);
-  if (!workflow || !entity) return null;
+  const target: WorkflowTarget | undefined = stored
+    ?? (bookingId ? { level: 'booking', entity: fallback(bookingId) } : campaignId ? { level: 'campaign', entity: fallback(campaignId) } : undefined);
+  if (!target) return null;
 
-  const order = walkSteps(workflow);
-  const stages = order.filter((s) => s.kind === 'stage');
-  const lifecycle = PLAN_STATUS_TO_LIFECYCLE[entity.status];
-  // The current stage: by the retailer's own name for it, else by position.
-  const wanted = STAGE_SYNONYMS[lifecycle];
-  let currentIndex = stages.findIndex((s) => wanted.some((w) => s.name.toLowerCase().includes(w)));
-  if (currentIndex < 0) {
-    const pos: Record<LifecycleStatus, number> = { draft: 0, 'in-review': 1, approved: 2, scheduled: 3, live: 4, completed: 5, 'changes-requested': 1, paused: 4, cancelled: 5 };
-    currentIndex = Math.min(pos[lifecycle], Math.max(0, stages.length - 1));
-  }
-
-  // Which stage each step belongs to: the last stage before it in walking order.
-  const stageOf = new Map<string, number>();
-  let si = -1;
-  for (const s of order) {
-    if (s.kind === 'stage') si = stages.findIndex((x) => x.id === s.id);
-    stageOf.set(s.id, Math.max(0, si));
-  }
-
-  /** What the data already says about a step. */
-  const stepDone = (step: WorkflowStep): boolean => {
-    if ((stageOf.get(step.id) ?? 0) < currentIndex) return true; // a past stage's work is behind us
-    if (step.setup) {
-      return foundPlan ? setupStepDoneForPlan(db, foundPlan, step.setup) : foundCampaign ? setupStepDone(db, foundCampaign, step.setup) : setupStepDoneForBooking(db, entity, step.setup);
-    }
-    const n = step.name.toLowerCase();
-    if (/creative/.test(n)) return entity.creativeStatus === 'approved';
-    if (/store|screen|placement|position/.test(n)) return entity.positionIds.length > 0;
-    if (/product/.test(n)) return true; // assigned with the campaign
-    return false;
-  };
-
-  /** The steps that belong to a stage, with what the data says about each. */
-  const stepsOf = (stageIndex: number) =>
-    order.filter((st) => st.kind !== 'stage' && stageOf.get(st.id) === stageIndex).map((st) => ({ step: st, done: stepDone(st) }));
-
-  const work = order.filter((s) => s.kind !== 'stage' && stageOf.get(s.id) === currentIndex);
-  const next = order.filter((s) => s.kind !== 'stage' && stageOf.get(s.id) === currentIndex + 1);
-  const items = (work.length ? work : next).map((s) => ({ step: s, done: stepDone(s) }));
+  // The same reading the to-do engine makes, so the bar's open steps and
+  // the inbox's actions are one list.
+  const reading = readWorkflow(db, workflow, target);
+  const { stages, currentIndex, lifecycle, stepsOf, heading } = reading;
+  const entity = target.entity;
+  const items = reading.current;
   const open = items.filter((i) => !i.done);
-  const heading = work.length ? `To get past ${stages[currentIndex]?.name ?? 'this stage'}` : `Before ${stages[currentIndex + 1]?.name ?? 'the next stage'}`;
 
   const renderList = (list: { step: WorkflowStep; done: boolean }[]) => (
     <ul className="divide-y">

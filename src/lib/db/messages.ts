@@ -45,6 +45,10 @@ export interface InboxMessage {
   /** What accepting a recommendation does, in the user's words. The panel puts
    *  it on the Accept button so the answer names the change it makes. */
   acceptLabel?: string;
+  /** An action's workflow context: the steps of its stage, what is done. */
+  steps?: DerivedTask['steps'];
+  /** A reminder from the workflow, not work that blocks. */
+  reminder?: boolean;
 }
 
 /** Engine → route segment. They match today, but the map keeps it explicit. */
@@ -102,6 +106,8 @@ function taskMessages(db: DbData): InboxMessage[] {
     personaKeys: task.personaKeys,
     evidence: task.evidence,
     acceptLabel: task.acceptLabel,
+    steps: task.steps,
+    reminder: task.reminder,
   }));
 }
 

@@ -52,6 +52,7 @@ import type { LucideIcon } from 'lucide-react';
 import type { HealthIndicator } from '@/lib/db/health';
 import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, markRead, markDone, setupStepDone, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
+import { InsightsTab } from './insights-tab';
 import { MessageDrawer } from '@/components/ui/message-drawer';
 import {
   Dialog,
@@ -1484,10 +1485,13 @@ export const MediaPlanDetail: Story = {
                   </div>
                 ),
               },
-              // No Insights tab on a media plan for now (24 Sept): insights
-              // live on the Insights dashboard. Logs have nothing to say about
-              // a plan that has not run yet, so a plan in setup does not
-              // carry them.
+              // Insights and Logs have nothing to say about a plan that has
+              // not run yet, so a plan in setup does not carry them.
+              ...(inSetup ? [] : [{
+                label: 'Insights',
+                value: 'insights',
+                content: <InsightsTab engineType="all" scope="campaign" mediaPlanId={plan?.id} />,
+              }]),
               ...(inSetup ? [] : [{
                 label: 'Logs',
                 value: 'logs',

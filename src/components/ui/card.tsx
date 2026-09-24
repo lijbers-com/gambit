@@ -246,7 +246,8 @@ export interface MetricCardProps {
    *  splits the same way the stacked charts do. Wins over donutColors. */
   donutEngines?: PatternKey[];
   /** For barHorizontal variant — top categories with a value each */
-  productData?: Array<{ name: string; value: number; color?: string }>;
+  /** `engine` lets a bar wear its proposition's tint and pattern. */
+  productData?: Array<{ name: string; value: number; color?: string; engine?: PatternKey }>;
   /** For barVertical variant — time-series with a value per period */
   dateData?: Array<{ date: string; value: number; color?: string }>;
   /** For budgetStacked variant — per-proposition spent vs total budget */
@@ -481,14 +482,15 @@ export const BarHorizontalDetail = ({
     name: item.name,
     value: item.value,
     color: colorFromIndex(i, item.color),
+    engine: item.engine,
   }));
   const propSum = propSegments.reduce((s, p) => s + p.value, 0);
   type Row =
-    | { name: string; value: number; color: string; isTotal: false }
+    | { name: string; value: number; color: string; engine?: PatternKey; isTotal: false }
     | { name: string; value: number; isTotal: true; segments: typeof propSegments };
   const rows: Row[] = [
     ...(totalRow ? [{ name: totalRow.label, value: totalRow.value, isTotal: true as const, segments: propSegments }] : []),
-    ...propSegments.map((p) => ({ name: p.name, value: p.value, color: p.color, isTotal: false as const })),
+    ...propSegments.map((p) => ({ name: p.name, value: p.value, color: p.color, engine: p.engine, isTotal: false as const })),
   ];
   return (
     <ul className="space-y-3 text-sm">
@@ -502,24 +504,19 @@ export const BarHorizontalDetail = ({
               </span>
               <span className="font-medium tabular-nums whitespace-nowrap">{fmt(item.value)}</span>
             </div>
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
+            {/* Each proposition in its tint and pattern — the same mark it
+                wears on every chart — so the split reads without a legend. */}
+            <div className="h-2.5 rounded-full bg-muted overflow-hidden">
               {item.isTotal ? (
-                <div className="flex h-full transition-all duration-500" style={{ width: `${pct}%` }}>
+                <div className="flex h-full overflow-hidden rounded-full transition-all duration-500" style={{ width: `${pct}%` }}>
                   {item.segments.map((seg, segIdx) => (
-                    <div
-                      key={`${seg.name}-${segIdx}`}
-                      style={{
-                        width: `${propSum > 0 ? (seg.value / propSum) * 100 : 0}%`,
-                        backgroundColor: seg.color,
-                      }}
-                    />
+                    <BudgetSegment key={`${seg.name}-${segIdx}`} widthPct={propSum > 0 ? (seg.value / propSum) * 100 : 0} color={seg.color} engine={seg.engine} />
                   ))}
                 </div>
               ) : (
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${pct}%`, backgroundColor: item.color }}
-                />
+                <div className="flex h-full overflow-hidden rounded-full transition-all duration-500" style={{ width: `${pct}%` }}>
+                  <BudgetSegment widthPct={100} color={item.color} engine={item.engine} />
+                </div>
               )}
             </div>
           </li>

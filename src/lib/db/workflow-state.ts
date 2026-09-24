@@ -117,9 +117,15 @@ export function workflowOrDefault(db: DbData, scope: WorkflowScope): Workflow {
   return workflowFor(db, scope) ?? defaultWorkflow(scope);
 }
 
+/** Where a step stands: done, open in the current stage, or upcoming in a
+ *  later one. A later stage's step is never done — its check may pass on
+ *  today's data, but the stage has not been reached. */
+export type WorkflowStepStatus = 'done' | 'open' | 'upcoming';
+
 export interface WorkflowStepState {
   step: WorkflowStep;
   done: boolean;
+  status: WorkflowStepStatus;
 }
 
 export interface WorkflowReading {
@@ -176,7 +182,9 @@ export function readWorkflow(db: DbData, workflow: Workflow, target: WorkflowTar
 
   /** What the data already says about a step. */
   const stepDone = (step: WorkflowStep): boolean => {
-    if ((stageOf.get(step.id) ?? 0) < currentIndex) return true; // a past stage's work is behind us
+    const at = stageOf.get(step.id) ?? 0;
+    if (at < currentIndex) return true; // a past stage's work is behind us
+    if (at > currentIndex) return false; // a later stage's work has not started
     if (step.setup) {
       return target.level === 'media-plan' && plan ? setupStepDoneForPlan(db, plan, step.setup)
         : target.level === 'campaign' && campaign ? setupStepDone(db, campaign, step.setup)
@@ -197,7 +205,10 @@ export function readWorkflow(db: DbData, workflow: Workflow, target: WorkflowTar
   };
 
   const stepsOf = (stageIndex: number): WorkflowStepState[] =>
-    order.filter((st) => st.kind !== 'stage' && stageOf.get(st.id) === stageIndex).map((st) => ({ step: st, done: stepDone(st) }));
+    order.filter((st) => st.kind !== 'stage' && stageOf.get(st.id) === stageIndex).map((st) => {
+      const done = stepDone(st);
+      return { step: st, done, status: done ? 'done' : stageIndex > currentIndex ? 'upcoming' : 'open' };
+    });
 
   const own = stepsOf(currentIndex);
   const next = stepsOf(currentIndex + 1);

@@ -717,6 +717,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       if (layout === 'vertical' || guidedSetup) return undefined;
       const dbPlan = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
       if (dbPlan) {
+        // A draft has nothing to judge yet — no chip until it leaves draft.
+        if (dbPlan.status === 'draft') return undefined;
         const health = derivePlanHealth(db, dbPlan);
         return { level: health.level, score: health.score, message: health.message, explain: health.level === 'good' ? budgetOptimisationExplain() : budgetPacingExplain() };
       }

@@ -51,7 +51,7 @@ import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorS
 import type { LucideIcon } from 'lucide-react';
 import { scoreHealth, type HealthIndicator, type HealthScore } from '@/lib/db/health';
 import type { CardInsight } from '@/components/ui/insights-notifications';
-import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, markRead, markDone, setupStepDone, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
+import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, markRead, markDone, applyPlanLifecycle, setupStepDone, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
 import { MessageDrawer } from '@/components/ui/message-drawer';
@@ -383,6 +383,7 @@ export const MediaPlanDetail: Story = {
       name: e.name,
       value: e.spend > 0 && e.budget > 0 ? Math.round((2.4 + (e.spend / e.budget) * 2.2) * 10) / 10 : 0,
       color: e.color,
+      engine: e.engine,
     }));
     const budgetVsSpend = byEngine.map((e) => ({ name: e.name, spent: e.spend, budget: e.budget, color: e.color, engine: e.engine }));
     const propositionColors = byEngine.map((e) => e.color);
@@ -626,7 +627,18 @@ export const MediaPlanDetail: Story = {
      * the same doors the setup cards open.
      */
     const planStepExtra = (step: WorkflowStep, done: boolean): React.ReactNode => {
-      if (!plan || done || !step.setup) return null;
+      if (!plan || done) return null;
+      // The retailer's approval of the plan: in this prototype approving
+      // is launching — the same move the Launch button makes, blocked by
+      // the same blockers.
+      if (step.kind === 'approval' && !step.setup && step.owner === 'retailer') {
+        return (
+          <Button size="sm" onClick={() => applyPlanLifecycle(plan.id, 'play')} disabled={!canLaunch} title={canLaunch ? undefined : 'Clear the blockers first — see Notifications'}>
+            Approve & launch
+          </Button>
+        );
+      }
+      if (!step.setup) return null;
       const key = step.setup;
       const planCampaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
       if (key === 'add-campaigns') {
@@ -984,7 +996,9 @@ export const MediaPlanDetail: Story = {
         // The chip opens its own findings; only the row click is kept out.
         render: (r) => (r._type === 'add' ? null : (
           <div onClick={(e) => e.stopPropagation()}>
-            <HealthCell health={r.health} score={r.healthScore?.score} reason={r.healthScore?.reason} indicators={r.healthIndicators} />
+            {(r._type === 'campaign' ? r.state : r.status) === 'draft'
+              ? <span className="text-sm text-muted-foreground">—</span>
+              : <HealthCell health={r.health} score={r.healthScore?.score} reason={r.healthScore?.reason} indicators={r.healthIndicators} />}
           </div>
         )),
       },
@@ -1088,14 +1102,19 @@ export const MediaPlanDetail: Story = {
             <ControlBarItem label="Health" dropOrder={2}>
               <div className="flex h-9 items-center">
                 {/* The chip opens what it is judged on. */}
-                <HealthCell
-                  health={planVerdict?.level}
-                  score={planVerdict?.score}
-                  reason={planVerdict?.reason}
-                  message={planVerdict?.message}
-                  indicators={planHealthSummary?.indicators}
-                  insights={planInsightCards}
-                />
+                {/* A draft has nothing to judge yet. */}
+                {plan?.status === 'draft' ? (
+                  <span className="text-sm text-muted-foreground" title="Health is judged once the plan leaves draft.">—</span>
+                ) : (
+                  <HealthCell
+                    health={planVerdict?.level}
+                    score={planVerdict?.score}
+                    reason={planVerdict?.reason}
+                    message={planVerdict?.message}
+                    indicators={planHealthSummary?.indicators}
+                    insights={planInsightCards}
+                  />
+                )}
               </div>
             </ControlBarItem>
             {/* Recommendations only: to-dos are the workflow steps right

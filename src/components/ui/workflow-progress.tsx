@@ -1,28 +1,35 @@
 'use client';
 
 import * as React from 'react';
-import { Bell, Check, CheckCircle2, ChevronDown, Flag, GitBranch, ShieldCheck, Truck } from 'lucide-react';
+import { Bell, Check, CheckCircle2, ChevronDown, Clock, Flag, GitBranch, Mail, ShieldCheck, Truck, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TabActionGroup } from './tab-actions';
-import { useDb, readWorkflow, workflowOrDefault, targetFor, type Booking, type WorkflowScope, type WorkflowStep, type WorkflowStepKind, type WorkflowTarget } from '@/lib/db';
+import { useDb, useSession, readWorkflow, workflowOrDefault, targetFor, type Booking, type WorkflowAction, type WorkflowScope, type WorkflowStep, type WorkflowStepKind, type WorkflowStepState, type WorkflowTarget } from '@/lib/db';
 import { LIFECYCLE_LABEL } from '@/lib/status-vocabulary';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 
 /**
  * Where a campaign or booking stands in its proposition's workflow, and what
- * is next: the stage bar walked along the board's stages, the current stage
- * lit, and the steps between here and the next stage as to-dos — owner,
- * deadline (flight start minus X-n), mandatory or not — with what the data
- * already shows as done ticked off. The board is the retailer's; this is the
- * entity reading it.
+ * is next — as a list anyone can read:
  *
- * Two shapes: `full` lists the to-dos under the stage bar; `bar` keeps to
- * one line for the control panel — the stages, the next open step, and the
- * list behind a button.
+ *   ✓ done          the data shows it done, or the stage is behind us
+ *   ● open          in the current stage — YOUR MOVE with a button when the
+ *                   signed-in side owns it, "Waiting for the retailer" when
+ *                   the other side does, "Automatic" when Edge runs it
+ *   ○ upcoming      in a later stage — never ticked, however the data looks
+ *                   today, because the stage has not been reached
+ *
+ * The bar shows the stages; the current one is lit and its steps sit
+ * beneath; past stages fold to one line each; later stages list what is
+ * coming, including what Edge does on its own (send the report, notify).
+ * The board is the retailer's; this is the entity reading it.
  */
 
 const KIND_ICON: Record<WorkflowStepKind, React.ComponentType<{ className?: string }>> = {
   stage: Flag, approval: ShieldCheck, check: CheckCircle2, fulfilment: Truck, notification: Bell, gate: GitBranch,
+};
+const ACTION_ICON: Record<WorkflowAction['type'], React.ComponentType<{ className?: string }>> = {
+  email: Mail, notification: Bell, todo: CheckCircle2, 'set-status': Flag, kafka: Zap, log: Zap,
 };
 const OWNER_LABEL = { advertiser: 'Advertiser', retailer: 'Retailer', edge: 'Edge', external: 'Partner' } as const;
 
@@ -40,10 +47,11 @@ export interface WorkflowProgressProps {
   variant?: 'full' | 'bar';
   /** Bar only: leave out the "Next: …" line — the chips already open the steps. */
   hideNext?: boolean;
-  /** Bar only: list the current stage's steps beneath the row, open — for a
-   *  page that is about getting them done, so the to-dos sit in view. */
+  /** Bar only: list the steps beneath the row, open — for a page that is
+   *  about getting them done, so the to-dos sit in view. */
   expanded?: boolean;
-  /** Something to show at the end of a step row — a count, a button. */
+  /** The action for an open step the signed-in side owns — a Start button
+   *  that opens where the work is done. Only asked for open steps. */
   renderStepExtra?: (step: WorkflowStep, done: boolean) => React.ReactNode;
   /** Bar only: what sits at the right end of the stage row — the run
    *  controls — so it stays on that row when the list opens beneath. */
@@ -53,6 +61,7 @@ export interface WorkflowProgressProps {
 
 export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, bookingId, campaignId, mediaPlanId, variant = 'full', hideNext, expanded, renderStepExtra, trailing, className }) => {
   const db = useDb();
+  const user = useSession();
   const workflow = workflowOrDefault(db, engine);
   const stored = targetFor(db, { bookingId, campaignId, mediaPlanId });
 
@@ -73,36 +82,134 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
   // The same reading the to-do engine makes, so the bar's open steps and
   // the inbox's actions are one list.
   const reading = readWorkflow(db, workflow, target);
-  const { stages, currentIndex, lifecycle, stepsOf, heading } = reading;
+  const { stages, currentIndex, lifecycle, stepsOf } = reading;
   const entity = target.entity;
-  const items = reading.current;
-  const open = items.filter((i) => !i.done);
+  const current = stepsOf(currentIndex);
+  const open = current.filter((i) => i.status === 'open');
+  const mySide = user?.side;
 
-  const renderList = (list: { step: WorkflowStep; done: boolean }[]) => (
-    <ul className="divide-y">
-      {list.map(({ step, done }) => {
-        const Icon = KIND_ICON[step.kind];
+  /** Who acts on an open step, from the signed-in user's point of view. */
+  const turnOf = (step: WorkflowStep): 'mine' | 'theirs' | 'auto' =>
+    step.owner === 'edge' || step.owner === 'external' ? 'auto' : mySide && step.owner === mySide ? 'mine' : 'theirs';
+
+  /** One step, read as a to-do: what it is, whose move, and what to do. */
+  const renderRow = ({ step, status }: WorkflowStepState, stageIndex: number) => {
+    const Icon = KIND_ICON[step.kind];
+    const turn = turnOf(step);
+    const extra = status === 'open' ? renderStepExtra?.(step, false) : null;
+    const due = step.dueDaysBeforeStart ? ` · due ${daysBefore(entity.startDate, step.dueDaysBeforeStart)} (X-${step.dueDaysBeforeStart})` : '';
+    const sla = step.slaDays ? ` · ${step.slaDays}-day SLA` : '';
+    const stageName = stages[stageIndex]?.name ?? 'this stage';
+    const second =
+      status === 'done' ? `Done · ${OWNER_LABEL[step.owner]}`
+      : status === 'upcoming' ? `${OWNER_LABEL[step.owner]} · comes up in ${stageName}${due}`
+      : turn === 'auto' ? `Edge runs this automatically${due}${sla}`
+      : turn === 'mine' ? `${OWNER_LABEL[step.owner]} — your move${due}${sla}`
+      : `${OWNER_LABEL[step.owner]}${due}${sla}`;
+    return (
+      <li key={step.id} className={cn('flex items-center gap-3 px-3 py-2 text-sm', status !== 'open' && 'text-muted-foreground', status === 'open' && turn === 'mine' && 'bg-surface-selected')}>
+        <span className={cn(
+          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border',
+          status === 'done' && 'border-success-200 bg-success-50 text-success-700',
+          status === 'open' && 'border-foreground bg-background text-foreground',
+          status === 'upcoming' && 'border-dashed bg-background text-muted-foreground',
+        )}>
+          {status === 'done' ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className={cn('block truncate', status === 'done' && 'line-through', status === 'open' && 'font-medium text-foreground')}>{step.name}</span>
+          <span className="block truncate text-xs text-muted-foreground">{second}</span>
+        </span>
+        {status === 'open' && step.mandatory && <span className="shrink-0 rounded-sm bg-neutral-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-neutral-600">Mandatory</span>}
+        {status === 'open' && turn === 'theirs' && (
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            Waiting for the {OWNER_LABEL[step.owner].toLowerCase()}
+          </span>
+        )}
+        {status === 'open' && turn === 'auto' && (
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-warning-200 bg-warning-50 px-2 py-0.5 text-xs text-warning-700">
+            <Zap className="h-3 w-3" />
+            Not met yet
+          </span>
+        )}
+        {status === 'open' && turn === 'mine' && (extra ?? (
+          <span className="inline-flex shrink-0 items-center rounded-full border border-warning-200 bg-warning-50 px-2 py-0.5 text-xs font-medium text-warning-700">Your move</span>
+        ))}
+        {status === 'upcoming' && <span className="shrink-0 text-xs text-muted-foreground">Later</span>}
+      </li>
+    );
+  };
+
+  /** What Edge does on its own when a stage is reached — sent, notified,
+   *  published — shown so the reader knows what happens without them. */
+  const renderStageActions = (stage: WorkflowStep, done: boolean) =>
+    stage.actions.filter((a) => a.type !== 'log').map((a) => {
+      const AIcon = ACTION_ICON[a.type];
+      return (
+        <li key={a.id} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground">
+          <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border', done ? 'border-success-200 bg-success-50 text-success-700' : 'border-dashed bg-background')}>
+            {done ? <Check className="h-3.5 w-3.5" /> : <AIcon className="h-3.5 w-3.5" />}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className={cn('block truncate', done && 'line-through')}>{a.label}</span>
+            <span className="block truncate text-xs">Edge · automatic{a.to ? ` · to the ${OWNER_LABEL[a.to].toLowerCase()}` : ''}</span>
+          </span>
+          <span className="shrink-0 text-xs">{done ? `Fired on reaching ${stage.name}` : `On reaching ${stage.name}`}</span>
+        </li>
+      );
+    });
+
+  /** A stage's list: its steps, then what Edge does when it is reached. */
+  const renderStage = (i: number) => {
+    const stage = stages[i];
+    const list = stepsOf(i);
+    // A stage's own actions fire on reaching it — so they have fired for
+    // the current stage as well as past ones.
+    const rows = [...list.map((x) => renderRow(x, i)), ...renderStageActions(stage, i <= currentIndex)];
+    return rows.length > 0 ? <ul className="divide-y">{rows}</ul> : (
+      <p className="px-3 py-3 text-sm text-muted-foreground">{stage.description ?? 'Nothing to do in this stage — it is left on its own.'}</p>
+    );
+  };
+
+  const headingFor = (i: number) =>
+    i < currentIndex ? `${stages[i].name} — done` : i === currentIndex ? `To get past ${stages[i].name}` : `Coming up in ${stages[i].name}`;
+  const countsFor = (i: number) => {
+    const list = stepsOf(i);
+    const o = list.filter((x) => x.status === 'open').length;
+    const d = list.filter((x) => x.status === 'done').length;
+    return i < currentIndex ? `${list.length} step${list.length === 1 ? '' : 's'} done` : i === currentIndex ? `${o} open · ${d} done` : `${list.length} step${list.length === 1 ? '' : 's'} to come`;
+  };
+
+  /** The full list: past stages folded, the current one open, later ones as what is coming. */
+  const fullList = (
+    <div className="rounded-md border bg-background">
+      {stages.slice(0, currentIndex).map((st, i) => (
+        <div key={st.id} className="flex items-center gap-3 border-b px-3 py-2 text-sm text-muted-foreground">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-success-200 bg-success-50 text-success-700"><Check className="h-3.5 w-3.5" /></span>
+          <span className="min-w-0 flex-1 truncate line-through">{st.name}</span>
+          <span className="shrink-0 text-xs">{countsFor(i)}</span>
+        </div>
+      ))}
+      <div className="flex items-center justify-between border-b px-3 py-2">
+        <span className="text-sm font-medium">{headingFor(currentIndex)}</span>
+        <span className="text-xs text-muted-foreground">{countsFor(currentIndex)}</span>
+      </div>
+      {renderStage(currentIndex)}
+      {stages.slice(currentIndex + 1).map((st, k) => {
+        const i = currentIndex + 1 + k;
         return (
-          <li key={step.id} className={cn('flex items-center gap-3 px-3 py-2 text-sm', done && 'text-muted-foreground')}>
-            <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border', done ? 'border-success-200 bg-success-50 text-success-700' : 'bg-background')}>
-              {done ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className={cn('block truncate', done && 'line-through')}>{step.name}</span>
-              <span className="block truncate text-xs text-muted-foreground">
-                {OWNER_LABEL[step.owner]}
-                {step.dueDaysBeforeStart ? ` · due ${daysBefore(entity.startDate, step.dueDaysBeforeStart)} (X-${step.dueDaysBeforeStart})` : ''}
-                {step.slaDays ? ` · ${step.slaDays}-day SLA` : ''}
-              </span>
-            </span>
-            {step.mandatory && !done && <span className="shrink-0 rounded-sm bg-neutral-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-neutral-600">Mandatory</span>}
-            {renderStepExtra?.(step, done)}
-          </li>
+          <div key={st.id}>
+            <div className="flex items-center justify-between border-y bg-muted/30 px-3 py-2">
+              <span className="text-sm font-medium text-muted-foreground">{headingFor(i)}</span>
+              <span className="text-xs text-muted-foreground">{countsFor(i)}</span>
+            </div>
+            {renderStage(i)}
+          </div>
         );
       })}
-    </ul>
+    </div>
   );
-  const todoList = renderList(items);
 
   const source = (
     <>
@@ -115,7 +222,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
   /** One stage chip; in the bar it is the trigger for that stage's steps. */
   const chip = (st: WorkflowStep, i: number, clickable: boolean) => {
     const state = i < currentIndex ? 'past' : i === currentIndex ? 'current' : 'next';
-    const openHere = clickable && state === 'current' ? stepsOf(i).filter((x) => !x.done).length : 0;
+    const openHere = clickable && state === 'current' ? stepsOf(i).filter((x) => x.status === 'open').length : 0;
     return (
       <span
         className={cn(
@@ -147,49 +254,41 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
     </ol>
   );
 
-  /** The bar's stage row: each chip opens what that stage asks for. */
+  /** The bar's stage row: each chip opens that stage's list. */
   const stageBarWithSteps = (
     <ol className="flex flex-wrap items-center gap-y-2">
-      {stages.map((st, i) => {
-        const list = stepsOf(i);
-        const openCount = list.filter((x) => !x.done).length;
-        return (
-          <li key={st.id} className="flex items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  {chip(st, i, true)}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-[32rem] p-0">
-                <div className="flex items-center justify-between border-b px-3 py-2">
-                  <span className="text-sm font-medium">{i === currentIndex ? `To get past ${st.name}` : i < currentIndex ? `${st.name} — done` : `Before ${st.name} is left`}</span>
-                  {list.length > 0 && <span className="text-xs text-muted-foreground">{openCount} open · {list.length - openCount} done</span>}
-                </div>
-                {list.length > 0 ? renderList(list) : (
-                  <p className="px-3 py-3 text-sm text-muted-foreground">{st.description ?? 'Nothing to do in this stage — it is left on its own.'}</p>
-                )}
-              </PopoverContent>
-            </Popover>
-            {i < stages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}
-          </li>
-        );
-      })}
+      {stages.map((st, i) => (
+        <li key={st.id} className="flex items-center">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                {chip(st, i, true)}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-[32rem] p-0">
+              <div className="flex items-center justify-between border-b px-3 py-2">
+                <span className="text-sm font-medium">{headingFor(i)}</span>
+                <span className="text-xs text-muted-foreground">{countsFor(i)}</span>
+              </div>
+              {renderStage(i)}
+            </PopoverContent>
+          </Popover>
+          {i < stages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}
+        </li>
+      ))}
     </ol>
   );
-
-
 
   if (variant === 'bar') {
     const nextOpen = open[0];
     return (
       <div className={cn('flex flex-col gap-3', className)}>
-        {/* The stage row: chips left, the next step or the controls right. */}
-        {/* One line, always: the controls give up their labels before the
+        {/* The stage row: chips left, the next step or the controls right.
+            One line, always: the controls give up their labels before the
             row gives up its shape — the chips wrap inside their own list. */}
         <div className="flex flex-nowrap items-center gap-x-6 gap-y-2">
           {stageBarWithSteps}
-          {items.length > 0 && !hideNext && (
+          {!hideNext && (
             <span className="ml-auto min-w-0 truncate text-sm">
               {nextOpen ? (
                 <>
@@ -204,16 +303,8 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
           )}
           {trailing && <TabActionGroup className="ml-auto">{trailing}</TabActionGroup>}
         </div>
-        {/* Expanded: the stage's steps in view, not behind the chip. */}
-        {expanded && items.length > 0 && (
-          <div className="rounded-md border bg-background">
-            <div className="flex items-center justify-between border-b px-3 py-2">
-              <span className="text-sm font-medium">{heading}</span>
-              <span className="text-xs text-muted-foreground">{open.length} open · {items.length - open.length} done</span>
-            </div>
-            {todoList}
-          </div>
-        )}
+        {/* Expanded: the whole list in view, not behind the chips. */}
+        {expanded && fullList}
       </div>
     );
   }
@@ -221,15 +312,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
   return (
     <div className={cn('space-y-4', className)}>
       {stageBar}
-      {items.length > 0 && (
-        <div className="rounded-md border">
-          <div className="flex items-center justify-between border-b px-3 py-2">
-            <span className="text-sm font-medium">{heading}</span>
-            <span className="text-xs text-muted-foreground">{open.length} open · {items.length - open.length} done</span>
-          </div>
-          {todoList}
-        </div>
-      )}
+      {fullList}
       <p className="text-xs text-muted-foreground">{source}</p>
     </div>
   );

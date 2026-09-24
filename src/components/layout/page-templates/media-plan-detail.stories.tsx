@@ -42,16 +42,15 @@ import { cn } from '@/lib/utils';
 import { retailMoments } from '@/lib/retail-moments';
 import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
 import { stageForGoal, funnelKpis } from '@/lib/funnel';
-import { SetupChecklist } from '@/components/ui/setup-checklist';
 import { MiniSelect } from '@/components/ui/delivery-settings';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
 import { WorkflowProgress } from '@/components/ui/workflow-progress';
 import { BudgetPopover, DatesCell, HealthCell, NotificationsCell } from '@/components/ui/control-cells';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { HealthIndicator } from '@/lib/db/health';
-import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, setupStepsForCampaign, setupStepDone, type Campaign, type EngineId, type PlanStatus, type SetupStepKey, type WorkflowStep } from '@/lib/db';
+import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, setupStepDone, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import {
   Dialog,
@@ -259,25 +258,6 @@ export const MediaPlanDetail: Story = {
     const [expanded, setExpanded] = React.useState<string[]>([]);
     // Checklist cards the user skipped. Loaded in an effect, never during
     // render — localStorage at render time breaks hydration.
-    /**
-     * The campaigns tab has two presentations of the same campaigns: setup
-     * cards while the plan is being built, the performance table once it
-     * runs. The plan's status picks the default; the switch top-right lets
-     * the user look at the other one without changing that default.
-     */
-    const [campaignViewOverride, setCampaignViewOverride] = React.useState<'cards' | 'table' | null>(null);
-    const [skippedChecklist, setSkippedChecklist] = React.useState<string[]>([]);
-    const skipKey = 'gambit-setup-skipped';
-    React.useEffect(() => {
-      try { setSkippedChecklist(JSON.parse(window.localStorage.getItem(skipKey) ?? '[]')); } catch { /* fresh */ }
-    }, []);
-    const skipChecklistCards = (ids: string[]) => {
-      setSkippedChecklist((prev) => {
-        const next = Array.from(new Set([...prev, ...ids]));
-        try { window.localStorage.setItem(skipKey, JSON.stringify(next)); } catch { /* private mode */ }
-        return next;
-      });
-    };
     // The table exists to show the plan's contents, so campaigns start open.
     // Keyed on the plan so navigating between plans re-opens the new one's rows.
     const expandedInitFor = React.useRef<string | null>(null);
@@ -595,78 +575,6 @@ export const MediaPlanDetail: Story = {
     };
 
     /**
-     * The setup checklist: per campaign, the steps between here and live —
-     * derived from the data, so a step completes itself the moment the work
-     * exists, and a finished card leaves on its own. Each step opens the
-     * surface where that work is done.
-     */
-    const checklistCards = plan
-      ? db.campaigns
-          .filter((c) => c.mediaPlanId === plan.id && c.status !== 'completed' && !skippedChecklist.includes(c.id))
-          // The same filters and search the table obeys — one filter row
-          // governs both presentations of the campaigns.
-          .filter((c) => {
-            const q = rowSearch.trim().toLowerCase();
-            return (!q || c.name.toLowerCase().includes(q))
-              && (propFilter.length === 0 || propFilter.includes(c.engine))
-              && (stateFilter.length === 0 || stateFilter.includes(c.status));
-          })
-          .map((c) => {
-            const bookings = db.bookings.filter((b) => b.campaignId === c.id);
-            const meta = propositionMeta[c.engine];
-            const CardIcon = meta.icon;
-            // Each step IS a wizard run — the same booking-and-creatives flow
-            // "Add campaign" continues into, entered at the right step. The
-            // media plan wizard stopped at campaigns; these cards carry what
-            // it deliberately left open.
-            // A booking the plan wizard proposed is still a draft: it exists,
-            // but nobody has checked it. Approving one means running the
-            // prefilled booking wizard and saving it.
-            const openCampaign = () => { if (typeof window !== 'undefined') window.location.href = `/campaigns/${routeSeg[c.engine]}/${c.id}`; };
-            const draftBookings = bookings.filter((b) => b.status === 'draft');
-            // The steps come from the proposition's workflow — its setup
-            // steps, ticked off from the data — so the board is the one
-            // place setup is defined. Each step opens where the work is done.
-            const missingCreative = bookings.find((b) => b.creativeStatus === 'missing');
-            const openStep: Record<SetupStepKey, () => void> = {
-              'approve-campaign': () => { window.location.href = `/create/${routeSeg[c.engine]}?campaignId=${c.id}&step=campaign${backToPlan}`; },
-              'create-bookings': () => addBookingTo(c.id),
-              'approve-bookings': () => approveBooking(draftBookings[0]?.id ?? bookings[0]?.id, c.id),
-              'add-targeting': () => addBookingTo(c.id),
-              // Plan-level steps never appear on a campaign's card; they open the campaign.
-              'add-campaigns': openCampaign,
-              'approve-campaigns': openCampaign,
-              'link-creatives': () => {
-                window.location.href = missingCreative
-                  ? `/create/${routeSeg[c.engine]}?bookingId=${missingCreative.id}&step=creatives${backToPlan}`
-                  : `/create/${routeSeg[c.engine]}?campaignId=${c.id}${backToPlan}`;
-              },
-            };
-            const steps = setupStepsForCampaign(db, c).map((st) => ({
-              id: `${c.id}-${st.key}`,
-              title: st.title,
-              description: st.key === 'approve-bookings' && draftBookings.length > 0
-                ? `Check what was prefilled — ${draftBookings.length} booking${draftBookings.length === 1 ? '' : 's'} still to review.`
-                : st.description,
-              done: st.done,
-              onClick: openStep[st.key],
-            }));
-            return {
-              id: c.id,
-              icon: <CardIcon />,
-              title: `${meta.label} proposition`,
-              // The campaign itself, as opposed to the setup steps: opening it
-              // is where everything not on this card is edited.
-              menu: [
-                { label: 'Edit campaign', icon: <Pencil className="h-4 w-4" />, onClick: openCampaign },
-              ],
-              steps,
-            };
-          })
-          .filter((card) => card.steps.some((step) => !step.done))
-      : [];
-
-    /**
      * A plan fresh out of the wizard is still being set up: its campaigns and
      * bookings are proposals nobody has checked. Until they are approved the
      * page is about that work — the setup cards — and not about numbers a
@@ -682,14 +590,12 @@ export const MediaPlanDetail: Story = {
       }
     }, [plan, awaitingApproval]);
 
-    // Cards are for setup that is still open; anything that has ever run —
-    // running, paused, completed — opens on the table it is judged in, and so
-    // does a pre-live plan whose campaigns are all set up (or skipped): a
-    // checklist with nothing left is not worth greeting the user with.
+    // Whether the plan is still being set up decides how the page reads
+    // (the forecast row, the open workflow steps) — anything that has ever
+    // run — running, paused, completed — is judged in the table instead.
     const planHasRun = !!plan && ['running', 'paused', 'completed'].includes(plan.status);
-    // Unfiltered, unlike checklistCards — a search must not flip the view.
     const planNeedsSetup = !!plan && db.campaigns.some((c) => {
-      if (c.mediaPlanId !== plan.id || c.status === 'completed' || skippedChecklist.includes(c.id)) return false;
+      if (c.mediaPlanId !== plan.id || c.status === 'completed') return false;
       if (c.status === 'draft') return true;
       const bookings = db.bookings.filter((b) => b.campaignId === c.id);
       if (bookings.length === 0) return true;
@@ -747,7 +653,6 @@ export const MediaPlanDetail: Story = {
         </span>
       );
     };
-    const campaignsView = campaignViewOverride ?? (planHasRun || !planNeedsSetup ? 'table' : 'cards');
 
     const planBlockers = plan
       ? deriveMessages(db, { mediaPlanId: plan.id }).filter((m) => m.kind === 'action' && m.severity === 'blocking')
@@ -1421,10 +1326,9 @@ export const MediaPlanDetail: Story = {
                 value: 'campaigns',
                 content: (
                   <div className="mt-6 space-y-6">
-                    {/* One filter row for both presentations of the same
-                        campaigns, with the cards/table switch at its right —
-                        the icons say what the views are, and the plan's
-                        status picks which one greets you. */}
+                    {/* One filter row over the campaigns table. Setup is
+                        no longer a card view here: the workflow bar above
+                        carries what is left to do. */}
                     <div className="flex items-start gap-3">
                       <FilterBar
                         className="min-w-0 flex-1"
@@ -1452,74 +1356,7 @@ export const MediaPlanDetail: Story = {
                         onSearchChange={setRowSearch}
                         searchPlaceholder="Search campaigns & bookings..."
                       />
-                      <span className="flex shrink-0 gap-1">
-                        <Button
-                          variant={campaignsView === 'cards' ? 'secondary' : 'ghost'}
-                          size="sm"
-                          iconOnly
-                          aria-label="Setup cards view"
-                          title="Setup cards"
-                          className={cn('h-9', campaignsView === 'cards' && 'border border-input')}
-                          onClick={() => setCampaignViewOverride('cards')}
-                        >
-                          <LayoutGrid className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant={campaignsView === 'table' ? 'secondary' : 'ghost'}
-                          size="sm"
-                          iconOnly
-                          aria-label="Table view"
-                          title="Table"
-                          className={cn('h-9', campaignsView === 'table' && 'border border-input')}
-                          onClick={() => setCampaignViewOverride('table')}
-                        >
-                          <Table2 className="h-4 w-4" />
-                        </Button>
-                      </span>
                     </div>
-                    {campaignsView === 'cards' && (
-                      checklistCards.length > 0 ? (
-                        <SetupChecklist
-                          heading=""
-                          subtitle=""
-                          cards={checklistCards}
-                          onDismiss={(id) => skipChecklistCards([id])}
-                          onSkipAll={() => skipChecklistCards(checklistCards.map((card) => card.id))}
-                          addCard={
-                            <AddCampaignMenu
-                              onSelect={addCampaign}
-                              onAddExisting={() => setLinkExistingOpen(true)}
-                              trigger={
-                                <button type="button" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
-                                  <Plus className="h-3.5 w-3.5" />
-                                  Add campaign
-                                </button>
-                              }
-                            />
-                          }
-                        />
-                      ) : planCampaignRows.length === 0 ? (
-                        // No campaigns at all — the same empty state the table
-                        // shows, so both views tell one story and offer the
-                        // same fix.
-                        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-10 text-center">
-                          <p className="text-sm text-muted-foreground">
-                            No campaigns in this media plan yet — add the first proposition.
-                          </p>
-                          <AddCampaignMenu onSelect={addCampaign} onAddExisting={() => setLinkExistingOpen(true)} />
-                        </div>
-                      ) : (
-                        // Everything set up (or skipped): the cards have done
-                        // their job, so say so and hand over to the table.
-                        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-10 text-center">
-                          <p className="text-sm text-muted-foreground">Every campaign is set up — nothing left to prepare.</p>
-                          <Button variant="outline" onClick={() => setCampaignViewOverride('table')}>
-                            Open the table view
-                          </Button>
-                        </div>
-                      )
-                    )}
-                    {campaignsView === 'table' && (<>
                     <Table
                       columns={columns}
                       data={rows}
@@ -1637,7 +1474,6 @@ export const MediaPlanDetail: Story = {
                           : cn('cursor-pointer', expanded.includes(r._id) && '[&>td]:!bg-muted')
                       }
                     />
-                    </>)}
                   </div>
                 ),
               },

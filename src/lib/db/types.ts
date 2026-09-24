@@ -500,6 +500,9 @@ export interface WorkflowStep {
   kind: WorkflowStepKind;
   /** Which setup step this stands for, when Edge derives its done state. */
   setup?: SetupStepKey;
+  /** A configuration rule this step applies as a check, by id — the board
+   *  says when the rule runs. */
+  rule?: string;
   name: string;
   description?: string;
   owner: WorkflowOwner;

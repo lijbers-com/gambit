@@ -1,6 +1,7 @@
 import type { Booking, Campaign, DbData, MediaPlan, Workflow, WorkflowScope, WorkflowStep } from './types';
 import { SETUP_STEP_DEFAULTS, setupStepDone, setupStepDoneForBooking, setupStepDoneForPlan, setupWorkflowSteps, walkSteps, workflowFor } from './setup-steps';
 import { PLAN_STATUS_TO_LIFECYCLE, type LifecycleStatus } from '@/lib/status-vocabulary';
+import { CONFIGURATION_RULES, ruleById } from '@/lib/configuration-rules';
 
 /**
  * Reading a workflow for one entity — the one place that says where a media
@@ -102,12 +103,20 @@ export function defaultWorkflow(scope: WorkflowScope): Workflow {
     { id: 'd-live', kind: 'stage', name: 'Live', description: 'Delivering from the flight date.', owner: 'edge', mandatory: true, x: 680, y: 40, actions: [] },
     { id: 'd-done', kind: 'stage', name: 'Completed', description: 'After the end date.', owner: 'edge', mandatory: true, x: 1000, y: 40, actions: [] },
   ];
+  // The configuration rules run as checks once live.
+  const rules: WorkflowStep[] = CONFIGURATION_RULES.map((r, i) => ({
+    id: `d-rule-${r.id}`, kind: 'check', rule: r.id, name: r.name, description: r.summary,
+    owner: 'edge', mandatory: false, x: 680, y: 180 + i * 140, actions: [],
+  }));
   const chain = [stages[0], ...setup, stages[1], stages[2], stages[3]];
   return {
     id: `WF-DEFAULT-${scope}`, engine: scope, name: 'Shared lifecycle', status: 'published',
     description: 'The shared lifecycle with the setup steps — used until a board is published for this proposition.',
-    steps: [...stages, ...setup],
-    transitions: chain.slice(1).map((s, i) => ({ id: `d-t${i}`, from: chain[i].id, to: s.id })),
+    steps: [...stages, ...setup, ...rules],
+    transitions: [
+      ...chain.slice(1).map((s, i) => ({ id: `d-t${i}`, from: chain[i].id, to: s.id })),
+      ...rules.map((r, i) => ({ id: `d-tr${i}`, from: stages[2].id, to: r.id })),
+    ],
     updatedAt: '', publishedAt: '',
   };
 }
@@ -121,6 +130,40 @@ export function workflowOrDefault(db: DbData, scope: WorkflowScope): Workflow {
  *  later one. A later stage's step is never done — its check may pass on
  *  today's data, but the stage has not been reached. */
 export type WorkflowStepStatus = 'done' | 'open' | 'upcoming';
+
+/**
+ * Which stage each step belongs to: walk its incoming lines back until a
+ * stage is met. Walking order would misplace a step that hangs off a stage
+ * behind a later stage's line, so membership follows the lines instead.
+ */
+export function stageIndexOf(workflow: Pick<Workflow, 'steps' | 'transitions'>, stages: WorkflowStep[]): Map<string, number> {
+  const byId = new Map(workflow.steps.map((s) => [s.id, s]));
+  const result = new Map<string, number>();
+  for (const step of workflow.steps) {
+    if (step.kind === 'stage') { result.set(step.id, Math.max(0, stages.findIndex((x) => x.id === step.id))); continue; }
+    const seen = new Set<string>();
+    let cur: WorkflowStep | undefined = step;
+    let found = 0;
+    while (cur && !seen.has(cur.id)) {
+      seen.add(cur.id);
+      const from = workflow.transitions.find((t) => t.to === cur!.id);
+      const prev = from ? byId.get(from.from) : undefined;
+      if (!prev) break;
+      if (prev.kind === 'stage') { found = Math.max(0, stages.findIndex((x) => x.id === prev.id)); break; }
+      cur = prev;
+    }
+    result.set(step.id, found);
+  }
+  return result;
+}
+
+/** A board's non-stage steps grouped under their stage, in stage order. */
+export function stepsByStage(workflow: Pick<Workflow, 'steps' | 'transitions'>): { stage: WorkflowStep; steps: WorkflowStep[] }[] {
+  const order = walkSteps(workflow);
+  const stages = order.filter((s) => s.kind === 'stage');
+  const idx = stageIndexOf(workflow, stages);
+  return stages.map((stage, i) => ({ stage, steps: order.filter((s) => s.kind !== 'stage' && idx.get(s.id) === i) }));
+}
 
 export interface WorkflowStepState {
   step: WorkflowStep;
@@ -172,13 +215,8 @@ export function readWorkflow(db: DbData, workflow: Workflow, target: WorkflowTar
     currentIndex = Math.min(pos[lifecycle], Math.max(0, stages.length - 1));
   }
 
-  // Which stage each step belongs to: the last stage before it in walking order.
-  const stageOf = new Map<string, number>();
-  let si = -1;
-  for (const s of order) {
-    if (s.kind === 'stage') si = stages.findIndex((x) => x.id === s.id);
-    stageOf.set(s.id, Math.max(0, si));
-  }
+  // Which stage each step belongs to.
+  const stageOf = stageIndexOf(workflow, stages);
 
   /** What the data already says about a step. */
   const stepDone = (step: WorkflowStep): boolean => {
@@ -190,6 +228,8 @@ export function readWorkflow(db: DbData, workflow: Workflow, target: WorkflowTar
         : target.level === 'campaign' && campaign ? setupStepDone(db, campaign, step.setup)
         : setupStepDoneForBooking(db, entity, step.setup);
     }
+    // A rule applied as a check: in force while the rule is active.
+    if (step.rule) return (ruleById(step.rule)?.status ?? 'Active') === 'Active';
     const n = step.name.toLowerCase();
     if (/creative/.test(n)) return entity.creativeStatus === 'approved';
     if (/store|screen|placement|position/.test(n)) return entity.positionIds.length > 0;

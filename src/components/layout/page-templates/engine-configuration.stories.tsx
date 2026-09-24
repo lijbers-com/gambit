@@ -9,14 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { DateRange } from 'react-day-picker';
-import { FilterBar } from '@/components/ui/filter-bar';
 import { WorkflowBuilder } from '@/components/ui/workflow-builder';
-import { useDb, useRouteEntityId, workflowFor, walkSteps, type WorkflowScope } from '@/lib/db';
+import { useDb, useRouteEntityId, workflowFor, walkSteps, stepsByStage, type WorkflowScope } from '@/lib/db';
 import { ArrowRight, GitBranch, Info, LayoutTemplate, Plus, ShieldCheck, SlidersHorizontal, Tag, Users, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
+
+import { CONFIGURATION_RULES as configurationRulesData } from '@/lib/configuration-rules';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Engine Configuration',
@@ -77,48 +78,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // Helper functions for configuration data
-const getPerformanceBadgeVariant = (performance: string) => {
-  const value = parseFloat(performance.replace('%', ''));
-  if (value >= 100) return 'success';
-  if (value >= 90) return 'secondary';
-  return 'destructive';
-};
-
-/**
- * Configuration rules: what the proposition does on its own. Each one is a
- * condition Edge watches and the effect it applies when it holds — the
- * retailer's standing decisions, written down once so nobody has to make
- * them per booking.
- */
-const configurationRulesData = [
-  {
-    id: 'RULE-001', name: 'Product Category Targeting', status: 'Active', priority: 'High', lastUpdated: '2026-08-15', performance: '98%', templates: 3,
-    owner: 'Yield Manager',
-    summary: 'Keeps a booking on the category pages of the products it advertises.',
-    when: 'A booking selects retail products and a category-page placement.',
-    then: 'The placement is limited to the categories those products sit in; other categories are not served.',
-    scope: 'Every booking on this proposition, unless a template turns it off.',
-    why: 'Shoppers see the ad next to the product they came for; the retailer keeps category pages relevant. It also lifts click-through — the 98% is the share of impressions that landed in the right category.',
-  },
-  {
-    id: 'RULE-002', name: 'Audience Segmentation', status: 'Active', priority: 'Medium', lastUpdated: '2026-08-12', performance: '94%', templates: 2,
-    owner: 'Performance Analyst',
-    summary: 'Splits delivery over the audience segments a booking targets.',
-    when: 'A booking targets more than one audience segment.',
-    then: 'Impressions are divided over the segments in proportion to their size, and a segment that stops converting is paused for the booking.',
-    scope: 'Bookings with audience targeting; not applied to run-of-site bookings.',
-    why: 'One large segment would otherwise take the whole budget. The 94% is how often the split held within 5% of the plan.',
-  },
-  {
-    id: 'RULE-003', name: 'Budget Optimization', status: 'Paused', priority: 'Low', lastUpdated: '2026-08-10', performance: '87%', templates: 1,
-    owner: 'Yield Manager',
-    summary: 'Moves unspent budget from slow placements to the ones that deliver.',
-    when: 'A booking is past 40% of its run time and a placement has spent under half its share.',
-    then: 'The remaining budget of that placement is moved to the booking\'s best-performing placement, once a day, never more than 25% at a time.',
-    scope: 'Auction bookings only; guaranteed bookings keep their fixed split.',
-    why: 'Paused while the daily move is reviewed — it moved budget away from placements that were merely late to start. The 87% is the share of moves that improved the booking\'s ROAS.',
-  },
-];
 
 /**
  * Templates are preset campaigns: a name, a shape (budget, run time,
@@ -186,15 +145,6 @@ const createEngineConfigurationStories = (
       if (tab) setActiveTab(tab);
     }, []);
 
-    // Filter states
-    const [statusFilter, setStatusFilter] = useState<string[]>([]);
-    const [priorityFilter, setPriorityFilter] = useState<string[]>([]);
-    const [searchValue, setSearchValue] = useState('');
-
-    // Selection states
-    const [selectedRules, setSelectedRules] = useState<any[]>([]);
-    const [selectedTemplates, setSelectedTemplates] = useState<any[]>([]);
-
     // ── The dashboard widgets read the store: the proposition's workflow,
     //    and the open messages about this proposition. ──
     const db = useDb();
@@ -205,9 +155,6 @@ const createEngineConfigurationStories = (
     const workflow = workflowFor(db, engine);
     const workflowSteps = workflow ? walkSteps(workflow) : [];
     const workflowStages = workflowSteps.filter((st) => st.kind === 'stage');
-    const setupSteps = workflowSteps.filter((st) => !!st.setup);
-    const activeRules = configurationRulesData.filter((r) => r.status === 'Active').length;
-    const activeTemplates = configurationTemplatesData.filter((t) => t.status === 'Active').length;
     const quickStarts = configurationTemplatesData.filter((t) => t.quickStart);
     // Who works on this proposition: the retailer's own people, and the
     // advertiser organisations with a campaign on it.
@@ -238,11 +185,6 @@ const createEngineConfigurationStories = (
       { id: 'h3', when: '2026-03-18', who: rule.owner, what: 'Created the rule' },
     ];
     const go = (href: string) => { if (typeof window !== 'undefined') window.location.href = href; };
-    /** A widget's button opens its tab and brings the card into view. */
-    const openTab = (tab: string) => {
-      setActiveTab(tab);
-      if (typeof document !== 'undefined') document.getElementById('config-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
     const viewAll = (label: string, onClick: () => void) => (
       <button
         type="button"
@@ -252,38 +194,6 @@ const createEngineConfigurationStories = (
         {label}
         <ArrowRight className="h-3.5 w-3.5" />
       </button>
-    );
-
-    // One filter row, shared by the two lists.
-    const filterBar = (
-      <FilterBar
-        filters={[
-          {
-            name: "Status",
-            options: [
-              { label: "Active", value: "active" },
-              { label: "Paused", value: "paused" },
-              { label: "Draft", value: "draft" },
-              { label: "Archived", value: "archived" },
-            ],
-            selectedValues: statusFilter,
-            onChange: setStatusFilter,
-          },
-          {
-            name: "Priority",
-            options: [
-              { label: "High", value: "high" },
-              { label: "Medium", value: "medium" },
-              { label: "Low", value: "low" },
-            ],
-            selectedValues: priorityFilter,
-            onChange: setPriorityFilter,
-          },
-        ]}
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
-        searchPlaceholder="Search configuration rules, templates..."
-      />
     );
 
     return (
@@ -305,7 +215,7 @@ const createEngineConfigurationStories = (
           }[view],
           subtitle: {
             dashboard: isPlan ? 'How media plans are set up, reviewed and run' : `Manage ${engineType} engine configuration settings and rules`,
-            settings: 'Workflow and rules',
+            settings: 'The workflow its campaigns follow — its rules run as checks on the board',
             templates: 'Preset campaigns a user starts from — quick starts are offered in the wizard',
             rule: `${engineTitle} configuration rule · ${rule.id}`,
             lists: 'Who may buy this proposition, and who never can',
@@ -325,41 +235,46 @@ const createEngineConfigurationStories = (
               templates, workflow), who works on the proposition, who may buy
               it, and what its positions cost. */}
           <section className="space-y-4">
+            {/* The workflow: the one place this proposition is configured.
+                Its rules are checks on the board, so they are read there. */}
             <Card>
               <CardContent className="flex h-full flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
-                    <SlidersHorizontal className="h-5 w-5 text-primary" />
-                    Configuration
+                    <GitBranch className="h-5 w-5 text-primary" />
+                    Workflow
                   </h3>
                   {workflow && (
                     <Badge variant={workflow.status === 'published' ? 'success' : 'outline'}>
-                      Workflow {workflow.status === 'published' ? 'published' : 'draft'}
+                      {workflow.status === 'published' ? 'Published' : 'Draft'}
                     </Badge>
                   )}
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">The workflow its campaigns follow and the rules this proposition runs by.</p>
-                <div className="mt-4 grid gap-row sm:grid-cols-2">
-                  <button type="button" onClick={() => go(settingsHref('rules'))} className="rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent">
-                    <span className="flex items-center gap-2 text-sm font-medium"><SlidersHorizontal className="h-4 w-4 text-muted-foreground" />Configuration rules</span>
-                    <span className="mt-2 block text-2xl font-semibold tabular-nums">{activeRules}<span className="ml-1.5 text-sm font-normal text-muted-foreground">of {configurationRulesData.length} active</span></span>
-                  </button>
-                  <button type="button" onClick={() => go(settingsHref('workflow'))} className="rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent">
-                    <span className="flex items-center gap-2 text-sm font-medium"><GitBranch className="h-4 w-4 text-muted-foreground" />Workflow</span>
-                    <span className="mt-2 block text-2xl font-semibold tabular-nums">{workflowStages.length}<span className="ml-1.5 text-sm font-normal text-muted-foreground">stages · {workflowSteps.length - workflowStages.length} steps</span></span>
-                  </button>
-                </div>
+                <p className="mt-1 text-sm text-muted-foreground">The stages its campaigns go through, the steps in each, and the rules that run as checks along the way.</p>
                 {workflow && (
-                  <ol className="mt-4 flex flex-wrap items-center gap-y-2">
-                    {workflowStages.map((st, i) => (
-                      <li key={st.id} className="flex items-center">
-                        <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium" title={st.description}>{st.name}</span>
-                        {i < workflowStages.length - 1 && <span className="mx-1 h-px w-4 bg-border" />}
-                      </li>
-                    ))}
-                  </ol>
+                  <table className="mt-4 w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-muted-foreground">
+                        <th className="pb-1 font-medium">Stage</th>
+                        <th className="pb-1 text-right font-medium">Steps</th>
+                        <th className="pb-1 text-right font-medium">Rules</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stepsByStage(workflow).map(({ stage: st, steps: inStage }) => {
+                        const ruleCount = inStage.filter((x) => !!x.rule).length;
+                        return (
+                          <tr key={st.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go(settingsHref('workflow'))}>
+                            <td className="py-1 pr-2"><span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs font-medium">{st.name}</span></td>
+                            <td className="py-1 text-right tabular-nums">{inStage.length - ruleCount}</td>
+                            <td className="py-1 text-right tabular-nums">{ruleCount || '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 )}
-                {viewAll('Open configuration', () => go(settingsHref('workflow')))}
+                {viewAll('Open the workflow', () => go(settingsHref('workflow')))}
               </CardContent>
             </Card>
 
@@ -370,19 +285,24 @@ const createEngineConfigurationStories = (
                     <LayoutTemplate className="h-5 w-5 text-primary" />
                     Campaign templates
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{isPlan ? 'Preset media plans a user starts from; quick starts are offered in the wizard.' : 'Preset campaigns a user starts from; quick starts are offered in the wizard.'}</p>
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div><span className="block text-2xl font-semibold tabular-nums">{quickStarts.length}</span><span className="text-xs text-muted-foreground">quick starts</span></div>
-                    <div><span className="block text-2xl font-semibold tabular-nums">{activeTemplates}</span><span className="text-xs text-muted-foreground">of {configurationTemplatesData.length} active</span></div>
-                  </div>
-                  <ul className="mt-3 flex-1 space-y-1 text-sm">
-                    {configurationTemplatesData.slice(0, 4).map((t) => (
-                      <li key={t.id} className="flex items-center justify-between gap-2">
-                        <span className="min-w-0 truncate">{t.name}<span className="ml-1.5 text-xs text-muted-foreground">{t.presets}</span></span>
-                        {t.quickStart ? <Badge variant="success">Quick start</Badge> : <Badge variant="outline">{t.status}</Badge>}
-                      </li>
-                    ))}
-                  </ul>
+                  <table className="mt-4 w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-muted-foreground">
+                        <th className="pb-1 font-medium">Template</th>
+                        <th className="pb-1 font-medium">Presets</th>
+                        <th className="pb-1 text-right font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {configurationTemplatesData.map((t) => (
+                        <tr key={t.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go(`/configuration/${engineType}/templates`)}>
+                          <td className="py-1 pr-2 font-medium">{t.name}</td>
+                          <td className="max-w-0 truncate py-1 pr-2 text-muted-foreground">{t.presets}</td>
+                          <td className="py-1 text-right">{t.quickStart ? <Badge variant="success">Quick start</Badge> : <Badge variant="outline">{t.status}</Badge>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                   {viewAll('Manage templates', () => go(`/configuration/${engineType}/templates`))}
                 </CardContent>
               </Card>
@@ -392,20 +312,29 @@ const createEngineConfigurationStories = (
                     <Users className="h-5 w-5 text-primary" />
                     Users & organisations
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">Who works on this proposition.</p>
-                  <div className="mt-4 grid grid-cols-3 gap-3">
-                    <div><span className="block text-2xl font-semibold tabular-nums">{activeOrganisations.length}</span><span className="text-xs text-muted-foreground">organisations</span></div>
-                    <div><span className="block text-2xl font-semibold tabular-nums">{advertiserUsers.length}</span><span className="text-xs text-muted-foreground">advertiser users</span></div>
-                    <div><span className="block text-2xl font-semibold tabular-nums">{retailerUsers.length}</span><span className="text-xs text-muted-foreground">retailer users</span></div>
-                  </div>
-                  <ul className="mt-3 flex-1 space-y-1 text-sm">
-                    {activeOrganisations.slice(0, 4).map((a) => (
-                      <li key={a.id} className="flex items-center justify-between gap-2">
-                        <span className="truncate">{a.name}</span>
-                        <span className="text-xs text-muted-foreground">{a.brands.length} brand{a.brands.length === 1 ? '' : 's'}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <table className="mt-4 w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-muted-foreground">
+                        <th className="pb-1 font-medium">Organisation</th>
+                        <th className="pb-1 text-right font-medium">Brands</th>
+                        <th className="pb-1 text-right font-medium">Users</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeOrganisations.map((a) => (
+                        <tr key={a.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go('/configuration/organisations-users')}>
+                          <td className="py-1 pr-2 font-medium">{a.name}</td>
+                          <td className="py-1 text-right tabular-nums">{a.brands.length}</td>
+                          <td className="py-1 text-right tabular-nums">{advertiserUsers.filter((u) => u.advertiserId === a.id).length}</td>
+                        </tr>
+                      ))}
+                      <tr className="cursor-pointer hover:bg-surface-hover" onClick={() => go('/configuration/organisations-users')}>
+                        <td className="py-1 pr-2 font-medium">Retailer</td>
+                        <td className="py-1 text-right text-muted-foreground">—</td>
+                        <td className="py-1 text-right tabular-nums">{retailerUsers.length}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                   {viewAll('Manage users & organisations', () => go('/configuration/organisations-users'))}
                 </CardContent>
               </Card>
@@ -416,19 +345,24 @@ const createEngineConfigurationStories = (
                     <ShieldCheck className="h-5 w-5 text-primary" />
                     Allow & block lists
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">Who may buy this proposition, and who never can.</p>
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div><span className="block text-2xl font-semibold tabular-nums">{allowed.length}</span><span className="text-xs text-muted-foreground">allowed</span></div>
-                    <div><span className="block text-2xl font-semibold tabular-nums">{blocked.length}</span><span className="text-xs text-muted-foreground">blocked</span></div>
-                  </div>
-                  <ul className="mt-3 flex-1 space-y-1 text-sm">
-                    {listings.slice(0, 4).map((l) => (
-                      <li key={l.id} className="flex items-center justify-between gap-2">
-                        <span className="min-w-0 truncate">{l.name}<span className="ml-1.5 text-xs text-muted-foreground">{l.subject}</span></span>
-                        <Badge variant={l.kind === 'allow' ? 'success' : 'destructive'}>{l.kind === 'allow' ? 'Allowed' : 'Blocked'}</Badge>
-                      </li>
-                    ))}
-                  </ul>
+                  <table className="mt-4 w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-muted-foreground">
+                        <th className="pb-1 font-medium">Name</th>
+                        <th className="pb-1 font-medium">What</th>
+                        <th className="pb-1 text-right font-medium">List</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {listings.map((l) => (
+                        <tr key={l.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go(`/configuration/${engineType}/lists`)}>
+                          <td className="py-1 pr-2 font-medium">{l.name}</td>
+                          <td className="py-1 pr-2 capitalize text-muted-foreground">{l.subject}</td>
+                          <td className="py-1 text-right"><Badge variant={l.kind === 'allow' ? 'success' : 'destructive'}>{l.kind === 'allow' ? 'Allowed' : 'Blocked'}</Badge></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                   {viewAll('Manage lists', () => go(`/configuration/${engineType}/lists`))}
                 </CardContent>
               </Card>
@@ -440,7 +374,6 @@ const createEngineConfigurationStories = (
                     <Tag className="h-5 w-5 text-primary" />
                     Position pricing
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{hasAuction ? 'Floor prices for auction, list prices when guaranteed.' : 'List prices — this proposition sells guaranteed only.'}</p>
                   <table className="mt-4 w-full text-sm">
                     <thead>
                       <tr className="text-left text-xs text-muted-foreground">
@@ -451,10 +384,10 @@ const createEngineConfigurationStories = (
                     </thead>
                     <tbody>
                       {pricedPositions.slice(0, 5).map((pos) => (
-                        <tr key={pos.id}>
-                          <td className="truncate py-0.5 pr-2">{pos.name}</td>
-                          {hasAuction && <td className="py-0.5 text-right tabular-nums">€{pos.floorPrice?.toFixed(2)}</td>}
-                          <td className="py-0.5 text-right tabular-nums">€{pos.listPrice?.toLocaleString()}</td>
+                        <tr key={pos.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go(`/configuration/${engineType}/pricing`)}>
+                          <td className="truncate py-1 pr-2 font-medium">{pos.name}</td>
+                          {hasAuction && <td className="py-1 text-right tabular-nums">€{pos.floorPrice?.toFixed(2)}</td>}
+                          <td className="py-1 text-right tabular-nums">€{pos.listPrice?.toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -712,50 +645,6 @@ const createEngineConfigurationStories = (
                 content: (
                   <div className="mt-6">
                   <WorkflowBuilder engine={engine} />
-                  </div>
-                ),
-              },
-              {
-                value: 'rules',
-                label: 'Configuration Rules',
-                content: (
-                  <div className="space-y-4 mt-6">
-                    {filterBar}
-                  <Table
-                    columns={[
-                      { key: 'name', header: 'Name' },
-                      { key: 'id', header: 'ID' },
-                      { key: 'status', header: 'Status', render: row => (
-                        <Badge variant={row.status === 'Active' ? 'success' : 'secondary'}>
-                          {row.status}
-                        </Badge>
-                      )},
-                      { key: 'priority', header: 'Priority', render: row => (
-                        <Badge variant={row.priority === 'High' ? 'destructive' : row.priority === 'Medium' ? 'secondary' : 'outline'}>
-                          {row.priority}
-                        </Badge>
-                      )},
-                      { key: 'performance', header: 'Performance', render: row => (
-                        <Badge variant={getPerformanceBadgeVariant(row.performance)}>
-                          {row.performance}
-                        </Badge>
-                      )},
-                      { key: 'templates', header: 'Templates', render: row => (
-                        <Badge variant="secondary">{row.templates}</Badge>
-                      )},
-                      { key: 'lastUpdated', header: 'Last Updated' },
-                    ]}
-                    data={configurationRulesData}
-                    rowKey={row => `${row.id}-${row.name}`}
-                    hideActions
-                    rowClassName={() => 'cursor-pointer'}
-                    onRowClick={row => go(`/configuration/${engineType}/rules/${row.id}`)}
-                    rowSelection={{
-                      selectedKeys: selectedRules,
-                      onChange: setSelectedRules,
-                      getKey: row => `${row.id}-${row.name}`,
-                    }}
-                  />
                   </div>
                 ),
               },

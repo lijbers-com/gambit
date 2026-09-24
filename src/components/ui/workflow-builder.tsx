@@ -4,6 +4,7 @@ import * as React from 'react';
 import {
   AlertTriangle,
   Bell,
+  Zap,
   CheckCircle2,
   Flag,
   GitBranch,
@@ -65,6 +66,8 @@ import {
 const NODE_W = 260;
 const NODE_H = 100;
 const GRID = 20;
+
+import { CONFIGURATION_RULES, ruleById } from '@/lib/configuration-rules';
 
 const KINDS: Record<WorkflowStepKind, { label: string; hint: string; Icon: React.ComponentType<{ className?: string }>; tone: string }> = {
   stage:        { label: 'Stage',        hint: 'A lifecycle status the booking sits in.',        Icon: Flag,         tone: 'bg-foreground text-background' },
@@ -412,6 +415,20 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
     setSelectedStep(step.id);
   };
 
+  /** A configuration rule, added to the board as the check it makes. */
+  const addRuleStep = (ruleId: string) => {
+    const rule = ruleById(ruleId);
+    if (!rule) return;
+    const below = steps.reduce((m, s) => Math.max(m, s.y + NODE_H), 0);
+    const step: WorkflowStep = {
+      id: uid('s'), kind: 'check', rule: rule.id, name: rule.name, description: rule.summary,
+      owner: 'edge', mandatory: false, actions: [], x: 40, y: snap(below + 60),
+    };
+    setSteps((prev) => [...prev, step]);
+    setDirty(true);
+    setSelectedStep(step.id);
+  };
+
   const removeStep = (id: string) => {
     setSteps((prev) => prev.filter((s) => s.id !== id));
     setTransitions((prev) => prev.filter((t) => t.from !== id && t.to !== id));
@@ -506,6 +523,26 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
               </div>
             );
           })}
+          <div className="mt-3 text-xs font-medium text-muted-foreground">Rules — add one as a check</div>
+          {CONFIGURATION_RULES.map((r) => {
+            const onBoard = steps.some((st) => st.rule === r.id);
+            return (
+              <button
+                key={r.id}
+                type="button"
+                disabled={onBoard}
+                onClick={() => addRuleStep(r.id)}
+                className="flex w-full items-center gap-2.5 rounded-md border bg-card p-2.5 text-left transition-colors hover:bg-surface-hover disabled:cursor-default disabled:opacity-50"
+                title={onBoard ? 'Already on the board' : r.summary}
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Zap className="h-4 w-4" /></span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium">{r.name}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{onBoard ? 'On the board' : r.summary}</span>
+                </span>
+              </button>
+            );
+          })}
           <div className="rounded-md border border-dashed p-2.5 text-[11px] leading-relaxed text-muted-foreground">
             Drag a tile to move it. Drag from the dot under a tile to another tile to draw what follows. Click a tile for its settings; click a line to label or remove it.
           </div>
@@ -574,7 +611,11 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
             })}
             {/* Tiles */}
             {steps.map((s) => {
-              const { Icon, tone, label } = KINDS[s.kind];
+              // A step that applies a configuration rule is drawn as a rule
+              // card: the rule's own mark, its summary, and the check it
+              // makes at this point of the board.
+              const rule = s.rule ? ruleById(s.rule) : undefined;
+              const { Icon, tone, label } = rule ? { Icon: Zap, tone: 'bg-primary/10 text-primary', label: 'Rule' } : KINDS[s.kind];
               const isSel = s.id === selectedStep;
               return (
                 <div
@@ -595,8 +636,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{s.name}</span>
                       <span className="block truncate text-xs text-muted-foreground">
-                        {label} · {OWNERS[s.owner]}
-                        {s.dueDaysBeforeStart ? ` · X-${s.dueDaysBeforeStart}` : ''}
+                        {rule ? rule.summary : <>{label} · {OWNERS[s.owner]}{s.dueDaysBeforeStart ? ` · X-${s.dueDaysBeforeStart}` : ''}</>}
                       </span>
                       {/* What governs the step, as badges — the same badges the
                           rest of the app wears, readable at board zoom. */}
@@ -604,6 +644,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                         {s.mandatory && <Badge variant="outline" className="px-1.5 py-0 text-[10px]">Mandatory</Badge>}
                         {s.slaDays ? <Badge variant="outline" className="px-1.5 py-0 text-[10px]">SLA {s.slaDays}d</Badge> : null}
                         {s.setup && <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">Setup</Badge>}
+                        {rule && <Badge variant={rule.status === 'Active' ? 'success' : 'secondary'} className="px-1.5 py-0 text-[10px]">{rule.status === 'Active' ? 'Rule active' : 'Rule paused'}</Badge>}
                         {s.actions.length > 0 && <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{s.actions.length} action{s.actions.length === 1 ? '' : 's'}</Badge>}
                       </span>
                     </span>
@@ -678,6 +719,21 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                     <Input dropdown options={(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))} value={selected.owner} onChange={(v) => patchStep(selected.id, { owner: v as WorkflowOwner })} />
                   </div>
                 </div>
+                {selected.rule && (() => {
+                  const rule = ruleById(selected.rule);
+                  if (!rule) return null;
+                  return (
+                    <div className="space-y-2 rounded-md border border-primary/20 bg-primary/5 p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-1.5 text-sm font-medium"><Zap className="h-4 w-4 text-primary" />Configuration rule</span>
+                        <Badge variant={rule.status === 'Active' ? 'success' : 'secondary'}>{rule.status}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">When</span> {rule.when}</p>
+                      <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Then</span> {rule.then}</p>
+                      <a href={`/configuration/${engine}/rules/${rule.id}`} className="text-xs font-medium text-primary hover:underline">Open the rule →</a>
+                    </div>
+                  );
+                })()}
                 <div>
                   <label className="mb-1.5 block text-sm font-medium">What happens here</label>
                   <Input value={selected.description ?? ''} placeholder="One line the team will read" onChange={(e) => patchStep(selected.id, { description: e.target.value })} />

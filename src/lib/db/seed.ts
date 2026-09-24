@@ -12,7 +12,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 28;
+export const SEED_VERSION = 30;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -999,6 +999,9 @@ export const seedData: DbData = {
         { id: 's-scheduled', kind: 'stage',        name: 'Scheduled',          description: 'Derived: approved + creatives approved + screens targeted.', owner: 'edge', mandatory: true, x: 680, y: 40, actions: [{ id: 'a9', type: 'notification', label: 'Notify both sides: ready to go live', to: 'advertiser' }] },
         { id: 's-live',      kind: 'stage',        name: 'Live',               description: 'From the flight date; screens play.',                 owner: 'edge',       mandatory: true,  x: 1000, y: 40, actions: [{ id: 'a10', type: 'notification', label: 'Notify the advertiser: campaign live', to: 'advertiser' }] },
         { id: 's-done',      kind: 'stage',        name: 'Completed',          description: 'After the end date; performance report; offload to Databricks.', owner: 'edge', mandatory: true, x: 1320, y: 40, actions: [{ id: 'a11', type: 'email', label: 'Send the performance report', to: 'advertiser' }, { id: 'a12', type: 'kafka', label: 'Offload to Databricks' }] },
+        { id: 'r-1', kind: 'check', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
+        { id: 'r-2', kind: 'check', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
+        { id: 'r-3', kind: 'check', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
       ],
       transitions: [
         { id: 'ts1', from: 's-draft', to: 'su-campaign' },
@@ -1015,6 +1018,9 @@ export const seedData: DbData = {
         { id: 't8', from: 's-stores', to: 's-scheduled' },
         { id: 't9', from: 's-scheduled', to: 's-live', label: 'flight date' },
         { id: 't10', from: 's-live', to: 's-done', label: 'end date' },
+        { id: 'tr1', from: 's-live', to: 'r-1' },
+        { id: 'tr2', from: 's-live', to: 'r-2' },
+        { id: 'tr3', from: 's-live', to: 'r-3' },
       ] },
     { id: 'WF-OMI', engine: 'offline-instore', name: 'Offline in-store — campaign lifecycle', status: 'published', updatedAt: now, publishedAt: now,
       description: 'Sales → preparation (X-8, five checks and a sign-off) → production (print and distribution) → run → done. Built on Delhaize input.',
@@ -1040,6 +1046,9 @@ export const seedData: DbData = {
         { id: 'f-installed', kind: 'fulfilment',  name: 'Installed in stores',      description: 'Hamilton Bright / Smart Spotter → real stores.', owner: 'external', mandatory: true, x: 1000, y: 180, actions: [{ id: 'a13', type: 'notification', label: 'Notify the advertiser: material installed', to: 'advertiser' }] },
         { id: 's-run',       kind: 'stage',       name: 'Run',                      description: 'From X, the run period.',                        owner: 'edge',     mandatory: true, x: 1000, y: 40, actions: [] },
         { id: 's-done',      kind: 'stage',       name: 'Done',                     description: 'After the end date; correct store list; sign off; offload to Databricks.', owner: 'retailer', mandatory: true, x: 1320, y: 40, actions: [{ id: 'a14', type: 'todo', label: 'To-do: correct the store list', to: 'retailer' }, { id: 'a15', type: 'kafka', label: 'Offload to Databricks' }] },
+        { id: 'r-1', kind: 'check', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
+        { id: 'r-2', kind: 'check', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
+        { id: 'r-3', kind: 'check', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
       ],
       transitions: [
         { id: 'ts1', from: 's-sales', to: 'su-campaign' },
@@ -1054,6 +1063,9 @@ export const seedData: DbData = {
         { id: 't14', from: 's-production', to: 'f-print' }, { id: 't15', from: 'f-print', to: 'f-installed' },
         { id: 't16', from: 's-production', to: 's-run', label: 'X' }, { id: 't17', from: 'f-installed', to: 's-run' },
         { id: 't18', from: 's-run', to: 's-done', label: 'end date' },
+        { id: 'tr1', from: 's-run', to: 'r-1' },
+        { id: 'tr2', from: 's-run', to: 'r-2' },
+        { id: 'tr3', from: 's-run', to: 'r-3' },
       ] },
     { id: 'WF-DIS', engine: 'display', name: 'Display — campaign lifecycle', status: 'draft', updatedAt: now,
       description: 'Draft, with the setup steps; in review, where AdOps approves the booking and the creative is checked and approved in the display engine (one resubmit loop); then scheduled, live on the flight date, completed after the end date.',
@@ -1074,6 +1086,9 @@ export const seedData: DbData = {
         { id: 's-scheduled', kind: 'stage',       name: 'Scheduled',         description: 'Derived: approved + every required format approved.', owner: 'edge', mandatory: true, x: 680, y: 40, actions: [] },
         { id: 's-live',     kind: 'stage',        name: 'Live',              description: 'Ad server delivering from the flight date.',         owner: 'edge',       mandatory: true, x: 1000, y: 40, actions: [{ id: 'a7', type: 'notification', label: 'Notify the advertiser: live', to: 'advertiser' }] },
         { id: 's-done',     kind: 'stage',        name: 'Completed',         description: 'After the end date; report; make-good if needed.',   owner: 'edge',       mandatory: true, x: 1320, y: 40, actions: [{ id: 'a8', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
+        { id: 'r-1', kind: 'check', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
+        { id: 'r-2', kind: 'check', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
+        { id: 'r-3', kind: 'check', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
       ],
       transitions: [
         { id: 'ts1', from: 's-draft', to: 'su-campaign' },
@@ -1089,6 +1104,9 @@ export const seedData: DbData = {
         { id: 't7', from: 's-content', to: 's-scheduled', label: 'approved' },
         { id: 't8', from: 's-scheduled', to: 's-live', label: 'flight date' },
         { id: 't9', from: 's-live', to: 's-done', label: 'end date' },
+        { id: 'tr1', from: 's-live', to: 'r-1' },
+        { id: 'tr2', from: 's-live', to: 'r-2' },
+        { id: 'tr3', from: 's-live', to: 'r-3' },
       ] },
     { id: 'WF-SP', engine: 'sponsored-products', name: 'Sponsored products — campaign lifecycle', status: 'draft', updatedAt: now,
       description: 'No creatives: the product listing is the ad. Approval, a feed check, then live on the flight date.',
@@ -1106,6 +1124,9 @@ export const seedData: DbData = {
         { id: 'c-feed',    kind: 'check',    name: 'Product feed check', description: 'Products in stock and listed — automatic.', owner: 'edge',     mandatory: true, x: 360, y: 320, actions: [{ id: 'a3', type: 'notification', label: 'Flag products missing from the feed', to: 'advertiser' }] },
         { id: 's-live',    kind: 'stage',    name: 'Live',           description: 'Bidding from the flight date.',               owner: 'edge',       mandatory: true, x: 680, y: 40, actions: [] },
         { id: 's-done',    kind: 'stage',    name: 'Completed',      description: 'After the end date; report.',                 owner: 'edge',       mandatory: true, x: 1000, y: 40, actions: [{ id: 'a4', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
+        { id: 'r-1', kind: 'check', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
+        { id: 'r-2', kind: 'check', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
+        { id: 'r-3', kind: 'check', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
       ],
       transitions: [
         { id: 'ts1', from: 's-draft', to: 'su-campaign' },
@@ -1117,6 +1138,9 @@ export const seedData: DbData = {
         { id: 't3', from: 's-approve', to: 'c-feed', label: 'approved' },
         { id: 't4', from: 'c-feed', to: 's-live', label: 'flight date' },
         { id: 't5', from: 's-live', to: 's-done', label: 'end date' },
+        { id: 'tr1', from: 's-live', to: 'r-1' },
+        { id: 'tr2', from: 's-live', to: 'r-2' },
+        { id: 'tr3', from: 's-live', to: 'r-3' },
       ] },
     { id: 'WF-OFF', engine: 'offsite', name: 'Offsite — campaign lifecycle', status: 'draft', updatedAt: now,
       description: 'Book, hand the creatives to the partner network, go live off the retailer\'s own properties.',
@@ -1134,6 +1158,9 @@ export const seedData: DbData = {
         { id: 'f-partner', kind: 'fulfilment', name: 'Sent to partner',  description: 'Creatives and audience handed to the partner network.', owner: 'external', mandatory: true, x: 360, y: 320, actions: [{ id: 'a3', type: 'kafka', label: 'Publish the line to the partner' }] },
         { id: 's-live',    kind: 'stage',      name: 'Live',             description: 'Partner delivering from the flight date.',         owner: 'external',   mandatory: true, x: 680, y: 40, actions: [{ id: 'a4', type: 'notification', label: 'Notify the advertiser: live', to: 'advertiser' }] },
         { id: 's-done',    kind: 'stage',      name: 'Completed',        description: 'After the end date; partner report merged.',       owner: 'edge',       mandatory: true, x: 1000, y: 40, actions: [{ id: 'a5', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
+        { id: 'r-1', kind: 'check', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
+        { id: 'r-2', kind: 'check', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
+        { id: 'r-3', kind: 'check', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
       ],
       transitions: [
         { id: 'ts1', from: 's-draft', to: 'su-campaign' },
@@ -1145,6 +1172,9 @@ export const seedData: DbData = {
         { id: 't3', from: 's-approve', to: 'f-partner', label: 'approved' },
         { id: 't4', from: 'f-partner', to: 's-live', label: 'flight date' },
         { id: 't5', from: 's-live', to: 's-done', label: 'end date' },
+        { id: 'tr1', from: 's-live', to: 'r-1' },
+        { id: 'tr2', from: 's-live', to: 'r-2' },
+        { id: 'tr3', from: 's-live', to: 'r-3' },
       ] },
     // The media plan's own lifecycle, above the campaigns': the setup the
     // wizard leaves open, one review of the plan as a whole, then live and

@@ -69,7 +69,6 @@ import {
   RightDrawerDescription,
   RightDrawerBody,
 } from '@/components/ui/right-drawer';
-import { InsightsTab } from './insights-tab';
 import { describeObjective, describeKpi, goalLabel, objectiveLabel, kpiLabel } from '@/lib/objective-kpi-copy';
 import { propositionColor, propositionLabel } from '@/lib/proposition-colors';
 
@@ -1642,13 +1641,10 @@ export const MediaPlanDetail: Story = {
                   </div>
                 ),
               },
-              // Insights and Logs have nothing to say about a plan that has
-              // not run yet, so a plan in setup does not carry them.
-              ...(inSetup ? [] : [{
-                label: 'Insights',
-                value: 'insights',
-                content: <InsightsTab engineType="all" scope="campaign" mediaPlanId={plan?.id} />,
-              }]),
+              // No Insights tab on a media plan for now (24 Sept): insights
+              // live on the Insights dashboard. Logs have nothing to say about
+              // a plan that has not run yet, so a plan in setup does not
+              // carry them.
               ...(inSetup ? [] : [{
                 label: 'Logs',
                 value: 'logs',

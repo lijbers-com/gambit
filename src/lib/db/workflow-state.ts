@@ -105,7 +105,7 @@ export function defaultWorkflow(scope: WorkflowScope): Workflow {
   ];
   // The configuration rules run as checks once live.
   const rules: WorkflowStep[] = CONFIGURATION_RULES.map((r, i) => ({
-    id: `d-rule-${r.id}`, kind: 'check', rule: r.id, name: r.name, description: r.summary,
+    id: `d-rule-${r.id}`, kind: 'rule', rule: r.id, name: r.name, description: r.summary,
     owner: 'edge', mandatory: false, x: 680, y: 180 + i * 140, actions: [],
   }));
   const chain = [stages[0], ...setup, stages[1], stages[2], stages[3]];

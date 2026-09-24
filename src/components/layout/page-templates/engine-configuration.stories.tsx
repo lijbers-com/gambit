@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
-import { Card, CardHeader, CardTitle, CardContent, MetricCard, CardWithTabs } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, MetricCard, CardWithTabs, BarHorizontalDetail, DonutLegendDetail } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Table } from '@/components/ui/table';
@@ -175,6 +175,18 @@ const createEngineConfigurationStories = (
       .map((pos) => ({ ...pos, product: db.mediaProducts.find((m) => m.id === pos.mediaProductId)?.name ?? '' }));
     const hasAuction = ['sponsored-products', 'display', 'digital-instore'].includes(engine);
     const settingsHref = (tab: string) => `/configuration/${engineType}/settings?tab=${tab}`;
+    // The dashboard's rows: steps per stage, and users per organisation
+    // with the retailer's own people as the last row.
+    const stageRows = workflow
+      ? stepsByStage(workflow).map(({ stage: st, steps: inStage }) => {
+          const rules = inStage.filter((x) => !!x.rule).length;
+          return { id: st.id, stage: st.name, steps: inStage.length - rules, rules };
+        })
+      : [];
+    const organisationRows: Array<{ id: string; name: string; brands: number | null; users: number }> = [
+      ...activeOrganisations.map((a) => ({ id: a.id, name: a.name, brands: a.brands.length, users: advertiserUsers.filter((u) => u.advertiserId === a.id).length })),
+      { id: 'retailer', name: 'Retailer', brands: null, users: retailerUsers.length },
+    ];
     // The rule this page is about, from the route; the first one in Storybook.
     const routeRuleId = useRouteEntityId();
     const rule = configurationRulesData.find((r) => r.id === routeRuleId) ?? configurationRulesData[0];
@@ -252,27 +264,12 @@ const createEngineConfigurationStories = (
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">The stages its campaigns go through, the steps in each, and the rules that run as checks along the way.</p>
                 {workflow && (
-                  <table className="mt-4 w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs text-muted-foreground">
-                        <th className="pb-1 font-medium">Stage</th>
-                        <th className="pb-1 text-right font-medium">Steps</th>
-                        <th className="pb-1 text-right font-medium">Rules</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stepsByStage(workflow).map(({ stage: st, steps: inStage }) => {
-                        const ruleCount = inStage.filter((x) => !!x.rule).length;
-                        return (
-                          <tr key={st.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go(settingsHref('workflow'))}>
-                            <td className="py-1 pr-2"><span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs font-medium">{st.name}</span></td>
-                            <td className="py-1 text-right tabular-nums">{inStage.length - ruleCount}</td>
-                            <td className="py-1 text-right tabular-nums">{ruleCount || '—'}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  <div className="mt-4 flex flex-1 flex-col justify-center">
+                    <BarHorizontalDetail
+                      productData={stageRows.map((r) => ({ name: r.rules ? `${r.stage} · ${r.rules} rule${r.rules === 1 ? '' : 's'}` : r.stage, value: r.steps + r.rules }))}
+                      totalRow={{ label: 'Steps', value: stageRows.reduce((n, r) => n + r.steps + r.rules, 0) }}
+                    />
+                  </div>
                 )}
                 {viewAll('Open the workflow', () => go(settingsHref('workflow')))}
               </CardContent>
@@ -285,24 +282,20 @@ const createEngineConfigurationStories = (
                     <LayoutTemplate className="h-5 w-5 text-primary" />
                     Campaign templates
                   </h3>
-                  <table className="mt-4 w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs text-muted-foreground">
-                        <th className="pb-1 font-medium">Template</th>
-                        <th className="pb-1 font-medium">Presets</th>
-                        <th className="pb-1 text-right font-medium">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {configurationTemplatesData.map((t) => (
-                        <tr key={t.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go(`/configuration/${engineType}/templates`)}>
-                          <td className="py-1 pr-2 font-medium">{t.name}</td>
-                          <td className="max-w-0 truncate py-1 pr-2 text-muted-foreground">{t.presets}</td>
-                          <td className="py-1 text-right">{t.quickStart ? <Badge variant="success">Quick start</Badge> : <Badge variant="outline">{t.status}</Badge>}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className="mt-4">
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Template', className: 'font-medium' },
+                        { key: 'presets', header: 'Presets', render: (t) => <span className="block max-w-[160px] truncate text-muted-foreground">{t.presets}</span> },
+                        { key: 'status', header: 'Status', render: (t) => (t.quickStart ? <Badge variant="success">Quick start</Badge> : <Badge variant="outline">{t.status}</Badge>) },
+                      ]}
+                      data={configurationTemplatesData}
+                      rowKey={(t) => t.id}
+                      onRowClick={() => go(`/configuration/${engineType}/templates`)}
+                      hideActions
+                      hideRefreshedAt
+                    />
+                  </div>
                   {viewAll('Manage templates', () => go(`/configuration/${engineType}/templates`))}
                 </CardContent>
               </Card>
@@ -312,29 +305,13 @@ const createEngineConfigurationStories = (
                     <Users className="h-5 w-5 text-primary" />
                     Users & organisations
                   </h3>
-                  <table className="mt-4 w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs text-muted-foreground">
-                        <th className="pb-1 font-medium">Organisation</th>
-                        <th className="pb-1 text-right font-medium">Brands</th>
-                        <th className="pb-1 text-right font-medium">Users</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeOrganisations.map((a) => (
-                        <tr key={a.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go('/configuration/organisations-users')}>
-                          <td className="py-1 pr-2 font-medium">{a.name}</td>
-                          <td className="py-1 text-right tabular-nums">{a.brands.length}</td>
-                          <td className="py-1 text-right tabular-nums">{advertiserUsers.filter((u) => u.advertiserId === a.id).length}</td>
-                        </tr>
-                      ))}
-                      <tr className="cursor-pointer hover:bg-surface-hover" onClick={() => go('/configuration/organisations-users')}>
-                        <td className="py-1 pr-2 font-medium">Retailer</td>
-                        <td className="py-1 text-right text-muted-foreground">—</td>
-                        <td className="py-1 text-right tabular-nums">{retailerUsers.length}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <p className="mt-1 text-sm text-muted-foreground">{activeOrganisations.length} organisations · {activeOrganisations.reduce((n, a) => n + a.brands.length, 0)} brands</p>
+                  <div className="mt-4 flex flex-1 flex-col justify-center">
+                    <DonutLegendDetail
+                      donutData={organisationRows.map((r) => ({ name: r.name, value: r.users }))}
+                      totalRow={{ label: 'Users', value: organisationRows.reduce((n, r) => n + r.users, 0) }}
+                    />
+                  </div>
                   {viewAll('Manage users & organisations', () => go('/configuration/organisations-users'))}
                 </CardContent>
               </Card>
@@ -345,24 +322,13 @@ const createEngineConfigurationStories = (
                     <ShieldCheck className="h-5 w-5 text-primary" />
                     Allow & block lists
                   </h3>
-                  <table className="mt-4 w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs text-muted-foreground">
-                        <th className="pb-1 font-medium">Name</th>
-                        <th className="pb-1 font-medium">What</th>
-                        <th className="pb-1 text-right font-medium">List</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {listings.map((l) => (
-                        <tr key={l.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go(`/configuration/${engineType}/lists`)}>
-                          <td className="py-1 pr-2 font-medium">{l.name}</td>
-                          <td className="py-1 pr-2 capitalize text-muted-foreground">{l.subject}</td>
-                          <td className="py-1 text-right"><Badge variant={l.kind === 'allow' ? 'success' : 'destructive'}>{l.kind === 'allow' ? 'Allowed' : 'Blocked'}</Badge></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <p className="mt-1 text-sm text-muted-foreground">Allowed: {allowed.map((l) => l.name).join(', ') || 'nobody by name'} · Blocked: {blocked.map((l) => l.name).join(', ') || 'nothing'}</p>
+                  <div className="mt-4 flex flex-1 flex-col justify-center">
+                    <DonutLegendDetail
+                      donutData={[{ name: 'Allowed', value: allowed.length }, { name: 'Blocked', value: blocked.length }]}
+                      totalRow={{ label: 'Lists', value: listings.length }}
+                    />
+                  </div>
                   {viewAll('Manage lists', () => go(`/configuration/${engineType}/lists`))}
                 </CardContent>
               </Card>
@@ -374,24 +340,20 @@ const createEngineConfigurationStories = (
                     <Tag className="h-5 w-5 text-primary" />
                     Position pricing
                   </h3>
-                  <table className="mt-4 w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs text-muted-foreground">
-                        <th className="pb-1 font-medium">Position</th>
-                        {hasAuction && <th className="pb-1 text-right font-medium">Floor</th>}
-                        <th className="pb-1 text-right font-medium">List</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pricedPositions.slice(0, 5).map((pos) => (
-                        <tr key={pos.id} className="cursor-pointer hover:bg-surface-hover" onClick={() => go(`/configuration/${engineType}/pricing`)}>
-                          <td className="truncate py-1 pr-2 font-medium">{pos.name}</td>
-                          {hasAuction && <td className="py-1 text-right tabular-nums">€{pos.floorPrice?.toFixed(2)}</td>}
-                          <td className="py-1 text-right tabular-nums">€{pos.listPrice?.toLocaleString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className="mt-4">
+                    <Table
+                      columns={[
+                        { key: 'name', header: 'Position', className: 'font-medium' },
+                        ...(hasAuction ? [{ key: 'floorPrice', header: 'Floor', render: (pos: typeof pricedPositions[number]) => `€${pos.floorPrice?.toFixed(2)}` }] : []),
+                        { key: 'listPrice', header: 'List', render: (pos) => `€${pos.listPrice?.toLocaleString()}` },
+                      ]}
+                      data={pricedPositions.slice(0, 5)}
+                      rowKey={(pos) => pos.id}
+                      onRowClick={() => go(`/configuration/${engineType}/pricing`)}
+                      hideActions
+                      hideRefreshedAt
+                    />
+                  </div>
                   {viewAll(`All ${pricedPositions.length} positions`, () => go(`/configuration/${engineType}/pricing`))}
                 </CardContent>
               </Card>

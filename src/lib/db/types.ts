@@ -471,7 +471,7 @@ export interface Creative {
 
 /** What a step is: a lifecycle stage, a human approval, a derived check, a
  *  physical fulfilment step, a notification, or a gate that branches. */
-export type WorkflowStepKind = 'stage' | 'approval' | 'check' | 'fulfilment' | 'notification' | 'gate';
+export type WorkflowStepKind = 'stage' | 'approval' | 'check' | 'rule' | 'fulfilment' | 'notification' | 'gate';
 /** Whose move it is. */
 export type WorkflowOwner = 'advertiser' | 'retailer' | 'edge' | 'external';
 /** What Edge does when a step is reached or completed. */

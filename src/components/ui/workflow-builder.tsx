@@ -4,6 +4,7 @@ import * as React from 'react';
 import {
   AlertTriangle,
   Bell,
+  ChevronDown,
   Zap,
   CheckCircle2,
   Flag,
@@ -37,6 +38,7 @@ import {
   type WorkflowTransition,
 } from '@/lib/db';
 import { Badge } from './badge';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 import { Button } from './button';
 import { Input } from './input';
 import { Switch } from './switch';
@@ -73,6 +75,7 @@ const KINDS: Record<WorkflowStepKind, { label: string; hint: string; Icon: React
   stage:        { label: 'Stage',        hint: 'A lifecycle status the booking sits in.',        Icon: Flag,         tone: 'bg-foreground text-background' },
   approval:     { label: 'Approval',     hint: 'Someone decides: approve or request changes.',   Icon: ShieldCheck,  tone: 'bg-warning-100 text-warning-700' },
   check:        { label: 'Check',        hint: 'A condition Edge derives or a person confirms.', Icon: CheckCircle2, tone: 'bg-success-100 text-success-700' },
+  rule:         { label: 'Rule',         hint: 'A configuration rule Edge applies at this point.', Icon: Zap,          tone: 'bg-primary/10 text-primary' },
   fulfilment:   { label: 'Fulfilment',   hint: 'A physical step: print, distribute, install.',   Icon: Truck,        tone: 'bg-info-100 text-info-700' },
   notification: { label: 'Notification', hint: 'Tell someone something happened.',               Icon: Bell,         tone: 'bg-neutral-100 text-neutral-700' },
   gate:         { label: 'Gate',         hint: 'Branch on an outcome or a condition.',            Icon: GitBranch,    tone: 'bg-destructive-100 text-destructive-700' },
@@ -81,12 +84,12 @@ const KINDS: Record<WorkflowStepKind, { label: string; hint: string; Icon: React
 const OWNERS: Record<WorkflowOwner, string> = { advertiser: 'Advertiser', retailer: 'Retailer (AdOps)', edge: 'Edge (automatic)', external: 'External partner' };
 
 const ACTION_TYPES: Record<WorkflowActionType, { label: string; Icon: React.ComponentType<{ className?: string }> }> = {
-  email:        { label: 'Send an email',        Icon: Mail },
-  notification: { label: 'In-app notification',  Icon: Bell },
-  todo:         { label: 'Create a to-do',        Icon: ListChecks },
-  'set-status': { label: 'Set a status',          Icon: Flag },
-  kafka:        { label: 'Publish to a topic',    Icon: Rocket },
-  log:          { label: 'Write to the log',      Icon: Users },
+  email:        { label: 'Send an email',          Icon: Mail },
+  notification: { label: 'Show a notification',    Icon: Bell },
+  todo:         { label: 'Create a to-do',         Icon: ListChecks },
+  'set-status': { label: 'Set a status',           Icon: Flag },
+  kafka:        { label: 'Tell another system',    Icon: Rocket },
+  log:          { label: 'Write a log line',       Icon: Users },
 };
 
 const snap = (n: number) => Math.max(0, Math.round(n / GRID) * GRID);
@@ -231,6 +234,7 @@ export function validateWorkflow(wf: Pick<Workflow, 'steps' | 'transitions'>): s
   }
   for (const s of wf.steps) {
     if (!s.name.trim()) issues.push('A step has no name.');
+    if (s.kind === 'rule' && !s.rule) issues.push(`"${s.name}" has no rule picked yet.`);
     // A setup step is ticked off from the data — nobody waits on an
     // approver — so the approval rules do not apply to it.
     if (s.kind === 'approval' && !s.setup && s.owner === 'edge') issues.push(`"${s.name}" is an approval but Edge owns it — a person must decide.`);
@@ -400,19 +404,42 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
     setDirty(true);
   };
 
+  /** A fresh step of a kind, with the owner and weight that kind usually has. */
+  const blankStep = (kind: WorkflowStepKind, x: number, y: number): WorkflowStep => ({
+    id: uid('s'),
+    kind,
+    name: `New ${KINDS[kind].label.toLowerCase()}`,
+    owner: kind === 'check' || kind === 'rule' || kind === 'stage' ? 'edge' : kind === 'fulfilment' ? 'external' : 'retailer',
+    mandatory: kind !== 'notification' && kind !== 'rule',
+    actions: [],
+    x, y,
+  });
+
   const addStep = (kind: WorkflowStepKind, at?: { x: number; y: number }) => {
     const below = steps.reduce((m, s) => Math.max(m, s.y + NODE_H), 0);
-    const step: WorkflowStep = {
-      id: uid('s'),
-      kind,
-      name: `New ${KINDS[kind].label.toLowerCase()}`,
-      owner: kind === 'check' || kind === 'stage' ? 'edge' : kind === 'fulfilment' ? 'external' : 'retailer',
-      mandatory: kind !== 'notification',
-      actions: [],
-      x: at ? snap(at.x - NODE_W / 2) : 40,
-      y: at ? snap(at.y - NODE_H / 2) : snap(below + 60),
-    };
+    const step = blankStep(kind, at ? snap(at.x - NODE_W / 2) : 40, at ? snap(at.y - NODE_H / 2) : snap(below + 60));
     setSteps((prev) => [...prev, step]);
+    setDirty(true);
+    setSelectedStep(step.id);
+  };
+
+  /** A free spot beneath a card: straight below, or further right when
+   *  something already sits there. */
+  const spotBelow = (from: WorkflowStep) => {
+    let x = from.x; const y = snap(from.y + NODE_H + 60);
+    const taken = (px: number) => steps.some((st) => Math.abs(st.y - y) < NODE_H && Math.abs(st.x - px) < NODE_W);
+    while (taken(x)) x += NODE_W + 40;
+    return { x, y };
+  };
+
+  /** The next step in the flow, added from a card's + and joined to it. */
+  const addStepAfter = (fromId: string, kind: WorkflowStepKind) => {
+    const from = steps.find((st) => st.id === fromId);
+    if (!from) return;
+    const { x, y } = spotBelow(from);
+    const step = blankStep(kind, x, y);
+    setSteps((prev) => [...prev, step]);
+    setTransitions((prev) => [...prev, { id: uid('t'), from: fromId, to: step.id }]);
     setDirty(true);
     setSelectedStep(step.id);
   };
@@ -423,7 +450,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
     if (!rule) return;
     const below = steps.reduce((m, s) => Math.max(m, s.y + NODE_H), 0);
     const step: WorkflowStep = {
-      id: uid('s'), kind: 'check', rule: rule.id, name: rule.name, description: rule.summary,
+      id: uid('s'), kind: 'rule', rule: rule.id, name: rule.name, description: rule.summary,
       owner: 'edge', mandatory: false, actions: [], x: 40, y: snap(below + 60),
     };
     setSteps((prev) => [...prev, step]);
@@ -525,7 +552,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
               </div>
             );
           })}
-          <div className="mt-3 text-xs font-medium text-muted-foreground">Rules — add one as a check</div>
+          <div className="mt-3 text-xs font-medium text-muted-foreground">Rules — add one to the flow</div>
           {CONFIGURATION_RULES.map((r) => {
             const onBoard = steps.some((st) => st.rule === r.id);
             return (
@@ -617,7 +644,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
               // card: the rule's own mark, its summary, and the check it
               // makes at this point of the board.
               const rule = s.rule ? ruleById(s.rule) : undefined;
-              const { Icon, tone, label } = rule ? { Icon: Zap, tone: 'bg-primary/10 text-primary', label: 'Rule' } : KINDS[s.kind];
+              const { Icon, tone, label } = KINDS[s.rule || s.kind === 'rule' ? 'rule' : s.kind];
               const isSel = s.id === selectedStep;
               return (
                 <div
@@ -644,7 +671,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                           rest of the app wears, readable at board zoom. */}
                       <span className="mt-1.5 flex flex-wrap gap-1">
                         {s.mandatory && <Badge variant="outline" className="px-1.5 py-0 text-[10px]">Mandatory</Badge>}
-                        {s.slaDays ? <Badge variant="outline" className="px-1.5 py-0 text-[10px]">SLA {s.slaDays}d</Badge> : null}
+                        {s.slaDays ? <Badge variant="outline" className="px-1.5 py-0 text-[10px]">{s.slaDays}d to respond</Badge> : null}
                         {s.setup && <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">Setup</Badge>}
                         {rule && <Badge variant={rule.status === 'Active' ? 'success' : 'secondary'} className="px-1.5 py-0 text-[10px]">{rule.status === 'Active' ? 'Rule active' : 'Rule paused'}</Badge>}
                         {s.actions.length > 0 && <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{s.actions.length} action{s.actions.length === 1 ? '' : 's'}</Badge>}
@@ -659,6 +686,34 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                     className="absolute bottom-0 left-1/2 h-3.5 w-3.5 -translate-x-1/2 translate-y-1/2 cursor-crosshair rounded-full border-2 border-card bg-foreground transition-transform hover:scale-125"
                     title="Drag to the next step"
                   />
+                  {/* The + at the foot: what comes next, added and joined in
+                      one go — no dragging needed. */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        data-port
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute -right-3 bottom-0 flex h-6 w-6 translate-y-1/2 items-center justify-center rounded-full border bg-card text-muted-foreground shadow-sm transition-colors hover:border-foreground hover:text-foreground"
+                        aria-label={`Add a step after ${s.name}`}
+                        title="Add what comes next"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-64" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+                      {(Object.keys(KINDS) as WorkflowStepKind[]).map((kind) => {
+                        const { label, Icon: KIcon, tone } = KINDS[kind];
+                        return (
+                          <DropdownMenuItem key={kind} className="gap-2.5" onSelect={() => addStepAfter(s.id, kind)}>
+                            <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-md', tone)}><KIcon className="h-3.5 w-3.5" /></span>
+                            {label}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               );
             })}
@@ -707,92 +762,153 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                 <RightDrawerDescription>{KINDS[selected.kind].hint}</RightDrawerDescription>
               </RightDrawerHeader>
               <RightDrawerBody className="space-y-5">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Name</label>
-                  <Input value={selected.name} onChange={(e) => patchStep(selected.id, { name: e.target.value })} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+                {/* What this step is. */}
+                <div className="space-y-3">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium">Kind</label>
-                    <Input dropdown options={(Object.keys(KINDS) as WorkflowStepKind[]).map((k) => ({ value: k, label: KINDS[k].label }))} value={selected.kind} onChange={(v) => patchStep(selected.id, { kind: v as WorkflowStepKind })} />
+                    <label className="mb-1.5 block text-sm font-medium">Name</label>
+                    <Input value={selected.name} onChange={(e) => patchStep(selected.id, { name: e.target.value })} />
                   </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">Owner</label>
-                    <Input dropdown options={(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))} value={selected.owner} onChange={(v) => patchStep(selected.id, { owner: v as WorkflowOwner })} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium">Type of step</label>
+                      <Input dropdown options={(Object.keys(KINDS) as WorkflowStepKind[]).map((k) => ({ value: k, label: KINDS[k].label }))} value={selected.kind} onChange={(v) => patchStep(selected.id, { kind: v as WorkflowStepKind })} />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium">Who does it</label>
+                      <Input dropdown options={(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))} value={selected.owner} onChange={(v) => patchStep(selected.id, { owner: v as WorkflowOwner })} />
+                    </div>
                   </div>
                 </div>
+
+                {selected.kind === 'rule' && (
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium">Which rule</label>
+                    <Input
+                      dropdown
+                      options={CONFIGURATION_RULES.map((r) => ({ value: r.id, label: r.name }))}
+                      value={selected.rule ?? ''}
+                      placeholder="Pick a rule"
+                      onChange={(v) => {
+                        const rule = ruleById(v);
+                        patchStep(selected.id, rule ? { rule: rule.id, name: rule.name, description: rule.summary } : { rule: undefined });
+                      }}
+                    />
+                  </div>
+                )}
+
                 {selected.rule && (() => {
                   const rule = ruleById(selected.rule);
                   if (!rule) return null;
                   return (
                     <div className="space-y-2 rounded-md border border-primary/20 bg-primary/5 p-3">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="flex items-center gap-1.5 text-sm font-medium"><Zap className="h-4 w-4 text-primary" />Configuration rule</span>
+                        <span className="flex items-center gap-1.5 text-sm font-medium"><Zap className="h-4 w-4 text-primary" />This step applies a rule</span>
                         <Badge variant={rule.status === 'Active' ? 'success' : 'secondary'}>{rule.status}</Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">When</span> {rule.when}</p>
+                      <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">If</span> {rule.when}</p>
                       <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Then</span> {rule.then}</p>
                       <a href={`/configuration/${engine}/rules/${rule.id}`} className="text-xs font-medium text-primary hover:underline">Open the rule →</a>
                     </div>
                   );
                 })()}
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">What happens here</label>
-                  <Input value={selected.description ?? ''} placeholder="One line the team will read" onChange={(e) => patchStep(selected.id, { description: e.target.value })} />
-                </div>
-                <div className="flex items-center justify-between rounded-md border px-3 py-2">
-                  <span>
-                    <span className="block text-sm font-medium">Mandatory</span>
-                    <span className="block text-xs text-muted-foreground">Blocks the next stage until done</span>
-                  </span>
-                  <Switch checked={selected.mandatory} onCheckedChange={(on) => patchStep(selected.id, { mandatory: on })} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">Due, days before start</label>
-                    <Input type="number" min={0} value={selected.dueDaysBeforeStart ?? ''} placeholder="e.g. 4 for X-4" onChange={(e) => patchStep(selected.id, { dueDaysBeforeStart: e.target.value ? Number(e.target.value) : undefined })} />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">SLA, days</label>
-                    <Input type="number" min={0} value={selected.slaDays ?? ''} placeholder="Time to respond" onChange={(e) => patchStep(selected.id, { slaDays: e.target.value ? Number(e.target.value) : undefined })} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">Escalate to</label>
-                    <Input dropdown options={[{ value: '', label: 'Nobody' }, ...(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))]} value={selected.escalateTo ?? ''} onChange={(v) => patchStep(selected.id, { escalateTo: (v || undefined) as WorkflowOwner | undefined })} placeholder="Nobody" />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">Deputy when absent</label>
-                    <Input value={selected.deputy ?? ''} placeholder="e.g. Second AdOps" onChange={(e) => patchStep(selected.id, { deputy: e.target.value || undefined })} />
-                  </div>
-                </div>
 
-                <div>
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <label className="block text-sm font-medium">Actions Edge fires</label>
+                {/* The flow, read top to bottom: when the step is reached,
+                    what happens; then what Edge does; then where it goes. */}
+                <div className="overflow-hidden rounded-lg border">
+                  <div className="border-b bg-muted/30 px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">When this step is reached</div>
+                  <div className="p-3">
+                    <Input value={selected.description ?? ''} placeholder="What happens here, in one line" onChange={(e) => patchStep(selected.id, { description: e.target.value })} />
+                  </div>
+                  <div className="flex items-center justify-between border-y bg-muted/30 px-3 py-2">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Then Edge…</span>
                     <Button
                       variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs"
                       onClick={() => patchStep(selected.id, { actions: [...selected.actions, { id: uid('a'), type: 'notification', label: '', to: 'advertiser' }] })}
                     >
-                      <Plus className="h-3.5 w-3.5" /> Add action
+                      <Plus className="h-3.5 w-3.5" /> Add
                     </Button>
                   </div>
-                  {selected.actions.length === 0 ? (
-                    <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Nothing yet — an email, a notification, a to-do, a status, a topic or a log line.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {selected.actions.map((a) => (
-                        <ActionRow
-                          key={a.id}
-                          action={a}
-                          onChange={(next) => patchStep(selected.id, { actions: selected.actions.map((x) => (x.id === a.id ? next : x)) })}
-                          onRemove={() => patchStep(selected.id, { actions: selected.actions.filter((x) => x.id !== a.id) })}
-                        />
-                      ))}
-                    </div>
-                  )}
+                  <div className="p-3">
+                    {selected.actions.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">…does nothing on its own. Add an email, a notification or a to-do.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {selected.actions.map((a) => (
+                          <ActionRow
+                            key={a.id}
+                            action={a}
+                            onChange={(next) => patchStep(selected.id, { actions: selected.actions.map((x) => (x.id === a.id ? next : x)) })}
+                            onRemove={() => patchStep(selected.id, { actions: selected.actions.filter((x) => x.id !== a.id) })}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="border-y bg-muted/30 px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Then move on to</div>
+                  <div className="p-3">
+                    {(() => {
+                      const next = transitions.filter((t) => t.from === selected.id).map((t) => ({ t, to: steps.find((st) => st.id === t.to) })).filter((x) => !!x.to);
+                      if (next.length === 0) return <p className="text-xs text-muted-foreground">Nothing yet — this is where the flow ends. Use the + on the card to add what comes next.</p>;
+                      return (
+                        <ul className="space-y-1.5">
+                          {next.map(({ t, to }) => {
+                            const { Icon: NIcon, tone } = KINDS[to!.kind];
+                            return (
+                              <li key={t.id} className="flex items-center gap-2 text-sm">
+                                <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-md', tone)}><NIcon className="h-3.5 w-3.5" /></span>
+                                <span className="min-w-0 flex-1 truncate">{to!.name}</span>
+                                {t.label && <span className="shrink-0 text-xs text-muted-foreground">when {t.label}</span>}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      );
+                    })()}
+                  </div>
                 </div>
+
+                {/* The rest, in plain words, out of the way. */}
+                <details className="group rounded-lg border">
+                  <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-sm font-medium">
+                    More options
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="space-y-4 border-t p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span>
+                        <span className="block text-sm font-medium">Must be done before the flow moves on</span>
+                        <span className="block text-xs text-muted-foreground">Off: the flow can continue without it.</span>
+                      </span>
+                      <Switch checked={selected.mandatory} onCheckedChange={(on) => patchStep(selected.id, { mandatory: on })} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium">Deadline</label>
+                        <div className="flex items-center gap-2">
+                          <Input type="number" min={0} className="w-20" value={selected.dueDaysBeforeStart ?? ''} placeholder="—" onChange={(e) => patchStep(selected.id, { dueDaysBeforeStart: e.target.value ? Number(e.target.value) : undefined })} />
+                          <span className="text-xs text-muted-foreground">days before the campaign starts</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium">Time to respond</label>
+                        <div className="flex items-center gap-2">
+                          <Input type="number" min={0} className="w-20" value={selected.slaDays ?? ''} placeholder="—" onChange={(e) => patchStep(selected.id, { slaDays: e.target.value ? Number(e.target.value) : undefined })} />
+                          <span className="text-xs text-muted-foreground">days</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium">If nobody responds in time, tell</label>
+                        <Input dropdown options={[{ value: '', label: 'Nobody' }, ...(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))]} value={selected.escalateTo ?? ''} onChange={(v) => patchStep(selected.id, { escalateTo: (v || undefined) as WorkflowOwner | undefined })} placeholder="Nobody" />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium">Who steps in when the owner is away</label>
+                        <Input value={selected.deputy ?? ''} placeholder="e.g. Second AdOps" onChange={(e) => patchStep(selected.id, { deputy: e.target.value || undefined })} />
+                      </div>
+                    </div>
+                  </div>
+                </details>
               </RightDrawerBody>
               <RightDrawerFooter className="justify-between">
                 <Button variant="outline" className="gap-1.5 text-destructive-700" onClick={() => removeStep(selected.id)}><Trash2 className="h-4 w-4" /> Remove step</Button>

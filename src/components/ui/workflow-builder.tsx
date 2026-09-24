@@ -444,20 +444,6 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
     setSelectedStep(step.id);
   };
 
-  /** A configuration rule, added to the board as the check it makes. */
-  const addRuleStep = (ruleId: string) => {
-    const rule = ruleById(ruleId);
-    if (!rule) return;
-    const below = steps.reduce((m, s) => Math.max(m, s.y + NODE_H), 0);
-    const step: WorkflowStep = {
-      id: uid('s'), kind: 'rule', rule: rule.id, name: rule.name, description: rule.summary,
-      owner: 'edge', mandatory: false, actions: [], x: 40, y: snap(below + 60),
-    };
-    setSteps((prev) => [...prev, step]);
-    setDirty(true);
-    setSelectedStep(step.id);
-  };
-
   const removeStep = (id: string) => {
     setSteps((prev) => prev.filter((s) => s.id !== id));
     setTransitions((prev) => prev.filter((t) => t.from !== id && t.to !== id));
@@ -550,26 +536,6 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                   <span className="block truncate text-[11px] text-muted-foreground">{hint}</span>
                 </span>
               </div>
-            );
-          })}
-          <div className="mt-3 text-xs font-medium text-muted-foreground">Rules — add one to the flow</div>
-          {CONFIGURATION_RULES.map((r) => {
-            const onBoard = steps.some((st) => st.rule === r.id);
-            return (
-              <button
-                key={r.id}
-                type="button"
-                disabled={onBoard}
-                onClick={() => addRuleStep(r.id)}
-                className="flex w-full items-center gap-2.5 rounded-md border bg-card p-2.5 text-left transition-colors hover:bg-surface-hover disabled:cursor-default disabled:opacity-50"
-                title={onBoard ? 'Already on the board' : r.summary}
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Zap className="h-4 w-4" /></span>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium">{r.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">{onBoard ? 'On the board' : r.summary}</span>
-                </span>
-              </button>
             );
           })}
           <div className="rounded-md border border-dashed p-2.5 text-[11px] leading-relaxed text-muted-foreground">

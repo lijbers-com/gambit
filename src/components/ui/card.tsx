@@ -724,6 +724,7 @@ export const BudgetStackedMini = ({
   labelled = false,
   emptyLabel,
   showSpend = true,
+  size,
 }: {
   budgetData: NonNullable<MetricCardProps['budgetData']>;
   /** Small line above the bar — where the bar's own scale is stated, so the
@@ -743,7 +744,12 @@ export const BudgetStackedMini = ({
    *  a completed plan's is history. Only a running or paused plan is
    *  "this far in", so only then is the line drawn and the figure stated. */
   showSpend?: boolean;
+  /** Bar height: `sm` (10px) for a metric card's figure line, `md` (16px)
+   *  for a form or popover, `lg` (32px) for a card that labels the bar.
+   *  Defaults to `lg` when labelled, `sm` otherwise. */
+  size?: 'sm' | 'md' | 'lg';
 }) => {
+  const barSize = size ?? (labelled ? 'lg' : 'sm');
   const allocated = budgetData.reduce((sum, d) => sum + d.budget, 0);
   const spent = budgetData.reduce((sum, d) => sum + Math.min(d.spent, d.budget), 0);
   const scale = Math.max(total ?? 0, allocated);
@@ -765,7 +771,7 @@ export const BudgetStackedMini = ({
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn('relative flex cursor-default overflow-hidden rounded-full border border-border bg-background', labelled ? 'h-8' : 'h-2.5')}>
+          <div className={cn('relative flex cursor-default overflow-hidden rounded-full border border-border bg-background', { sm: 'h-2.5', md: 'h-4', lg: 'h-8' }[barSize])}>
             {budgetData.map((d, i) => (
               <BudgetSegment key={`${d.name}-${i}`} widthPct={pct(d.budget)} color={colorFromIndex(i, d.color)} engine={d.engine} />
             ))}

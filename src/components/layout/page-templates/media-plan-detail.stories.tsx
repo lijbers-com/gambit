@@ -1155,13 +1155,15 @@ export const MediaPlanDetail: Story = {
                   not split over propositions here — and free room is a
                   feature, kept open so more campaigns can be added. */}
               <BudgetPopover
-                committedLabel="Committed to campaigns"
                 hint="Campaign budgets are set on the campaigns themselves — free room stays open for adding more."
                 className="w-40"
                 total={plan?.budget ?? 0}
                 committed={db.campaigns
                   .filter((c) => c.mediaPlanId === plan?.id)
                   .reduce((sum, c) => sum + c.budget, 0)}
+                allocations={db.campaigns
+                  .filter((c) => c.mediaPlanId === plan?.id)
+                  .map((c) => ({ name: c.name, budget: c.budget, engine: c.engine }))}
                 onApply={(nextTotal) => {
                   if (!plan) return;
                   const prevBudget = plan.budget;
@@ -1392,13 +1394,15 @@ export const MediaPlanDetail: Story = {
                         <div className="space-y-2">
                           <Label className="block">Media plan budget</Label>
                           <BudgetPopover
-                            committedLabel="Committed to campaigns"
                             hint="Campaign budgets are set on the campaigns themselves — free room stays open for adding more."
                             className="w-full max-w-xs"
                             total={plan?.budget ?? 0}
                             committed={db.campaigns
                               .filter((c) => c.mediaPlanId === plan?.id)
                               .reduce((sum, c) => sum + c.budget, 0)}
+                            allocations={db.campaigns
+                              .filter((c) => c.mediaPlanId === plan?.id)
+                              .map((c) => ({ name: c.name, budget: c.budget, engine: c.engine }))}
                             onApply={(nextTotal) => {
                               if (!plan) return;
                               const prevBudget = plan.budget;

@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { Button } from './button';
 import { DateRangePicker } from './date-picker';
-import { FillRateBar } from './fill-rate-bar';
+import { BudgetStackedMini } from './card';
+import type { PatternKey } from '@/lib/proposition-patterns';
 import { Input, FieldHint } from './input';
 import { Label } from './label';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
@@ -21,18 +22,22 @@ import { retailMoments } from '@/lib/retail-moments';
 /** The budget as a button; the popover holds the ceiling and what already claims it. */
 export const BudgetPopover: React.FC<{
   total: number;
-  /** What is already claimed beneath the ceiling — campaign budgets, or spend. */
+  /** What is already claimed beneath the ceiling — the campaigns' budgets. */
   committed: number;
-  committedLabel?: string;
+  /** The claims one by one, so the bar is the same split the plan card
+   *  draws: each campaign's allocation in its proposition's tint and
+   *  pattern. Without it the bar is one flat claim of `committed`. */
+  allocations?: Array<{ name: string; budget: number; engine?: PatternKey }>;
   hint?: string;
   onApply: (next: number) => void;
   className?: string;
-}> = ({ total, committed, committedLabel = 'Committed', hint, onApply, className }) => {
+}> = ({ total, committed, allocations, hint, onApply, className }) => {
   const [open, setOpen] = React.useState(false);
   const [draft, setDraft] = React.useState(String(total));
   React.useEffect(() => { if (open) setDraft(String(total)); }, [open, total]);
   const next = parseFloat(draft) || 0;
   const free = Math.max(next - committed, 0);
+  const budgetData = (allocations ?? [{ name: 'Committed', budget: committed }]).map((a) => ({ ...a, spent: 0 }));
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -47,15 +52,11 @@ export const BudgetPopover: React.FC<{
           <Input id="control-budget-total" type="number" min="0" value={draft} onChange={(e) => setDraft(e.target.value)} />
         </div>
         <div className="space-y-2">
-          <FillRateBar
-            total={Math.max(next, committed, 1)}
-            value={{ booked: committed, available: free }}
-            hoverTooltip={false}
-            height={10}
-          />
-          <div className="flex gap-4 text-[11px] text-muted-foreground">
-            <span>{committedLabel} €{committed.toLocaleString()}</span>
-            <span>Free €{free.toLocaleString()}</span>
+          {/* The plan card's bar, with its figures beneath rather than on it:
+              the popover is narrow and the number is being typed just above. */}
+          <BudgetStackedMini budgetData={budgetData} total={Math.max(next, committed)} size="md" showSpend={false} />
+          <div className="text-[11px] tabular-nums text-muted-foreground">
+            €{committed.toLocaleString()} allocated · €{free.toLocaleString()} open
           </div>
           {next < committed && (
             <p className="text-xs text-warning-700">

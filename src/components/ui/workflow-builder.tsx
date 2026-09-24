@@ -473,14 +473,6 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
     );
   };
 
-  const validate = () => {
-    toast(
-      issues.length
-        ? { title: `${issues.length} thing${issues.length === 1 ? '' : 's'} to fix`, description: issues.slice(0, 2).join(' ') }
-        : { title: 'Workflow is valid', description: 'One start, one end, every step reachable, every approver a person.' },
-    );
-  };
-
   const fittedFor = React.useRef<string | null>(null);
   React.useLayoutEffect(() => {
     if (record && steps.length && fittedFor.current !== record.id) { fittedFor.current = record.id; fit(steps); }
@@ -501,14 +493,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
       {/* ── Toolbar ── */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0 flex-1 text-sm font-medium">{name}</div>
-        <Badge variant="outline" className={cn('px-2 py-0.5 text-xs', record.status === 'published' ? 'border-success-200 bg-success-50 text-success-700' : 'border-border bg-neutral-50 text-neutral-600')}>
-          {record.status === 'published' ? 'Published' : 'Draft'}{dirty ? ' · unsaved changes' : ''}
-        </Badge>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={validate} className="gap-1.5">
-            {issues.length ? <AlertTriangle className="h-4 w-4 text-warning-600" /> : <CheckCircle2 className="h-4 w-4 text-success-600" />}
-            Validate
-          </Button>
           <Button variant="outline" onClick={() => save(false)} disabled={!dirty} className="gap-1.5"><Save className="h-4 w-4" /> Save draft</Button>
           <Button onClick={() => save(true)} disabled={issues.length > 0} title={issues.length ? `Fix first: ${issues[0]}` : undefined} className="gap-1.5"><Rocket className="h-4 w-4" /> Publish</Button>
         </div>

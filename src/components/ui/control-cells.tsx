@@ -179,10 +179,6 @@ export const HealthCell = ({ health, indicators, message }: { health?: HealthLev
           <span className="text-xs text-muted-foreground">{indicators.length} concern{indicators.length === 1 ? '' : 's'}</span>
         </div>
         <IndicatorList indicators={indicators} className="rounded-none border-0" />
-        <p className="border-t px-3 py-2 text-xs text-muted-foreground">
-          {message ? <>{message} </> : null}
-          Health reports concerns only — checks are added over time.
-        </p>
       </PopoverContent>
     </Popover>
   );

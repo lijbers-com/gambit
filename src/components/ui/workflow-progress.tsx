@@ -1,36 +1,27 @@
 'use client';
 
 import * as React from 'react';
-import { Bell, Check, CheckCircle2, ChevronDown, Clock, Flag, GitBranch, Mail, ShieldCheck, Truck, Zap } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TabActionGroup } from './tab-actions';
-import { useDb, useSession, readWorkflow, workflowOrDefault, targetFor, type Booking, type WorkflowAction, type WorkflowScope, type WorkflowStep, type WorkflowStepKind, type WorkflowStepState, type WorkflowTarget } from '@/lib/db';
+import { useDb, useSession, readWorkflow, workflowOrDefault, targetFor, type Booking, type WorkflowScope, type WorkflowStep, type WorkflowStepState, type WorkflowTarget } from '@/lib/db';
 import { LIFECYCLE_LABEL } from '@/lib/status-vocabulary';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 
 /**
  * Where a campaign or booking stands in its proposition's workflow, and what
- * is next — as a list anyone can read:
+ * is next — as a plain to-do list for the current stage:
  *
- *   ✓ done          the data shows it done, or the stage is behind us
- *   ● open          in the current stage — YOUR MOVE with a button when the
- *                   signed-in side owns it, "Waiting for the retailer" when
- *                   the other side does, "Automatic" when Edge runs it
- *   ○ upcoming      in a later stage — never ticked, however the data looks
- *                   today, because the stage has not been reached
+ *   ○ open   an empty circle: still to be checked off
+ *   ✓ done   a small tick: the data shows it done
  *
- * The bar shows the stages; the current one is lit and its steps sit
- * beneath; past stages fold to one line each; later stages list what is
- * coming, including what Edge does on its own (send the report, notify).
- * The board is the retailer's; this is the entity reading it.
+ * Each row says whose move it is; the one thing the signed-in side can do
+ * next gets the only button. Nothing else on the right — no labels, no
+ * badges: if a step is listed, it is needed. Past and later stages stay
+ * behind their chips. The board is the retailer's; this is the entity
+ * reading it.
  */
 
-const KIND_ICON: Record<WorkflowStepKind, React.ComponentType<{ className?: string }>> = {
-  stage: Flag, approval: ShieldCheck, check: CheckCircle2, fulfilment: Truck, notification: Bell, gate: GitBranch,
-};
-const ACTION_ICON: Record<WorkflowAction['type'], React.ComponentType<{ className?: string }>> = {
-  email: Mail, notification: Bell, todo: CheckCircle2, 'set-status': Flag, kafka: Zap, log: Zap,
-};
 const OWNER_LABEL = { advertiser: 'Advertiser', retailer: 'Retailer', edge: 'Edge', external: 'Partner' } as const;
 
 const daysBefore = (iso: string, days: number) => {
@@ -92,82 +83,45 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
   const turnOf = (step: WorkflowStep): 'mine' | 'theirs' | 'auto' =>
     step.owner === 'edge' || step.owner === 'external' ? 'auto' : mySide && step.owner === mySide ? 'mine' : 'theirs';
 
-  /** One step, read as a to-do: what it is, whose move, and what to do. */
-  const renderRow = ({ step, status }: WorkflowStepState, stageIndex: number) => {
-    const Icon = KIND_ICON[step.kind];
+  /** The one open step the signed-in side can act on next — it gets the button. */
+  const nextMine = current.find((x) => x.status === 'open' && turnOf(x.step) === 'mine');
+
+  /** One step, as a to-do: a circle to tick, what it is, whose move. */
+  const renderRow = ({ step, status }: WorkflowStepState, withButton: boolean) => {
     const turn = turnOf(step);
-    const extra = status === 'open' ? renderStepExtra?.(step, false) : null;
+    const extra = withButton && status === 'open' ? renderStepExtra?.(step, false) : null;
     const due = step.dueDaysBeforeStart ? ` · due ${daysBefore(entity.startDate, step.dueDaysBeforeStart)} (X-${step.dueDaysBeforeStart})` : '';
     const sla = step.slaDays ? ` · ${step.slaDays}-day SLA` : '';
-    const stageName = stages[stageIndex]?.name ?? 'this stage';
     const second =
       status === 'done' ? `Done · ${OWNER_LABEL[step.owner]}`
-      : status === 'upcoming' ? `${OWNER_LABEL[step.owner]} · comes up in ${stageName}${due}`
-      : turn === 'auto' ? `Edge runs this automatically${due}${sla}`
+      : status === 'upcoming' ? `${OWNER_LABEL[step.owner]}${due}`
+      : turn === 'auto' ? `Edge checks this automatically${due}${sla}`
       : turn === 'mine' ? `${OWNER_LABEL[step.owner]} — your move${due}${sla}`
-      : `${OWNER_LABEL[step.owner]}${due}${sla}`;
+      : `Waiting for the ${OWNER_LABEL[step.owner].toLowerCase()}${due}${sla}`;
     return (
-      <li key={step.id} className={cn('flex items-center gap-3 px-3 py-2 text-sm', status !== 'open' && 'text-muted-foreground', status === 'open' && turn === 'mine' && 'bg-surface-selected')}>
+      <li key={step.id} className={cn('flex items-center gap-3 px-3 py-2 text-sm', status === 'done' && 'text-muted-foreground')}>
         <span className={cn(
-          'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border',
-          status === 'done' && 'border-success-200 bg-success-50 text-success-700',
-          status === 'open' && 'border-foreground bg-background text-foreground',
-          status === 'upcoming' && 'border-dashed bg-background text-muted-foreground',
+          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border',
+          status === 'done' ? 'border-success-200 bg-success-50 text-success-700' : 'border-foreground/40 bg-background',
         )}>
-          {status === 'done' ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+          {status === 'done' && <Check className="h-3 w-3" />}
         </span>
         <span className="min-w-0 flex-1">
           <span className={cn('block truncate', status === 'done' && 'line-through', status === 'open' && 'font-medium text-foreground')}>{step.name}</span>
           <span className="block truncate text-xs text-muted-foreground">{second}</span>
         </span>
-        {status === 'open' && step.mandatory && <span className="shrink-0 rounded-sm bg-neutral-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-neutral-600">Mandatory</span>}
-        {status === 'open' && turn === 'theirs' && (
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            Waiting for the {OWNER_LABEL[step.owner].toLowerCase()}
-          </span>
-        )}
-        {status === 'open' && turn === 'auto' && (
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-warning-200 bg-warning-50 px-2 py-0.5 text-xs text-warning-700">
-            <Zap className="h-3 w-3" />
-            Not met yet
-          </span>
-        )}
-        {status === 'open' && turn === 'mine' && (extra ?? (
-          <span className="inline-flex shrink-0 items-center rounded-full border border-warning-200 bg-warning-50 px-2 py-0.5 text-xs font-medium text-warning-700">Your move</span>
-        ))}
-        {status === 'upcoming' && <span className="shrink-0 text-xs text-muted-foreground">Later</span>}
+        {extra}
       </li>
     );
   };
 
-  /** What Edge does on its own when a stage is reached — sent, notified,
-   *  published — shown so the reader knows what happens without them. */
-  const renderStageActions = (stage: WorkflowStep, done: boolean) =>
-    stage.actions.filter((a) => a.type !== 'log').map((a) => {
-      const AIcon = ACTION_ICON[a.type];
-      return (
-        <li key={a.id} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground">
-          <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border', done ? 'border-success-200 bg-success-50 text-success-700' : 'border-dashed bg-background')}>
-            {done ? <Check className="h-3.5 w-3.5" /> : <AIcon className="h-3.5 w-3.5" />}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className={cn('block truncate', done && 'line-through')}>{a.label}</span>
-            <span className="block truncate text-xs">Edge · automatic{a.to ? ` · to the ${OWNER_LABEL[a.to].toLowerCase()}` : ''}</span>
-          </span>
-          <span className="shrink-0 text-xs">{done ? `Fired on reaching ${stage.name}` : `On reaching ${stage.name}`}</span>
-        </li>
-      );
-    });
-
-  /** A stage's list: its steps, then what Edge does when it is reached. */
+  /** A stage's to-dos. Only the current stage offers a button. */
   const renderStage = (i: number) => {
     const stage = stages[i];
     const list = stepsOf(i);
-    // A stage's own actions fire on reaching it — so they have fired for
-    // the current stage as well as past ones.
-    const rows = [...list.map((x) => renderRow(x, i)), ...renderStageActions(stage, i <= currentIndex)];
-    return rows.length > 0 ? <ul className="divide-y">{rows}</ul> : (
+    return list.length > 0 ? (
+      <ul className="divide-y">{list.map((x) => renderRow(x, i === currentIndex && x.step.id === nextMine?.step.id))}</ul>
+    ) : (
       <p className="px-3 py-3 text-sm text-muted-foreground">{stage.description ?? 'Nothing to do in this stage — it is left on its own.'}</p>
     );
   };
@@ -181,33 +135,14 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
     return i < currentIndex ? `${list.length} step${list.length === 1 ? '' : 's'} done` : i === currentIndex ? `${o} open · ${d} done` : `${list.length} step${list.length === 1 ? '' : 's'} to come`;
   };
 
-  /** The full list: past stages folded, the current one open, later ones as what is coming. */
+  /** The list under the bar: the current stage's to-dos, and nothing else. */
   const fullList = (
     <div className="rounded-md border bg-background">
-      {stages.slice(0, currentIndex).map((st, i) => (
-        <div key={st.id} className="flex items-center gap-3 border-b px-3 py-2 text-sm text-muted-foreground">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-success-200 bg-success-50 text-success-700"><Check className="h-3.5 w-3.5" /></span>
-          <span className="min-w-0 flex-1 truncate line-through">{st.name}</span>
-          <span className="shrink-0 text-xs">{countsFor(i)}</span>
-        </div>
-      ))}
       <div className="flex items-center justify-between border-b px-3 py-2">
         <span className="text-sm font-medium">{headingFor(currentIndex)}</span>
         <span className="text-xs text-muted-foreground">{countsFor(currentIndex)}</span>
       </div>
       {renderStage(currentIndex)}
-      {stages.slice(currentIndex + 1).map((st, k) => {
-        const i = currentIndex + 1 + k;
-        return (
-          <div key={st.id}>
-            <div className="flex items-center justify-between border-y bg-muted/30 px-3 py-2">
-              <span className="text-sm font-medium text-muted-foreground">{headingFor(i)}</span>
-              <span className="text-xs text-muted-foreground">{countsFor(i)}</span>
-            </div>
-            {renderStage(i)}
-          </div>
-        );
-      })}
     </div>
   );
 

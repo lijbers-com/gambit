@@ -1118,7 +1118,6 @@ export const MediaPlanDetail: Story = {
                 <RecommendationsCell
                   items={planRecommendations.map((m) => ({ id: m.id, subject: m.subject, preview: m.preview, context: m.context, done: inboxStatus[m.id] === 'done' }))}
                   onOpen={(id) => { markRead(id); setActiveRecommendationId(id); }}
-                  onOpenAll={() => setActiveTab('inbox')}
                 />
               </div>
             </ControlBarItem>

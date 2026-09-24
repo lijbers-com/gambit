@@ -236,16 +236,14 @@ export const NotificationsCell = ({
 /**
  * The recommendations cell: the count as a badge that opens the list, so a
  * recommendation is one click away from the control bar — each row opens
- * its case, and the footer opens the tab with all of them.
+ * its case.
  */
 export const RecommendationsCell = ({
   items,
   onOpen,
-  onOpenAll,
 }: {
   items: { id: string; subject: string; preview: string; context?: string; done?: boolean }[];
   onOpen: (id: string) => void;
-  onOpenAll?: () => void;
 }) => {
   const open = items.filter((i) => !i.done);
   if (open.length === 0) return <span className="text-muted-foreground">—</span>;
@@ -278,11 +276,6 @@ export const RecommendationsCell = ({
             </li>
           ))}
         </ul>
-        {onOpenAll && (
-          <button type="button" onClick={onOpenAll} className="w-full border-t px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:text-foreground">
-            Open the Recommendations tab
-          </button>
-        )}
       </PopoverContent>
     </Popover>
   );

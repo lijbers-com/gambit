@@ -971,7 +971,7 @@ export const MediaPlanDetail: Story = {
           : <DatesCell start={r.startDate} end={r.endDate} onSave={(startDate, endDate) => updateCampaign(r._id, { startDate, endDate })} />,
       },
       {
-        key: 'budget', header: 'Budget',
+        key: 'budget', summary: 'sum', header: 'Budget',
         render: (r) => r._type !== 'campaign' || r.budgetValue === undefined
           ? (r._type === 'add' ? null : <span className="tabular-nums">{r.budget}</span>)
           : (
@@ -1809,7 +1809,7 @@ export const MediaPlanDetail: Story = {
                   },
                 },
                 { key: 'externalId', header: 'External ID', sortable: true, sortFn: (a, b) => bySortField('sortName')(a, b), render: (r) => <span className={cn('text-muted-foreground', !r.fits && 'opacity-50')}>{r.id}</span> },
-                { key: 'budget', header: 'Budget', sortable: true, sortFn: bySortField('sortBudget'), render: (r) => <span className={cn('tabular-nums', !r.fits && 'opacity-50')}>{fmtEuro(r.budget)}</span> },
+                { key: 'budget', summary: 'sum', header: 'Budget', sortable: true, sortFn: bySortField('sortBudget'), render: (r) => <span className={cn('tabular-nums', !r.fits && 'opacity-50')}>{fmtEuro(r.budget)}</span> },
                 { key: 'runtime', header: 'Run time', sortable: true, sortFn: bySortField('sortStart'), render: (r) => <span className={cn(!r.fits && 'opacity-50')}>{fmtRange(r.startDate, r.endDate)}</span> },
                 {
                   key: 'status', header: 'Status', sortable: true, sortFn: bySortField('sortStatus'),

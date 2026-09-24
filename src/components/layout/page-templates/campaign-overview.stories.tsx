@@ -516,11 +516,11 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                           </div>
                         );
                       }},
-                      { key: 'bookings', header: 'Bookings', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.bookings}</Badge> : null },
-                      { key: 'creatives', header: 'Creatives', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.creatives}</Badge> : null },
+                      { key: 'bookings', summary: 'sum', header: 'Bookings', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.bookings}</Badge> : null },
+                      { key: 'creatives', summary: 'sum', header: 'Creatives', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.creatives}</Badge> : null },
                       { key: 'placements', header: 'Placements', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.placements}</Badge> : null },
-                      { key: 'spendToDate', header: 'Spend to date', render: row => (row._type === 'add' ? null : `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`) },
-                      { key: 'spendingLimit', header: 'Spending limit', render: row => row._type === 'campaign' ? `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
+                      { key: 'spendToDate', summary: 'sum', header: 'Spend to date', render: row => (row._type === 'add' ? null : `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`) },
+                      { key: 'spendingLimit', summary: 'sum', header: 'Spending limit', render: row => row._type === 'campaign' ? `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
                       { key: 'runtime', header: 'Run time', render: row => (row._type === 'add' ? null : `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`) },
                     ]}
                     data={tableRows}

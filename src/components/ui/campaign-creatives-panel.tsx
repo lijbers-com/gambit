@@ -5,7 +5,7 @@ import { Eye } from 'lucide-react';
 import { useDb, useRouteCampaign, type Creative, type EngineId } from '@/lib/db';
 import { Button } from './button';
 import { FilterBar } from './filter-bar';
-import { Table } from './table';
+import { Table, parseTableNumber, formatTableNumber } from './table';
 import { CreativePreviewThumb } from './creative-preview';
 import { CreativePreviewDialog } from './creative-preview-dialog';
 import { CreativeStatusBadge } from './creative-builder';
@@ -66,6 +66,14 @@ export const CampaignCreativesPanel: React.FC<{
     );
   });
 
+  /** A sum or average of formatted figures, written back the same way. */
+  const totalOf = (values: string[], mode: 'sum' | 'avg' = 'sum') => {
+    const parsed = values.map(parseTableNumber).filter((v): v is NonNullable<typeof v> => !!v);
+    if (parsed.length === 0) return null;
+    const total = parsed.reduce((acc, v) => acc + v.value, 0);
+    return formatTableNumber(mode === 'avg' ? total / parsed.length : total, parsed[0]);
+  };
+
   const perf = (c: Creative) => {
     const r = seeded(c.id);
     const impressions = r(120_000, 900_000, 1);
@@ -125,11 +133,13 @@ export const CampaignCreativesPanel: React.FC<{
               { key: 'template', header: 'Template', render: (c: Creative) => templatesById.get(c.templateId)?.name ?? '—' },
               ...(showPerformance
                 ? [
-                    { key: 'impressions', header: 'Impressions', render: (c: Creative) => perf(c).impressions },
-                    { key: 'clicks', header: 'Clicks', render: (c: Creative) => perf(c).clicks },
-                    { key: 'ctr', header: 'CTR', render: (c: Creative) => perf(c).ctr },
-                    { key: 'revenue', header: 'Total SKU revenue', render: (c: Creative) => perf(c).revenue },
-                    { key: 'roas', header: 'ROAS', render: (c: Creative) => perf(c).roas },
+                    // The figures are derived per creative, so the totals are
+                    // derived the same way and summed as the table would.
+                    { key: 'impressions', header: 'Impressions', render: (c: Creative) => perf(c).impressions, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).impressions)) },
+                    { key: 'clicks', header: 'Clicks', render: (c: Creative) => perf(c).clicks, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).clicks)) },
+                    { key: 'ctr', header: 'CTR', render: (c: Creative) => perf(c).ctr, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).ctr), 'avg') },
+                    { key: 'revenue', header: 'Total SKU revenue', render: (c: Creative) => perf(c).revenue, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).revenue)) },
+                    { key: 'roas', header: 'ROAS', render: (c: Creative) => perf(c).roas, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).roas), 'avg') },
                   ]
                 : []),
               { key: 'updated', header: 'Updated', render: (c: Creative) => c.updatedAt.slice(0, 10) },

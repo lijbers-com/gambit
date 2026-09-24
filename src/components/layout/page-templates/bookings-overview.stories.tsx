@@ -391,8 +391,8 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                           { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                           { key: 'advertiser', header: 'Advertiser' },
                           { key: 'campaign', header: 'Campaign' },
-                          { key: 'spend', header: 'Spend', render: (row: BookingRow) => formatCurrency(row.spend) },
-                          { key: 'impressions', header: 'Impressions', render: (row: BookingRow) => formatImpressions(row.impressions) },
+                          { key: 'spend', summary: 'sum', header: 'Spend', render: (row: BookingRow) => formatCurrency(row.spend) },
+                          { key: 'impressions', summary: 'sum', header: 'Impressions', render: (row: BookingRow) => formatImpressions(row.impressions) },
                         ]}
                         data={filteredBookingData}
                         rowKey={(row: BookingRow) => row.id}

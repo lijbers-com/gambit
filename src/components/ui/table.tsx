@@ -20,6 +20,55 @@ export interface TableColumn<T> {
   sortFn?: (a: T, b: T) => number;
   hideable?: boolean;
   width?: number;
+  /**
+   * The column's figure for the summary row at the top of the table: 'sum'
+   * adds the rows' values, 'avg' averages them (rates: CTR, ROAS, CPC…), a
+   * function returns its own. Values are read off the rows as they are —
+   * numbers, or strings like "€1,200", "375,084", "1.31%", "1.2K" — and the
+   * total is written back the same way. A table with any summary column
+   * shows the row; the first content column carries the label.
+   */
+  summary?: 'sum' | 'avg' | ((rows: T[]) => React.ReactNode);
+}
+
+/** "€1,200" → { value: 1200, prefix: '€', suffix: '', decimals: 0 }. */
+export function parseTableNumber(raw: unknown): { value: number; prefix: string; suffix: string; decimals: number } | undefined {
+  if (typeof raw === 'number') return Number.isFinite(raw) ? { value: raw, prefix: '', suffix: '', decimals: Number.isInteger(raw) ? 0 : 2 } : undefined;
+  if (typeof raw !== 'string') return undefined;
+  const m = /^\s*([€$£]?)\s*(-?[\d.,]+)\s*([KkMm%]?)\s*$/.exec(raw);
+  if (!m) return undefined;
+  const digits = m[2].replace(/,/g, '');
+  const value = parseFloat(digits);
+  if (!Number.isFinite(value)) return undefined;
+  const decimals = digits.includes('.') ? digits.split('.')[1].length : 0;
+  return { value, prefix: m[1], suffix: m[3].toUpperCase() === 'K' || m[3].toUpperCase() === 'M' ? m[3].toUpperCase() : m[3], decimals };
+}
+
+/** The total, written the way the rows write their values. */
+export function formatTableNumber(value: number, like: { prefix: string; suffix: string; decimals: number }): string {
+  const decimals = like.suffix === 'K' || like.suffix === 'M' ? Math.max(like.decimals, 1) : like.decimals;
+  return `${like.prefix}${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}${like.suffix}`;
+}
+
+/** A column's summary figure over these rows, or nothing when no row has a number. */
+export function summarizeColumn<T>(rows: T[], col: TableColumn<T>): React.ReactNode {
+  if (!col.summary) return null;
+  if (typeof col.summary === 'function') return col.summary(rows);
+  const parsed = rows
+    .map((r) => parseTableNumber((r as Record<string, unknown>)[col.key]))
+    .filter((v): v is NonNullable<typeof v> => !!v);
+  if (parsed.length === 0) return null;
+  const like = parsed.reduce((a, b) => (b.decimals > a.decimals ? { ...a, decimals: b.decimals } : a), parsed[0]);
+  const total = parsed.reduce((s, v) => s + v.value, 0);
+  const figure = col.summary === 'avg' ? total / parsed.length : total;
+  // Rows that carry plain numbers are formatted by the column's own render
+  // (€, K, %…), so the total goes through the same formatter — on a copy of
+  // a row with just this value swapped in.
+  const sample = rows.find((r) => typeof (r as Record<string, unknown>)[col.key] === 'number');
+  if (col.render && sample) {
+    try { return col.render({ ...(sample as object), [col.key]: figure } as T); } catch { /* fall through to the plain figure */ }
+  }
+  return formatTableNumber(figure, like);
 }
 
 export interface TableRowSelection<T> {
@@ -87,6 +136,8 @@ export interface TableProps<T> {
   /** Hide the "Data refreshed …" line under the table. It is on by default:
    *  numbers without an age invite decisions on stale data. */
   hideRefreshedAt?: boolean;
+  /** What the summary row is called in its first column. Defaults to "Total". */
+  summaryLabel?: React.ReactNode;
 }
 
 /**
@@ -158,7 +209,7 @@ function ColumnItem({
   );
 }
 
-export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns, fullWidthRow, emptyState, hideRefreshedAt }: TableProps<T>) {
+export function Table<T>({ columns, data, expandable, rowKey, className, rowActions, hideActions, onRowClick, rowClassName, rowSelection, defaultFixedColumns, fullWidthRow, emptyState, hideRefreshedAt, summaryLabel }: TableProps<T>) {
   /**
    * The leading overflow column earns its place only when it has something to
    * do. A row that already carries a checkbox, an expand chevron, or explicit
@@ -846,6 +897,34 @@ export function Table<T>({ columns, data, expandable, rowKey, className, rowActi
           </tr>
         </thead>
         <tbody>
+          {/* The summary row: the totals first, tinted apart from the rows,
+              so a table reads top-down from the whole to its parts. */}
+          {sortedData.length > 0 && columns.some((c) => !!c.summary) && (
+            <tr className="border-b border-border">
+              {allCols.map((col) => {
+                const isLastFixed = col.key === lastFixedColKey;
+                const source = columns.find((c) => c.key === col.key);
+                // Child rows sit inside their parent's figures already, so the
+                // totals read the top level only.
+                const topLevel = sortedData.filter((r) => !expandable?.isChild?.(r) && fullWidthRow?.(r) == null);
+                const figure = source ? summarizeColumn(topLevel, source) : null;
+                const content = figure ?? (col.key === firstContentColKey ? (summaryLabel ?? 'Total') : null);
+                return (
+                  <td
+                    key={`summary-${col.key}`}
+                    className={cn(
+                      'px-4 py-[11px] align-middle whitespace-nowrap bg-table-surface/60 font-medium text-foreground',
+                      isLastFixed && 'border-r border-r-neutral-300',
+                      col.className,
+                    )}
+                    style={{ verticalAlign: 'middle', ...getStickyStyle(col.key), ...getColWidthStyle(col.key), ...(isLastFixed ? { boxShadow: '1px 0 0 0 rgb(203 213 225)' } : {}) }}
+                  >
+                    {content}
+                  </td>
+                );
+              })}
+            </tr>
+          )}
           {sortedData.length === 0 ? (
             <tr>
               <td colSpan={allCols.length} className="py-8 text-center">

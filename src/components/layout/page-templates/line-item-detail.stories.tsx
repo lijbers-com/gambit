@@ -1998,7 +1998,7 @@ export const DigitalInStore: Story = {
                                 { key: 'name', header: `${unitFor(modalKind).Noun} Name` },
                                 { key: 'type', header: 'Type' },
                                 { key: 'location', header: 'Location' },
-                                { key: 'reach', header: 'Estimated Reach' },
+                                { key: 'reach', summary: 'sum', header: 'Estimated Reach' },
                                 { key: 'status', header: 'Status' }
                               ]}
                               data={filteredStoresList.map(store => ({
@@ -2241,7 +2241,7 @@ export const DigitalInStore: Story = {
                                             { key: 'name', header: 'Store Name' },
                                             { key: 'type', header: 'Type' },
                                             { key: 'location', header: 'Location' },
-                                            { key: 'reach', header: 'Estimated Reach' },
+                                            { key: 'reach', summary: 'sum', header: 'Estimated Reach' },
                                           ]}
                                           data={filteredStoresList.map(store => ({
                                             select: (
@@ -2337,7 +2337,7 @@ export const DigitalInStore: Story = {
                                             { key: 'name', header: 'Store Name' },
                                             { key: 'type', header: 'Type' },
                                             { key: 'location', header: 'Location' },
-                                            { key: 'reach', header: 'Estimated Reach' },
+                                            { key: 'reach', summary: 'sum', header: 'Estimated Reach' },
                                           ]}
                                           data={filteredStoresList.map(store => ({
                                             select: (
@@ -3504,7 +3504,7 @@ export const OfflineInStore: Story = {
                                     { key: 'name', header: 'Store Name' },
                                     { key: 'type', header: 'Type' },
                                     { key: 'location', header: 'Location' },
-                                    { key: 'reach', header: 'Estimated Reach' },
+                                    { key: 'reach', summary: 'sum', header: 'Estimated Reach' },
                                     ...(storeFilterProducts.length > 0 ? [{ key: 'stock', header: 'Stock level' }] : []),
                                     { key: 'status', header: 'Status' }
                                   ]}

@@ -48,11 +48,16 @@ const daysBefore = (iso: string, days: number) => {
 const dueOf = (step: WorkflowStep, startDate: string) =>
   step.dueDaysBeforeStart ? `${daysBefore(startDate, step.dueDaysBeforeStart)} (X-${step.dueDaysBeforeStart})` : undefined;
 
-/** Who acts, from the action's addressee — else the step's owner. */
+/**
+ * Who acts, from the action's addressee — else the step's owner. A board
+ * addresses a side, not a role, so a retailer to-do reaches every retailer
+ * role. An advertiser to-do reaches the advertiser and, on the retailer
+ * side, the people who build and manage campaigns on advertisers' behalf.
+ */
 function sideOf(action: WorkflowAction, step: WorkflowStep): { side: UserSide | 'both'; personaKeys?: string[] } {
   const to = action.to ?? step.owner;
-  if (to === 'advertiser') return { side: 'advertiser', personaKeys: ['advertiser', 'campaign-builder', 'media-agency-advertiser'] };
-  if (to === 'retailer') return { side: 'retailer', personaKeys: ['campaign-manager-managed', 'self-service-support-specialist', 'account-manager-sales', 'yield-manager'] };
+  if (to === 'advertiser') return { side: 'both', personaKeys: ['advertiser', 'media-agency-advertiser', 'campaign-builder', 'campaign-manager-managed', 'self-service-support-specialist'] };
+  if (to === 'retailer') return { side: 'retailer' };
   return { side: 'both' };
 }
 

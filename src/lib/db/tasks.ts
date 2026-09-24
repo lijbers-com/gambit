@@ -1,6 +1,7 @@
 import type { DbData, EngineId, MediaPlan, UserSide } from './types';
 import { keywordWeek, recommendationsForKeyword, type Recommendation } from '../recommendations';
 import { deriveWorkflowTodos, type WorkflowTodoStep } from './workflow-todos';
+import { planHealth, INDICATOR_CATALOGUE } from './health';
 
 /**
  * Derived to-dos — the alignment layer between statuses, tasks, health,
@@ -351,80 +352,21 @@ export function deriveTasksForUser(db: DbData, personaKey: string, side: UserSid
 export type PlanHealthLevel = 'good' | 'attention' | 'risk';
 
 /**
- * The media-plan health check, derived from the same to-dos so health and
- * tasks can never disagree: red when a LIVE plan has blocking work (or pacing
- * risk), amber when open work exists, green when nothing stands in the way.
+ * The media-plan health verdict, from the concern-only model (health.ts):
+ * 'risk' when anything AT_RISK was found on the plan or below it, 'attention'
+ * when something NEEDS_ATTENTION, and 'good' when nothing was found — which
+ * only means nothing was found by the checks that exist today, and must not
+ * be shown as a green state.
  */
 export function derivePlanHealth(db: DbData, plan: MediaPlan): { level: PlanHealthLevel; message: string } {
-  // Only real to-dos count towards health — a recommendation or an insight is
-  // an opportunity, not a problem, and a reminder is a nudge, not work left;
-  // neither should turn a fine plan amber.
-  const tasks = deriveTasksForPlan(db, plan.id).filter((t) => t.kind === 'action' && !t.reminder);
-  const blocking = tasks.filter((t) => t.severity === 'blocking');
-  const live = plan.status === 'running';
-
-  // The messages don't name the plan: every surface that shows them — the inbox
-  // row, the message panel, the plan card — already says which plan it is.
-  if (blocking.length > 0 && live) {
-    return {
-      level: 'risk',
-      message: `Live with ${blocking.length} blocking issue${blocking.length === 1 ? '' : 's'} — ${blocking[0].title.toLowerCase()} first.`,
-    };
-  }
-  // Health judges a running plan. A plan that isn't live can't be unhealthy —
-  // open setup work belongs to the to-do list, not to a red health chip.
-  if (!live) {
-    return {
-      level: 'good',
-      message: blocking.length > 0
-        ? `Not live yet — ${blocking.length} blocker${blocking.length === 1 ? '' : 's'} to clear before launch.`
-        : 'Not live yet — nothing to monitor.',
-    };
-  }
-  if (tasks.length > 0) {
-    return {
-      level: 'attention',
-      message: `${tasks.length} open task${tasks.length === 1 ? '' : 's'} still to finish.`,
-    };
-  }
-  return { level: 'good', message: 'Healthy — no open tasks, pacing on track.' };
-}
-
-/** One of the things a plan's health is judged on, and how it stands. */
-export interface PlanHealthCheck {
-  label: string;
-  ok: boolean;
-  /** The number or fact behind the verdict — "3 blockers", "€9,700 of €10,000". */
-  detail?: string;
-  /** A failed check that only counts once the plan is live. */
-  liveOnly?: boolean;
-}
-
-/**
- * What a plan's health is judged on — the same facts the to-do engine reads,
- * laid out as checks so the health chip and the health notification can both
- * show their evidence. The verdict itself is derivePlanHealth's.
- */
-export function derivePlanHealthChecks(db: DbData, plan: MediaPlan): PlanHealthCheck[] {
-  const cs = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
-  const bs = db.bookings.filter((b) => cs.some((c) => c.id === b.campaignId));
-  const actions = deriveTasksForPlan(db, plan.id).filter((t) => t.kind === 'action' && !t.reminder);
-  const blockers = actions.filter((t) => t.severity === 'blocking');
-  const committed = cs.reduce((sum, c) => sum + c.budget, 0);
-  const spend = cs.reduce((sum, c) => sum + c.spend, 0);
-  const live = plan.status === 'running';
-  const start = new Date(plan.startDate).getTime(); const end = new Date(plan.endDate).getTime();
-  const elapsed = Math.min(1, Math.max(0, (Date.now() - start) / Math.max(1, end - start)));
-  const expected = plan.budget * elapsed;
-  const pacingOk = !live || expected === 0 || Math.abs(spend - expected) / expected <= 0.2;
-  const missingCreatives = bs.filter((b) => b.creativeStatus === 'missing').length;
-  const draftCampaigns = cs.filter((c) => c.status === 'draft').length;
-  return [
-    { label: 'No blocking to-dos', ok: blockers.length === 0, detail: blockers.length ? `${blockers.length} blocker${blockers.length === 1 ? '' : 's'} — ${blockers[0].title}` : 'Nothing stands in the way', liveOnly: !live },
-    { label: 'No open to-dos', ok: actions.length === 0, detail: actions.length ? `${actions.length} open action${actions.length === 1 ? '' : 's'}` : 'Everything is done', liveOnly: !live },
-    { label: 'Budget within ceiling', ok: committed <= plan.budget, detail: `€${committed.toLocaleString()} committed of €${plan.budget.toLocaleString()}` },
-    { label: 'Pacing on track', ok: pacingOk, detail: live ? `€${spend.toLocaleString()} spent, €${Math.round(expected).toLocaleString()} expected by now` : 'Judged once the plan is live', liveOnly: !live },
-    { label: 'Every campaign approved', ok: draftCampaigns === 0, detail: draftCampaigns ? `${draftCampaigns} still in draft` : `${cs.length} campaign${cs.length === 1 ? '' : 's'}` },
-    { label: 'Every booking has a creative', ok: missingCreatives === 0, detail: missingCreatives ? `${missingCreatives} booking${missingCreatives === 1 ? '' : 's'} without one` : `${bs.length} booking${bs.length === 1 ? '' : 's'}` },
-  ];
+  const health = planHealth(db, plan.id);
+  if (!health) return { level: 'good', message: 'Nothing found by the checks that exist today.' };
+  const n = health.indicators.length;
+  const top = health.indicators.find((i) => i.severity === health.status) ?? health.indicators[0];
+  const lead = INDICATOR_CATALOGUE[top.code].title.toLowerCase();
+  const where = top.subject.level === 'BOOKING' ? top.subject.bookingName : top.subject.level === 'CAMPAIGN_ORDER' ? top.subject.campaignOrderName : undefined;
+  return {
+    level: health.status === 'AT_RISK' ? 'risk' : 'attention',
+    message: `${n} concern${n === 1 ? '' : 's'} found — ${lead}${where ? ` on ${where}` : ''}${n > 1 ? ', and more' : ''}.`,
+  };
 }

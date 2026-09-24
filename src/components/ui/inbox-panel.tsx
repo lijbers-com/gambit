@@ -169,7 +169,7 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
           message={active.preview}
           businessCase={businessCaseFor(active)}
           steps={active.steps}
-          checks={active.checks}
+          indicators={active.indicators}
           reminder={active.reminder}
           // A recommendation is a proposal, so its two answers are the
           // proposal's: take it or turn it down. Either way it is answered —

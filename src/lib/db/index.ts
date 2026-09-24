@@ -36,6 +36,7 @@ export { login, logout, getCurrentUser, subscribeSession } from './session';
 export { setupStepsForCampaign, setupStepDone, setupStepDoneForBooking, setupStepDoneForPlan, setupWorkflowSteps, workflowFor, walkSteps, SETUP_STEP_DEFAULTS, type SetupStep } from './setup-steps';
 export { readWorkflow, targetFor, workflowOrDefault, defaultWorkflow, campaignAsBooking, planAsBooking, STAGE_SYNONYMS, type WorkflowReading, type WorkflowTarget, type WorkflowStepState } from './workflow-state';
 export { deriveWorkflowTodos, type WorkflowTodoStep } from './workflow-todos';
+export * from './health';
 export {
   deriveTasks,
   deriveTasksForPlan,
@@ -44,8 +45,6 @@ export {
   deriveTasksForEngine,
   deriveTasksForUser,
   derivePlanHealth,
-  derivePlanHealthChecks,
-  type PlanHealthCheck,
   type DerivedTask,
   type TaskKind,
   type TaskSeverity,

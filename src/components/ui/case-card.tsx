@@ -17,6 +17,8 @@ import {
 } from './dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import type { ChartConfig, ChartDataPoint } from './chart-types';
+import { Badge } from './badge';
+import { INDICATOR_CATALOGUE, SEVERITY_LABEL, explainIndicator, subjectLabel, type HealthIndicator } from '@/lib/db/health';
 
 /**
  * THE case templates — one per message type, built strictly from the design
@@ -360,50 +362,45 @@ export const StepsCard: React.FC<{
   );
 };
 
-/** One of the things health is judged on, and how it stands. */
-export interface CaseCheck {
-  label: string;
-  ok: boolean;
-  detail?: string;
-  /** A failed check that only counts once the plan is live. */
-  liveOnly?: boolean;
-}
-
 /**
- * The case template for a HEALTH message: the why. What health is judged
- * on, which checks hold and which do not, and the rule that turns them into
- * a colour — the same evidence the health chip opens on the page, so the
- * notification never says "at risk" without showing what it saw.
+ * The case template for a HEALTH message: the concerns found. Health reports
+ * concerns only — each indicator names where it was detected, how serious it
+ * is, and the measurement that flagged it — so a status never appears
+ * without its findings, and nothing found is never painted as fine.
  */
-export const ChecksCard: React.FC<{
-  checks: CaseCheck[];
+export const IndicatorList: React.FC<{ indicators: HealthIndicator[]; className?: string }> = ({ indicators, className }) => (
+  <ul className={cn('divide-y rounded-md border bg-background', className)}>
+    {indicators.map((i, idx) => (
+      <li key={`${i.code}-${i.subject.bookingId ?? i.subject.campaignOrderId ?? i.subject.mediaPlanId}-${idx}`} className="flex items-start gap-3 px-3 py-2 text-sm">
+        <span className={cn('mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border', i.severity === 'AT_RISK' ? 'border-destructive-200 bg-destructive-50 text-destructive-700' : 'border-warning-200 bg-warning-50 text-warning-700')}>
+          <AlertTriangle className="h-3.5 w-3.5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            <span className="min-w-0 flex-1 truncate font-medium">{INDICATOR_CATALOGUE[i.code].title}</span>
+            <Badge variant={i.severity === 'AT_RISK' ? 'destructive' : 'warning'} className="shrink-0">{SEVERITY_LABEL[i.severity]}</Badge>
+          </span>
+          <span className="block truncate text-xs text-muted-foreground">{subjectLabel(i.subject)}</span>
+          <span className="block text-xs text-muted-foreground">{explainIndicator(i)}</span>
+        </span>
+      </li>
+    ))}
+  </ul>
+);
+
+export const IndicatorsCard: React.FC<{
+  indicators: HealthIndicator[];
   title?: string;
   className?: string;
-}> = ({ checks, title = 'What health is judged on', className }) => {
-  const failing = checks.filter((c) => !c.ok).length;
-  return (
-    <div className={cn('space-y-3 rounded-lg border bg-muted/20 p-4', className)}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-semibold text-foreground">{title}</div>
-        <span className="text-xs tabular-nums text-muted-foreground">{checks.length - failing} of {checks.length} hold</span>
-      </div>
-      <ul className="divide-y rounded-md border bg-background">
-        {checks.map((c) => (
-          <li key={c.label} className="flex items-center gap-3 px-3 py-2 text-sm">
-            <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border', c.ok ? 'border-success-200 bg-success-50 text-success-700' : c.liveOnly ? 'border-border bg-background text-muted-foreground' : 'border-warning-200 bg-warning-50 text-warning-700')}>
-              {c.ok ? <Check className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate">{c.label}</span>
-              {c.detail && <span className="block truncate text-xs text-muted-foreground">{c.detail}</span>}
-            </span>
-            {!c.ok && c.liveOnly && <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">Once live</span>}
-          </li>
-        ))}
-      </ul>
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        Healthy while nothing blocks; needs attention with open to-dos; at risk when a live plan has a blocker.
-      </p>
+}> = ({ indicators, title = 'What was found', className }) => (
+  <div className={cn('space-y-3 rounded-lg border bg-muted/20 p-4', className)}>
+    <div className="flex items-center justify-between gap-2">
+      <div className="text-sm font-semibold text-foreground">{title}</div>
+      <span className="text-xs tabular-nums text-muted-foreground">{indicators.length} concern{indicators.length === 1 ? '' : 's'}</span>
     </div>
-  );
-};
+    <IndicatorList indicators={indicators} />
+    <p className="text-xs leading-relaxed text-muted-foreground">
+      Health reports concerns only. Checks are added over time, so nothing found means nothing found by the checks that exist today.
+    </p>
+  </div>
+);

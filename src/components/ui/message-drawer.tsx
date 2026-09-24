@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { MessageSquare, WalletCards, Rows3, LayoutList, ArrowLeft } from 'lucide-react';
 import { stashAgentContext } from '@/lib/agent-context';
-import { CaseCard, ChecksCard, StepsCard, type CaseCardData, type CaseStep, type CaseCheck } from './case-card';
+import { CaseCard, IndicatorsCard, StepsCard, type CaseCardData, type CaseStep } from './case-card';
+import type { HealthIndicator } from '@/lib/db/health';
 import { Badge } from './badge';
 import { Button } from './button';
 import {
@@ -72,8 +73,8 @@ export interface MessageDrawerProps {
   steps?: CaseStep[];
   /** What the steps block is called; defaults by kind. */
   stepsTitle?: string;
-  /** A health message's why: what health is judged on and which checks hold. */
-  checks?: CaseCheck[];
+  /** A health message's why: the concerns found, each with its subject. */
+  indicators?: HealthIndicator[];
   /** A reminder from the workflow rather than work that blocks. */
   reminder?: boolean;
   /** Opens the Campaign Agent with this message as the starting question.
@@ -100,7 +101,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
   businessCase,
   steps,
   stepsTitle,
-  checks,
+  indicators,
   reminder,
   onAskAgent,
   onAccept,
@@ -144,8 +145,8 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
           already establish the hierarchy, so the body reads as body text. */}
       <p className="text-sm leading-relaxed text-foreground">{message}</p>
 
-      {/* A health message's case is its why: the checks. */}
-      {checks && checks.length > 0 && <ChecksCard checks={checks} />}
+      {/* A health message's case is its why: the concerns found. */}
+      {indicators && indicators.length > 0 && <IndicatorsCard indicators={indicators} />}
 
       {/* An action's case is the work around it: the stage's steps. A
           health message lists the open work behind its verdict. */}
@@ -169,7 +170,7 @@ export const MessageDrawer: React.FC<MessageDrawerProps> = ({
       {/* Going deeper is a deliberate step, not the default reading mode. The
           case template carries its own Ask-the-agent; this block covers the
           messages without a case. */}
-      {!hasCase && !(steps && steps.length > 0) && !(checks && checks.length > 0) && (
+      {!hasCase && !(steps && steps.length > 0) && !(indicators && indicators.length > 0) && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
           <p className="text-sm text-muted-foreground">Want more detail on this message?</p>
           <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={askAgent}>

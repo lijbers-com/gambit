@@ -86,7 +86,9 @@ export type HealthNotification = {
 };
 
 export const healthConfig: Record<HealthLevel, { label: string; Icon: LucideIcon; row: string; icon: string; badge: string; text: string }> = {
-  good:      { label: 'Healthy',         Icon: HeartPulse, row: 'border-green-200 bg-green-50/60 hover:bg-green-50', icon: 'bg-green-100 text-green-700', badge: 'border-green-200 bg-green-100 text-green-700', text: 'text-green-700' },
+  // Nothing found is not a good state to celebrate — only nothing found by
+  // the checks that exist today. Neutral, never green.
+  good:      { label: 'No concerns found', Icon: HeartPulse, row: 'border-border bg-neutral-50/60 hover:bg-neutral-50', icon: 'bg-neutral-100 text-neutral-600', badge: 'border-border bg-neutral-50 text-neutral-600', text: 'text-neutral-600' },
   attention: { label: 'Needs attention', Icon: HeartPulse, row: 'border-amber-200 bg-amber-50/60 hover:bg-amber-50', icon: 'bg-amber-100 text-amber-700', badge: 'border-amber-200 bg-amber-100 text-amber-700', text: 'text-amber-700' },
   risk:      { label: 'At risk',         Icon: HeartPulse, row: 'border-red-200 bg-red-50/60 hover:bg-red-50',       icon: 'bg-red-100 text-red-700',     badge: 'border-red-200 bg-red-100 text-red-700', text: 'text-red-700' },
 };

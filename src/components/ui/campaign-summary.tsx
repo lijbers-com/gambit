@@ -718,11 +718,9 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       const dbPlan = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
       if (dbPlan) {
         const health = derivePlanHealth(db, dbPlan);
-        return {
-          level: health.level,
-          message: health.message,
-          explain: health.level === 'good' ? budgetOptimisationExplain() : budgetPacingExplain(),
-        };
+        // Nothing found is no chip: health reports concerns only.
+        if (health.level === 'good') return undefined;
+        return { level: health.level, message: health.message, explain: budgetPacingExplain() };
       }
       // Display-only fallback for cards without store backing.
       const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
@@ -733,7 +731,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       if ((budgetUsagePercentage !== undefined && budgetUsagePercentage >= 75) || incomplete === 1) {
         return { level: 'attention', message: `"${internalTitle}" needs attention — ${incomplete === 1 ? '1 campaign to finish' : 'watch the budget pacing'}.`, explain: budgetPacingExplain() };
       }
-      return { level: 'good', message: `"${internalTitle}" is healthy — pacing and delivery are on track.`, explain: budgetOptimisationExplain() };
+      return undefined;
     })();
 
     // The at-a-glance detail row (budget / run time / campaigns / bookings). Open
@@ -875,9 +873,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         a statement, next to the process status. */}
                     {healthNotification && (() => {
                       const HealthIcon = healthConfig[healthNotification.level].Icon;
-                      const label = healthNotification.level === 'good'
-                        ? 'Healthy'
-                        : `Health ${healthConfig[healthNotification.level].label.toLowerCase()}`;
+                      const label = `Health ${healthConfig[healthNotification.level].label.toLowerCase()}`;
                       return (
                         <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', healthConfig[healthNotification.level].badge)}>
                           <HealthIcon className="h-3 w-3" />

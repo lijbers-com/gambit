@@ -50,7 +50,8 @@ import { BudgetPopover, DatesCell, HealthCell, NotificationsCell } from '@/compo
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, derivePlanHealthChecks, useInboxState, setupStepsForCampaign, setupStepDone, type Campaign, type EngineId, type PlanStatus, type SetupStepKey, type WorkflowStep } from '@/lib/db';
+import type { HealthIndicator } from '@/lib/db/health';
+import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, setupStepsForCampaign, setupStepDone, type Campaign, type EngineId, type PlanStatus, type SetupStepKey, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import {
   Dialog,
@@ -177,9 +178,10 @@ type Row = {
   actionCount?: number;
   recommendationCount?: number;
   insightCount?: number;
-  /** Health for this row, derived from its own blocking work — the same rule
-   *  derivePlanHealth applies one level up. */
+  /** Health for this row from the concern-only model: absent when nothing
+   *  was found on it or below it. */
   health?: 'good' | 'attention' | 'risk';
+  healthIndicators?: HealthIndicator[];
 };
 
 /** Health for a row, matching the chip the media plan card shows. */
@@ -757,7 +759,7 @@ export const MediaPlanDetail: Story = {
      * What the plan's health is judged on — the same facts the to-do engine
      * reads, laid out as checks so the chip can show its evidence.
      */
-    const planHealthChecks = plan ? derivePlanHealthChecks(db, plan) : undefined;
+    const planHealthSummary = plan ? planHealth(db, plan.id) : undefined;
 
     /**
      * Add a campaign of a chosen proposition to this plan and open it.
@@ -930,11 +932,12 @@ export const MediaPlanDetail: Story = {
         actionCount: actions.length,
         recommendationCount: msgs.filter((m) => m.kind === 'recommendation').length,
         insightCount: msgs.filter((m) => m.kind === 'insight').length,
-        health: actions.some((m) => m.severity === 'blocking')
-          ? ('risk' as const)
-          : actions.length > 0
-            ? ('attention' as const)
-            : ('good' as const),
+        // Health is the concern-only model's status for the row, or nothing.
+        health: (() => {
+          const h = scope.campaignId ? campaignHealth(db, scope.campaignId) : scope.bookingId ? bookingHealth(db, scope.bookingId) : undefined;
+          return h ? (h.status === 'AT_RISK' ? ('risk' as const) : ('attention' as const)) : undefined;
+        })(),
+        healthIndicators: (scope.campaignId ? campaignHealth(db, scope.campaignId) : scope.bookingId ? bookingHealth(db, scope.bookingId) : undefined)?.indicators,
       };
     };
 
@@ -1064,7 +1067,7 @@ export const MediaPlanDetail: Story = {
             onClick={(e) => { e.stopPropagation(); setInboxRow({ level: r._type as 'campaign' | 'booking', id: r._id, name: r.name }); }}
             title="Open notifications"
           >
-            <HealthCell health={r.health ?? 'good'} />
+            <HealthCell health={r.health} indicators={r.healthIndicators} />
           </button>
         )),
       },
@@ -1169,9 +1172,9 @@ export const MediaPlanDetail: Story = {
               <div className="flex h-9 items-center">
                 {/* The chip opens what it is judged on. */}
                 <HealthCell
-                  health={plan ? derivePlanHealth(db, plan).level : 'good'}
+                  health={plan ? derivePlanHealth(db, plan).level : undefined}
                   message={plan ? derivePlanHealth(db, plan).message : undefined}
-                  checks={planHealthChecks}
+                  indicators={planHealthSummary?.indicators}
                 />
               </div>
             </ControlBarItem>

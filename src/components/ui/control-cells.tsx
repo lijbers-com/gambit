@@ -10,7 +10,7 @@ import { BudgetStackedMini } from './card';
 import type { PatternKey } from '@/lib/proposition-patterns';
 import { IndicatorList } from './case-card';
 import { CardInsightList, type CardInsight } from './insights-notifications';
-import { DEFAULT_HEALTH_CONFIG, CHECK_LABEL, type HealthCheckKey, type HealthIndicator } from '@/lib/db/health';
+import type { HealthIndicator } from '@/lib/db/health';
 import { Input, FieldHint } from './input';
 import { Label } from './label';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
@@ -151,7 +151,6 @@ export const HealthCell = ({ health, score, reason, indicators, insights, messag
     attention: { label: 'Health needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' },
     risk: { label: 'Health at risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
   }[state];
-  const checks = (Object.keys(DEFAULT_HEALTH_CONFIG.checks) as HealthCheckKey[]).filter((k) => DEFAULT_HEALTH_CONFIG.checks[k].enabled);
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -177,26 +176,10 @@ export const HealthCell = ({ health, score, reason, indicators, insights, messag
             </span>
           </span>
         </div>
-        {/* The failing checks — or, when there are none, what was checked. */}
-        {state === 'good' ? (
-          <>
-            <div className="flex items-center justify-between border-t px-3 py-2">
-              <span className="text-sm font-medium">What was checked</span>
-              <span className="text-xs text-muted-foreground">nothing found</span>
-            </div>
-            <ul className="divide-y">
-              {checks.map((k) => (
-                <li key={k} className="flex items-center gap-3 px-3 py-2 text-sm">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-success-200 bg-success-50 text-success-700">
-                    <Check className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">{CHECK_LABEL[k]}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground">No concerns</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : (
+        {/* The failing checks. Nothing found lists nothing: which checks
+            apply differs per proposition, so a list of "what was checked"
+            would promise more than ran. The insights below carry on. */}
+        {state !== 'good' && (
           <>
             <div className="flex items-center justify-between border-t px-3 py-2">
               <span className="text-sm font-medium">What was found</span>

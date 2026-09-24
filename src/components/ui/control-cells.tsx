@@ -9,7 +9,6 @@ import { DateRangePicker } from './date-picker';
 import { BudgetStackedMini } from './card';
 import type { PatternKey } from '@/lib/proposition-patterns';
 import { IndicatorList } from './case-card';
-import { CardInsightList, type CardInsight } from './insights-notifications';
 import type { HealthIndicator } from '@/lib/db/health';
 import { Input, FieldHint } from './input';
 import { Label } from './label';
@@ -138,12 +137,10 @@ const HealthGauge = ({ score, state }: { score: number; state: HealthLevel }) =>
 /**
  * The health chip: the score and the state, e.g. "45 · Health at risk". It
  * opens the reason — the score as a ring, the failing checks in a few
- * words, then each finding — and, beneath, the insights for the subject,
- * the way the Insights dashboard lists them under a chart. Passing checks
- * stay hidden; only nothing-found lists what was checked. Recommendations
- * never appear here: they are upside, not condition.
+ * words, then each finding. Passing checks stay hidden. Neither insights
+ * nor recommendations appear here: health is condition, nothing else.
  */
-export const HealthCell = ({ health, score, reason, indicators, insights, message }: { health?: HealthLevel; score?: number; reason?: string; indicators?: HealthIndicator[]; insights?: CardInsight[]; message?: string }) => {
+export const HealthCell = ({ health, score, reason, indicators, message }: { health?: HealthLevel; score?: number; reason?: string; indicators?: HealthIndicator[]; message?: string }) => {
   const state: HealthLevel = !health || !indicators?.length ? 'good' : health;
   const value = score ?? (state === 'good' ? 100 : undefined);
   const cfg = {
@@ -187,13 +184,6 @@ export const HealthCell = ({ health, score, reason, indicators, insights, messag
             </div>
             <IndicatorList indicators={indicators!} className="rounded-none border-0" />
           </>
-        )}
-        {/* The insights, beneath — as the Insights dashboard lists them. */}
-        {insights && insights.length > 0 && (
-          <div className="border-t px-3 py-3">
-            <div className="mb-2 text-sm font-medium">Insights</div>
-            <CardInsightList insights={insights} variant="compact" />
-          </div>
         )}
       </PopoverContent>
     </Popover>

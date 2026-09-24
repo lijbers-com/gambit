@@ -31,7 +31,8 @@ import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Slider } from './slider';
 import { NotificationItem } from './notification-item';
 import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, healthConfig, adviceKind, type Advice, type HealthNotification, type NotificationKind } from './optimisation-card';
-import { useDb, derivePlanHealth, deriveTasksForPlan, deriveMessages, useInboxState } from '@/lib/db';
+import { useDb, derivePlanHealth, deriveTasksForPlan, deriveMessages, useInboxState, planHealth } from '@/lib/db';
+import { HealthCell } from './control-cells';
 import { DollarSign, ChevronDown, ChevronUp, Sparkles, Bell, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 
@@ -872,6 +873,20 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     {/* Health, spelled out as "Health …" so the chip reads as
                         a statement, next to the process status. */}
                     {healthNotification && (() => {
+                      // A store-backed plan gets the real health chip: it
+                      // opens the score, its reason and the findings — the
+                      // same dropdown the plan page has. The click stays off
+                      // the card's own navigation.
+                      const dbPlan = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
+                      if (dbPlan) {
+                        const verdict = derivePlanHealth(db, dbPlan);
+                        const summary = planHealth(db, dbPlan.id);
+                        return (
+                          <span onClick={(e) => e.stopPropagation()}>
+                            <HealthCell health={verdict.level} score={verdict.score} reason={verdict.reason} message={verdict.message} indicators={summary?.indicators} />
+                          </span>
+                        );
+                      }
                       const HealthIcon = healthConfig[healthNotification.level].Icon;
                       const label = `Health ${healthConfig[healthNotification.level].label.toLowerCase()}`;
                       return (

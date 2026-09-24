@@ -50,7 +50,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { scoreHealth, type HealthIndicator, type HealthScore } from '@/lib/db/health';
-import type { CardInsight } from '@/components/ui/insights-notifications';
 import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, markRead, markDone, applyPlanLifecycle, setupStepDone, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
@@ -686,11 +685,6 @@ export const MediaPlanDetail: Story = {
      */
     const planHealthSummary = plan ? planHealth(db, plan.id) : undefined;
     const planVerdict = plan ? derivePlanHealth(db, plan) : undefined;
-    // The plan's insights, for the health dropdown — never its
-    // recommendations, which are upside and must not sit with condition.
-    const planInsightCards: CardInsight[] = planAllMsgs
-      .filter((m) => m.kind === 'insight')
-      .map((m) => ({ id: m.id, kind: m.kind, subject: m.subject, preview: m.preview, context: m.context, caseData: { stats: m.evidence?.stats?.map((st) => ({ ...st, tone: st.tone === 'success' ? 'success' as const : undefined })), insights: m.evidence?.insights } }));
 
     /**
      * Add a campaign of a chosen proposition to this plan and open it.
@@ -1112,7 +1106,6 @@ export const MediaPlanDetail: Story = {
                     reason={planVerdict?.reason}
                     message={planVerdict?.message}
                     indicators={planHealthSummary?.indicators}
-                    insights={planInsightCards}
                   />
                 )}
               </div>

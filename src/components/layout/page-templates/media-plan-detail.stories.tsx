@@ -1061,14 +1061,11 @@ export const MediaPlanDetail: Story = {
       },
       {
         key: 'health', header: 'Health',
+        // The chip opens its own findings; only the row click is kept out.
         render: (r) => (r._type === 'add' ? null : (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setInboxRow({ level: r._type as 'campaign' | 'booking', id: r._id, name: r.name }); }}
-            title="Open notifications"
-          >
+          <div onClick={(e) => e.stopPropagation()}>
             <HealthCell health={r.health} indicators={r.healthIndicators} />
-          </button>
+          </div>
         )),
       },
       { key: 'dailyCap', header: 'Daily cap', render: (r) => (r._type === 'add' ? null : <span className="tabular-nums text-muted-foreground">{r._type === 'booking' ? r.dailyCap : '—'}</span>) },
@@ -1178,13 +1175,14 @@ export const MediaPlanDetail: Story = {
                 />
               </div>
             </ControlBarItem>
-            <ControlBarItem label="Notifications" dropOrder={1}>
+            {/* Recommendations only: to-dos are the workflow steps right
+                below, and every notification lives in the notification
+                centre. The count opens the Recommendations tab. */}
+            <ControlBarItem label="Recommendations" dropOrder={1}>
               <div className="flex h-9 items-center">
                 <NotificationsCell
-                  actions={planOwnCounts.actions}
                   recommendations={planOwnCounts.recommendations}
-                  insights={planOwnCounts.insights}
-                  onOpen={() => plan && setInboxRow({ level: 'media-plan', id: plan.id, name: plan.name })}
+                  onOpen={() => setActiveTab('inbox')}
                 />
               </div>
             </ControlBarItem>

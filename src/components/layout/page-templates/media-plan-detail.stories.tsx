@@ -45,13 +45,14 @@ import { stageForGoal, funnelKpis } from '@/lib/funnel';
 import { MiniSelect } from '@/components/ui/delivery-settings';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
 import { WorkflowProgress } from '@/components/ui/workflow-progress';
-import { BudgetPopover, DatesCell, HealthCell, NotificationsCell } from '@/components/ui/control-cells';
+import { BudgetPopover, DatesCell, HealthCell, NotificationsCell, RecommendationsCell } from '@/components/ui/control-cells';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { HealthIndicator } from '@/lib/db/health';
-import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, setupStepDone, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
+import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, markRead, markDone, setupStepDone, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
+import { MessageDrawer } from '@/components/ui/message-drawer';
 import {
   Dialog,
   DialogContent,
@@ -511,6 +512,7 @@ export const MediaPlanDetail: Story = {
     // What the Notifications tab badges: messages for this plan the reader has
     // not opened yet — the same state the inbox list marks with its dot.
     const inboxStatus = useInboxState();
+    const [activeRecommendationId, setActiveRecommendationId] = React.useState<string | null>(null);
     const unreadCount = plan
       ? deriveMessages(db, { mediaPlanId: plan.id }).filter(
           (m) => m.kind === 'recommendation' && (inboxStatus[m.id] ?? 'unread') === 'unread',
@@ -568,6 +570,10 @@ export const MediaPlanDetail: Story = {
     // population the Notifications tab badges. Counting only the plan-level
     // ones showed "—" while the tab said 4.
     const planAllMsgs = plan ? deriveMessages(db, { mediaPlanId: plan.id }) : [];
+    // The plan's recommendations, for the control bar's dropdown; one can be
+    // open in the message panel straight from there.
+    const planRecommendations = planAllMsgs.filter((m) => m.kind === 'recommendation');
+    const activeRecommendation = planRecommendations.find((m) => m.id === activeRecommendationId) ?? null;
     const planOwnCounts = {
       actions: planAllMsgs.filter((m) => m.kind === 'action' || m.kind === 'health').length,
       recommendations: planAllMsgs.filter((m) => m.kind === 'recommendation').length,
@@ -1084,9 +1090,10 @@ export const MediaPlanDetail: Story = {
                 centre. The count opens the Recommendations tab. */}
             <ControlBarItem label="Recommendations" dropOrder={1}>
               <div className="flex h-9 items-center">
-                <NotificationsCell
-                  recommendations={planOwnCounts.recommendations}
-                  onOpen={() => setActiveTab('inbox')}
+                <RecommendationsCell
+                  items={planRecommendations.map((m) => ({ id: m.id, subject: m.subject, preview: m.preview, context: m.context, done: inboxStatus[m.id] === 'done' }))}
+                  onOpen={(id) => { markRead(id); setActiveRecommendationId(id); }}
+                  onOpenAll={() => setActiveTab('inbox')}
                 />
               </div>
             </ControlBarItem>
@@ -1864,7 +1871,25 @@ export const MediaPlanDetail: Story = {
         </DialogContent>
       </Dialog>
       )}
-      </AppLayout>
+      {/* A recommendation opened from the control bar's dropdown: the same
+        panel the inbox opens, with its case and its two answers. */}
+    {activeRecommendation && (
+      <MessageDrawer
+        open
+        onOpenChange={(isOpen) => { if (!isOpen) setActiveRecommendationId(null); }}
+        kind="recommendation"
+        severity={activeRecommendation.severity}
+        subject={activeRecommendation.subject}
+        context={activeRecommendation.context}
+        level={activeRecommendation.level}
+        message={activeRecommendation.preview}
+        businessCase={activeRecommendation.evidence ? { stats: activeRecommendation.evidence.stats, insights: activeRecommendation.evidence.insights, move: activeRecommendation.evidence.move } : undefined}
+        acceptLabel={activeRecommendation.acceptLabel}
+        onAccept={inboxStatus[activeRecommendation.id] !== 'done' ? () => { markDone(activeRecommendation.id); setActiveRecommendationId(null); } : undefined}
+        onDecline={inboxStatus[activeRecommendation.id] !== 'done' ? () => { markDone(activeRecommendation.id); setActiveRecommendationId(null); } : undefined}
+      />
+    )}
+    </AppLayout>
       </MenuContextProvider>
     );
   },

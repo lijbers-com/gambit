@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Check, ChevronDown, Euro, HeartPulse } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Euro, HeartPulse } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { Button } from './button';
@@ -224,6 +224,61 @@ export const NotificationsCell = ({
         </button>
       ))}
     </span>
+  );
+};
+
+/**
+ * The recommendations cell: the count as a badge that opens the list, so a
+ * recommendation is one click away from the control bar — each row opens
+ * its case, and the footer opens the tab with all of them.
+ */
+export const RecommendationsCell = ({
+  items,
+  onOpen,
+  onOpenAll,
+}: {
+  items: { id: string; subject: string; preview: string; context?: string; done?: boolean }[];
+  onOpen: (id: string) => void;
+  onOpenAll?: () => void;
+}) => {
+  const open = items.filter((i) => !i.done);
+  if (open.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" title="Open recommendations">
+          <Badge variant="secondary" className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap tabular-nums transition-colors hover:opacity-80">
+            {open.length} recommendation{open.length === 1 ? '' : 's'}
+            <ChevronDown className="h-3 w-3 opacity-60" />
+          </Badge>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[28rem] p-0">
+        <div className="flex items-center justify-between border-b px-3 py-2">
+          <span className="text-sm font-medium">Recommendations</span>
+          <span className="text-xs text-muted-foreground">{open.length} open</span>
+        </div>
+        <ul className="divide-y">
+          {open.map((i) => (
+            <li key={i.id}>
+              <button type="button" onClick={() => onOpen(i.id)} className="flex w-full items-start gap-3 px-3 py-2 text-left transition-colors hover:bg-surface-hover">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">{i.subject}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{i.preview}</span>
+                  {i.context && <span className="block truncate text-xs text-muted-foreground">{i.context}</span>}
+                </span>
+                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/60" />
+              </button>
+            </li>
+          ))}
+        </ul>
+        {onOpenAll && (
+          <button type="button" onClick={onOpenAll} className="w-full border-t px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:text-foreground">
+            Open the Recommendations tab
+          </button>
+        )}
+      </PopoverContent>
+    </Popover>
   );
 };
 

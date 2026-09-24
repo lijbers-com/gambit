@@ -49,7 +49,8 @@ import { BudgetPopover, DatesCell, HealthCell, NotificationsCell, Recommendation
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import type { HealthIndicator } from '@/lib/db/health';
+import { scoreHealth, type HealthIndicator, type HealthScore } from '@/lib/db/health';
+import type { CardInsight } from '@/components/ui/insights-notifications';
 import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, markRead, markDone, setupStepDone, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
@@ -182,6 +183,7 @@ type Row = {
    *  was found on it or below it. */
   health?: 'good' | 'attention' | 'risk';
   healthIndicators?: HealthIndicator[];
+  healthScore?: HealthScore;
 };
 
 /** Health for a row, matching the chip the media plan card shows. */
@@ -671,6 +673,12 @@ export const MediaPlanDetail: Story = {
      * reads, laid out as checks so the chip can show its evidence.
      */
     const planHealthSummary = plan ? planHealth(db, plan.id) : undefined;
+    const planVerdict = plan ? derivePlanHealth(db, plan) : undefined;
+    // The plan's insights, for the health dropdown — never its
+    // recommendations, which are upside and must not sit with condition.
+    const planInsightCards: CardInsight[] = planAllMsgs
+      .filter((m) => m.kind === 'insight')
+      .map((m) => ({ id: m.id, kind: m.kind, subject: m.subject, preview: m.preview, context: m.context, caseData: { stats: m.evidence?.stats?.map((st) => ({ ...st, tone: st.tone === 'success' ? 'success' as const : undefined })), insights: m.evidence?.insights } }));
 
     /**
      * Add a campaign of a chosen proposition to this plan and open it.
@@ -849,6 +857,7 @@ export const MediaPlanDetail: Story = {
           return h ? (h.status === 'AT_RISK' ? ('risk' as const) : ('attention' as const)) : undefined;
         })(),
         healthIndicators: (scope.campaignId ? campaignHealth(db, scope.campaignId) : scope.bookingId ? bookingHealth(db, scope.bookingId) : undefined)?.indicators,
+        healthScore: scoreHealth(scope.campaignId ? campaignHealth(db, scope.campaignId) : scope.bookingId ? bookingHealth(db, scope.bookingId) : undefined),
       };
     };
 
@@ -975,7 +984,7 @@ export const MediaPlanDetail: Story = {
         // The chip opens its own findings; only the row click is kept out.
         render: (r) => (r._type === 'add' ? null : (
           <div onClick={(e) => e.stopPropagation()}>
-            <HealthCell health={r.health} indicators={r.healthIndicators} />
+            <HealthCell health={r.health} score={r.healthScore?.score} reason={r.healthScore?.reason} indicators={r.healthIndicators} />
           </div>
         )),
       },
@@ -1080,9 +1089,12 @@ export const MediaPlanDetail: Story = {
               <div className="flex h-9 items-center">
                 {/* The chip opens what it is judged on. */}
                 <HealthCell
-                  health={plan ? derivePlanHealth(db, plan).level : undefined}
-                  message={plan ? derivePlanHealth(db, plan).message : undefined}
+                  health={planVerdict?.level}
+                  score={planVerdict?.score}
+                  reason={planVerdict?.reason}
+                  message={planVerdict?.message}
                   indicators={planHealthSummary?.indicators}
+                  insights={planInsightCards}
                 />
               </div>
             </ControlBarItem>

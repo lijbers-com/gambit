@@ -9,6 +9,7 @@ import { DateRangePicker } from './date-picker';
 import { BudgetStackedMini } from './card';
 import type { PatternKey } from '@/lib/proposition-patterns';
 import { IndicatorList } from './case-card';
+import { CardInsightList, type CardInsight } from './insights-notifications';
 import { DEFAULT_HEALTH_CONFIG, CHECK_LABEL, type HealthCheckKey, type HealthIndicator } from '@/lib/db/health';
 import { Input, FieldHint } from './input';
 import { Label } from './label';
@@ -119,66 +120,98 @@ export type HealthLevel = 'good' | 'attention' | 'risk';
  * is no chip to paint green: a plain note says so, because "nothing found"
  * only means nothing found by the checks that exist today.
  */
-export const HealthCell = ({ health, indicators, message }: { health?: HealthLevel; indicators?: HealthIndicator[]; message?: string }) => {
-  // Nothing found: the chip says the health is good, and opens on what was
-  // checked — so "good" is read as "good by the checks that exist today".
-  if (!health || health === 'good' || !indicators?.length) {
-    const checks = (Object.keys(DEFAULT_HEALTH_CONFIG.checks) as HealthCheckKey[]).filter((k) => DEFAULT_HEALTH_CONFIG.checks[k].enabled);
-    return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <span className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-success-200 bg-success-50 px-2 py-0.5 text-xs font-medium text-success-700 hover:opacity-80">
-              <HeartPulse className="h-3 w-3" />
-              Health good
-              <ChevronDown className="h-3 w-3 opacity-60" />
-            </span>
-          </button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-[24rem] p-0">
-          <div className="flex items-center justify-between border-b px-3 py-2">
-            <span className="text-sm font-medium">What was checked</span>
-            <span className="text-xs text-muted-foreground">nothing found</span>
-          </div>
-          <ul className="divide-y">
-            {checks.map((k) => (
-              <li key={k} className="flex items-center gap-3 px-3 py-2 text-sm">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-success-200 bg-success-50 text-success-700">
-                  <Check className="h-3.5 w-3.5" />
-                </span>
-                <span className="min-w-0 flex-1 truncate">{CHECK_LABEL[k]}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">No concerns</span>
-              </li>
-            ))}
-          </ul>
-          <p className="border-t px-3 py-2 text-xs text-muted-foreground">
-            {message ?? 'Nothing found by the checks that exist today.'} Checks are added over time.
-          </p>
-        </PopoverContent>
-      </Popover>
-    );
-  }
+/** The score as a ring — the number inside, the arc its share of 100. */
+const HealthGauge = ({ score, state }: { score: number; state: HealthLevel }) => {
+  const r = 20; const c = 2 * Math.PI * r;
+  const tone = state === 'risk' ? 'text-destructive-600' : state === 'attention' ? 'text-warning-600' : 'text-success-600';
+  return (
+    <span className="relative inline-flex h-14 w-14 shrink-0 items-center justify-center">
+      <svg viewBox="0 0 48 48" className="h-14 w-14 -rotate-90">
+        <circle cx="24" cy="24" r={r} fill="none" stroke="currentColor" strokeWidth="4" className="text-neutral-200" />
+        <circle cx="24" cy="24" r={r} fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className={tone} strokeDasharray={c} strokeDashoffset={c * (1 - score / 100)} />
+      </svg>
+      <span className="absolute text-sm font-semibold tabular-nums">{score}</span>
+    </span>
+  );
+};
+
+/**
+ * The health chip: the score and the state, e.g. "45 · Health at risk". It
+ * opens the reason — the score as a ring, the failing checks in a few
+ * words, then each finding — and, beneath, the insights for the subject,
+ * the way the Insights dashboard lists them under a chart. Passing checks
+ * stay hidden; only nothing-found lists what was checked. Recommendations
+ * never appear here: they are upside, not condition.
+ */
+export const HealthCell = ({ health, score, reason, indicators, insights, message }: { health?: HealthLevel; score?: number; reason?: string; indicators?: HealthIndicator[]; insights?: CardInsight[]; message?: string }) => {
+  const state: HealthLevel = !health || !indicators?.length ? 'good' : health;
+  const value = score ?? (state === 'good' ? 100 : undefined);
   const cfg = {
+    good: { label: 'Health good', className: 'border-success-200 bg-success-50 text-success-700' },
     attention: { label: 'Health needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' },
     risk: { label: 'Health at risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
-  }[health];
+  }[state];
+  const checks = (Object.keys(DEFAULT_HEALTH_CONFIG.checks) as HealthCheckKey[]).filter((k) => DEFAULT_HEALTH_CONFIG.checks[k].enabled);
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <span className={cn('inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium hover:opacity-80', cfg.className)}>
             <HeartPulse className="h-3 w-3" />
+            {value !== undefined && <span className="tabular-nums">{value} ·</span>}
             {cfg.label}
             <ChevronDown className="h-3 w-3 opacity-60" />
           </span>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[28rem] p-0">
-        <div className="flex items-center justify-between border-b px-3 py-2">
-          <span className="text-sm font-medium">What was found</span>
-          <span className="text-xs text-muted-foreground">{indicators.length} concern{indicators.length === 1 ? '' : 's'}</span>
+      <PopoverContent align="start" className="w-[30rem] p-0">
+        {/* The score and its reason. */}
+        <div className="flex items-center gap-3 px-3 py-3">
+          {value !== undefined && <HealthGauge score={value} state={state} />}
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">Health score</span>
+            <span className="block text-xs text-muted-foreground">
+              {state === 'good'
+                ? (message ?? 'Nothing found by the checks that exist today.')
+                : reason ? reason.charAt(0).toUpperCase() + reason.slice(1) : message}
+            </span>
+          </span>
         </div>
-        <IndicatorList indicators={indicators} className="rounded-none border-0" />
+        {/* The failing checks — or, when there are none, what was checked. */}
+        {state === 'good' ? (
+          <>
+            <div className="flex items-center justify-between border-t px-3 py-2">
+              <span className="text-sm font-medium">What was checked</span>
+              <span className="text-xs text-muted-foreground">nothing found</span>
+            </div>
+            <ul className="divide-y">
+              {checks.map((k) => (
+                <li key={k} className="flex items-center gap-3 px-3 py-2 text-sm">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-success-200 bg-success-50 text-success-700">
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">{CHECK_LABEL[k]}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">No concerns</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between border-t px-3 py-2">
+              <span className="text-sm font-medium">What was found</span>
+              <span className="text-xs text-muted-foreground">{indicators!.length} concern{indicators!.length === 1 ? '' : 's'}</span>
+            </div>
+            <IndicatorList indicators={indicators!} className="rounded-none border-0" />
+          </>
+        )}
+        {/* The insights, beneath — as the Insights dashboard lists them. */}
+        {insights && insights.length > 0 && (
+          <div className="border-t px-3 py-3">
+            <div className="mb-2 text-sm font-medium">Insights</div>
+            <CardInsightList insights={insights} variant="compact" />
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );

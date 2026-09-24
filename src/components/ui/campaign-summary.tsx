@@ -718,7 +718,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       const dbPlan = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
       if (dbPlan) {
         const health = derivePlanHealth(db, dbPlan);
-        return { level: health.level, message: health.message, explain: health.level === 'good' ? budgetOptimisationExplain() : budgetPacingExplain() };
+        return { level: health.level, score: health.score, message: health.message, explain: health.level === 'good' ? budgetOptimisationExplain() : budgetPacingExplain() };
       }
       // Display-only fallback for cards without store backing.
       const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
@@ -875,6 +875,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                       return (
                         <span className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium', healthConfig[healthNotification.level].badge)}>
                           <HealthIcon className="h-3 w-3" />
+                          {healthNotification.score !== undefined && <span className="tabular-nums">{healthNotification.score} ·</span>}
                           {label}
                         </span>
                       );

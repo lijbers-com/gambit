@@ -1,7 +1,7 @@
 import type { DbData, EngineId, MediaPlan, UserSide } from './types';
 import { keywordWeek, recommendationsForKeyword, type Recommendation } from '../recommendations';
 import { deriveWorkflowTodos, type WorkflowTodoStep } from './workflow-todos';
-import { planHealth, INDICATOR_CATALOGUE } from './health';
+import { planHealth, scoreHealth, INDICATOR_CATALOGUE } from './health';
 
 /**
  * Derived to-dos — the alignment layer between statuses, tasks, health,
@@ -358,15 +358,18 @@ export type PlanHealthLevel = 'good' | 'attention' | 'risk';
  * only means nothing was found by the checks that exist today, and must not
  * be shown as a green state.
  */
-export function derivePlanHealth(db: DbData, plan: MediaPlan): { level: PlanHealthLevel; message: string } {
+export function derivePlanHealth(db: DbData, plan: MediaPlan): { level: PlanHealthLevel; message: string; score: number; reason?: string } {
   const health = planHealth(db, plan.id);
-  if (!health) return { level: 'good', message: 'Nothing found by the checks that exist today.' };
+  const scored = scoreHealth(health);
+  if (!health) return { level: 'good', message: 'Nothing found by the checks that exist today.', score: scored.score };
   const n = health.indicators.length;
   const top = health.indicators.find((i) => i.severity === health.status) ?? health.indicators[0];
   const lead = INDICATOR_CATALOGUE[top.code].title.toLowerCase();
   const where = top.subject.level === 'BOOKING' ? top.subject.bookingName : top.subject.level === 'CAMPAIGN_ORDER' ? top.subject.campaignOrderName : undefined;
   return {
-    level: health.status === 'AT_RISK' ? 'risk' : 'attention',
+    level: scored.state,
     message: `${n} concern${n === 1 ? '' : 's'} found — ${lead}${where ? ` on ${where}` : ''}${n > 1 ? ', and more' : ''}.`,
+    score: scored.score,
+    reason: scored.reason,
   };
 }

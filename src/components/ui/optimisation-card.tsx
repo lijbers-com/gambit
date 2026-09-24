@@ -80,6 +80,8 @@ export type HealthLevel = 'good' | 'attention' | 'risk';
 
 export type HealthNotification = {
   level: HealthLevel;
+  /** The health score, 0–100, shown before the label: "45 · Health at risk". */
+  score?: number;
   /** One-line status message shown on the notification row. */
   message: React.ReactNode;
   explain?: AdviceExplain;

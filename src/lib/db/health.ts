@@ -333,3 +333,59 @@ export function subjectLabel(s: HealthIndicatorSubject): string {
   const name = s.level === 'BOOKING' ? s.bookingName : s.level === 'CAMPAIGN_ORDER' ? s.campaignOrderName : s.mediaPlanName;
   return `${LEVEL_LABEL[s.level]} · ${name ?? ''}`;
 }
+
+// ── The score ───────────────────────────────────────────────────────────
+
+/**
+ * Health as a score: condition, never compliance. It is built only from the
+ * checks — never from recommendations, so accepting or dismissing advice
+ * cannot move it — and it always carries its reason: the failing checks,
+ * never the passing ones.
+ *
+ * Three rules keep it honest:
+ *   1. A blocking finding caps it. Anything AT_RISK forces the state to
+ *      at-risk and the number under 50, however many other checks pass —
+ *      not serving is a state, not a percentage.
+ *   2. Recommendations never feed it.
+ *   3. It always says why: "72 · pacing 30% behind on Aisle Screens".
+ */
+export interface HealthScore {
+  /** 0–100. 100 when nothing was found by today's checks. */
+  score: number;
+  state: 'good' | 'attention' | 'risk';
+  /** The failing checks in a few words; absent when nothing was found. */
+  reason?: string;
+}
+
+const PENALTY: Record<HealthSeverity, number> = { NEEDS_ATTENTION: 10, AT_RISK: 25 };
+
+/** "pacing 30% behind" — one finding, as the reason it costs points. */
+export function indicatorReason(i: HealthIndicator): string {
+  const v = i.observedValue;
+  const pct = (n: number) => `${Math.round(n * 100)}%`;
+  switch (i.code) {
+    case 'SEVERELY_UNDERPACING': case 'UNDERPACING': return v !== undefined ? `pacing ${pct(1 - v)} behind` : 'underpacing';
+    case 'OVERPACING': case 'SEVERELY_OVERPACING': return v !== undefined ? `pacing ${pct(v - 1)} ahead` : 'overpacing';
+    case 'NOT_DELIVERING': return v !== undefined ? `not delivering for ${v} day${v === 1 ? '' : 's'}` : 'not delivering';
+    case 'DELIVERY_STOPPED': return 'delivery stopped';
+    case 'DAILY_CAP_LIMITING_DELIVERY': return 'daily cap throttling delivery';
+    case 'SEVERELY_BELOW_KPI_TARGET': case 'BELOW_KPI_TARGET': return v !== undefined ? `${pct(v)} below KPI target` : 'below KPI target';
+    case 'LOW_WIN_RATE': return v !== undefined ? `win rate ${pct(v)}` : 'low win rate';
+    case 'LOW_SHARE_OF_VOICE': return v !== undefined ? `share of voice ${pct(v)}` : 'low share of voice';
+    case 'BUDGET_NOT_FULLY_ALLOCATED': return v !== undefined ? `${pct(v)} of budget unallocated` : 'budget not fully allocated';
+    case 'NO_LIVE_BOOKINGS': return 'no live bookings';
+  }
+}
+
+/** The score for a summary — 100 and no reason when nothing was found. */
+export function scoreHealth(summary: HealthSummary | undefined): HealthScore {
+  if (!summary || summary.indicators.length === 0) return { score: 100, state: 'good' };
+  const raw = Math.max(0, 100 - summary.indicators.reduce((s, i) => s + PENALTY[i.severity], 0));
+  const state = summary.status === 'AT_RISK' ? 'risk' : 'attention';
+  // The number may never contradict the state.
+  const score = state === 'risk' ? Math.min(raw, 49) : Math.min(raw, 79);
+  const [top, ...rest] = [...summary.indicators].sort((a, b) => PENALTY[b.severity] - PENALTY[a.severity]);
+  const where = top.subject.level === 'BOOKING' ? top.subject.bookingName : top.subject.level === 'CAMPAIGN_ORDER' ? top.subject.campaignOrderName : undefined;
+  const reason = `${indicatorReason(top)}${where ? ` on ${where}` : ''}${rest.length ? `, +${rest.length} more` : ''}`;
+  return { score, state, reason };
+}

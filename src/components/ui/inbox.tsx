@@ -89,6 +89,9 @@ export interface InboxProps {
    *  be pointless — the wizard only ever produces recommendations and
    *  insights, so it labels them instead of offering filters. */
   heading?: React.ReactNode;
+  /** The gear that tunes what arrives. On by default; a page that puts it
+   *  beside its tabs (the notification centre) turns it off here. */
+  showSettings?: boolean;
   className?: string;
 }
 
@@ -102,6 +105,7 @@ export const Inbox: React.FC<InboxProps> = ({
   emptyMessage = 'Nothing needs your attention.',
   showFilters,
   heading,
+  showSettings = true,
   className,
 }) => {
   // Type narrows what is shown; status decides whether finished messages are
@@ -109,6 +113,14 @@ export const Inbox: React.FC<InboxProps> = ({
   // client shows the inbox rather than the archive.
   const [kinds, setKinds] = React.useState<string[]>([]);
   const [statuses, setStatuses] = React.useState<string[]>([]);
+  // Search reads the subject, the preview and where the message sits.
+  const [search, setSearch] = React.useState('');
+  const matches = (i: InboxItem) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    const preview = typeof i.preview === 'string' ? i.preview : '';
+    return [i.subject, preview, i.context ?? ''].some((t) => t.toLowerCase().includes(q));
+  };
 
   const done = items.filter((i) => statusOfItem(i, status) === 'done');
   const open = items.filter((i) => statusOfItem(i, status) !== 'done');
@@ -118,7 +130,7 @@ export const Inbox: React.FC<InboxProps> = ({
   const showOpen = statuses.length === 0 || statuses.includes('open');
   const showDone = statuses.includes('done');
   const inScope = [...(showOpen ? open : []), ...(showDone ? done : [])];
-  const visible = kinds.length === 0 ? inScope : inScope.filter((i) => kinds.includes(i.kind));
+  const visible = (kinds.length === 0 ? inScope : inScope.filter((i) => kinds.includes(i.kind))).filter(matches);
 
   // Counts sit in the option labels: the standard filter shows the selection in
   // its trigger, so the numbers belong next to the thing they count.
@@ -138,16 +150,19 @@ export const Inbox: React.FC<InboxProps> = ({
         <div className="mb-2 text-sm font-medium text-foreground">{heading}</div>
       )}
       {filtersVisible && (
-        <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="mb-3 flex items-start justify-between gap-3">
           <FilterBar
-            hideSearch
             filters={[
               { name: 'Type', options: kindOptions, selectedValues: kinds, onChange: setKinds },
               { name: 'Status', options: statusOptions, selectedValues: statuses, onChange: setStatuses },
             ]}
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search messages..."
           />
-          {/* Tuning what arrives belongs next to reading what arrived. */}
-          <NotificationSettings />
+          {/* Tuning what arrives belongs next to reading what arrived — unless
+              the page already holds the gear beside its tabs. */}
+          {showSettings && <NotificationSettings />}
         </div>
       )}
 
@@ -156,7 +171,7 @@ export const Inbox: React.FC<InboxProps> = ({
         // made it read as something missing rather than something achieved.
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-10 text-center">
           <p className="text-sm text-muted-foreground">
-            {kinds.length > 0 || statuses.length > 0
+            {kinds.length > 0 || statuses.length > 0 || search.trim()
               ? 'Nothing matches these filters.'
               : emptyMessage}
           </p>

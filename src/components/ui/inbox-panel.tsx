@@ -42,6 +42,8 @@ export interface InboxPanelProps {
    *  the features; notifications are only the attention layer, and the
    *  to-dos stay in the notification center. */
   kinds?: InboxMessage['kind'][];
+  /** Whether the list carries the notification-settings gear (default yes). */
+  showSettings?: boolean;
   className?: string;
 }
 
@@ -86,7 +88,7 @@ export function useUnreadCount(scope: InboxPanelProps['scope'], entityId?: strin
   return messages.filter((m) => (!kinds || kinds.includes(m.kind)) && (status[m.id] ?? 'unread') === 'unread').length;
 }
 
-export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailInline, kinds, className }) => {
+export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailInline, kinds, showSettings, className }) => {
   const db = useDb();
   const user = useSession();
   const status = useInboxState();
@@ -145,6 +147,7 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ scope, entityId, detailI
         items={items}
         status={status}
         onOpen={open}
+        showSettings={showSettings}
         emptyMessage={
           scope === 'user'
             ? 'Nothing needs your attention right now.'

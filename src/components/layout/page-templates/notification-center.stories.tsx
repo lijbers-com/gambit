@@ -153,13 +153,15 @@ const InboxContent = () => {
         // message is the action beside these tabs, in a modal, the way
         // adding sits beside the tabs on every list. Advertisers have nobody
         // to message from here, so they do not get the button.
+        // No settings gear here: this page has the Settings tab for that,
+        // and the filter row keeps its right end for the search.
         action={canManageFaq(user) ? <AddButton onClick={() => setComposeOpen(true)}>New message</AddButton> : undefined}
         tabs={[
           {
             // Scoped to the signed-in user: only messages their role can act on.
             label: 'Messages',
             value: 'messages',
-            content: <InboxPanel scope="user" className="pt-6" />,
+            content: <InboxPanel scope="user" showSettings={false} className="pt-6" />,
           },
           {
             label: 'Settings',

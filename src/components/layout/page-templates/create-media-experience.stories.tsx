@@ -32,6 +32,12 @@ import { cn } from '@/lib/utils';
 import { queueToast } from '@/components/ui/toast';
 import { LinkPickerDialog } from '@/components/ui/link-picker';
 import { ChevronUp, Link2, Pencil, Trash2 } from 'lucide-react';
+import { BudgetSplitBar } from '@/components/ui/budget-split-bar';
+
+/** The draggable budget split above the wizard's campaign rows — parked
+ *  on request until the interaction is settled. */
+const SHOW_BUDGET_SPLIT_BAR = false;
+import type { PatternKey } from '@/lib/proposition-patterns';
 import { getDb, createMediaPlan, updateMediaPlan, createCampaign, updateCampaign, createBooking, getCurrentUser, type EngineId } from '@/lib/db';
 import { describeObjective, describeKpi } from '@/lib/objective-kpi-copy';
 import {
@@ -1448,6 +1454,33 @@ export const GoalSelection: Story = {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
+                      {/* The split itself, to drag: the plan's bar with a line
+                          between each campaign. Rows without a budget of their
+                          own share what is left evenly, and the first drag
+                          writes every row's share down so the bar and the rows
+                          keep saying the same thing. Hidden for now (24 Sept)
+                          — flip SHOW_BUDGET_SPLIT_BAR to bring it back. */}
+                      {SHOW_BUDGET_SPLIT_BAR && (() => {
+                        const planBudget = parseFloat(budgetAmount) || 0;
+                        if (planBudget <= 0 || campaignRows.length === 0) return null;
+                        const claimed = campaignRows.reduce((s, r) => s + (parseFloat(r.budget) || 0), 0);
+                        const unbudgeted = campaignRows.filter((r) => !(parseFloat(r.budget) > 0)).length;
+                        const perRow = unbudgeted > 0 ? Math.max(Math.floor((planBudget - claimed) / unbudgeted), 0) : 0;
+                        const shareOf = (r: CampaignRow) => parseFloat(r.budget) || perRow;
+                        const segments = campaignRows.map((r) => {
+                          const prop = propositions.find((p) => p.id === r.engine);
+                          return { id: r.id, name: r.name.trim() || `${campaignName || 'New Media plan'} — ${prop?.name ?? r.engine}`, budget: shareOf(r), engine: r.engine as PatternKey };
+                        });
+                        return (
+                          <BudgetSplitBar
+                            total={planBudget}
+                            segments={segments}
+                            step={50}
+                            onChange={(next) => setCampaignRows((prev) => prev.map((r) => ({ ...r, budget: String(next[r.id] ?? shareOf(r)) })))}
+                          />
+                        );
+                      })()}
+
                       {/* Campaign rows — one row per campaign, so a proposition
                           can hold several. Assisted rows show the prefilled
                           set-up (placements, run time, budget share); expert
@@ -1502,7 +1535,11 @@ export const GoalSelection: Story = {
                           }
                         };
                         const rowName = row.name.trim() || prefill;
-                        const runTime = rowFrom && rowTo ? `${fmtDay(rowFrom)} – ${fmtDay(rowTo)}` : 'inherits the plan run time';
+                        // The run time as the card states it: the row's own dates,
+                        // else the plan's, which it inherits.
+                        const effFrom = rowFrom ?? dateRange?.from;
+                        const effTo = rowTo ?? dateRange?.to;
+                        const runTime = effFrom && effTo ? `${fmtDay(effFrom)} – ${fmtDay(effTo)}` : 'not set';
                         // Closed, the row reads like a proposed booking on the
                         // campaign wizard's last step: what it is, where it
                         // stands, and the one thing to do about it.
@@ -1534,8 +1571,8 @@ export const GoalSelection: Story = {
                                       mode is not repeated here — the toggle beside
                                       the row already says it. */}
                                   <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                                    <span className="font-medium text-foreground">€{share.toLocaleString()}</span>
-                                    {' · '}{runTime}
+                                    Budget <span className="font-medium text-foreground">€{share.toLocaleString()}</span>
+                                    {' · '}Run time <span className="font-medium text-foreground">{runTime}</span>
                                     {row.existingId && ' · Existing campaign · joins this plan on save'}
                                   </div>
                                 </div>

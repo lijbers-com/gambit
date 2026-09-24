@@ -532,7 +532,7 @@ export const BarHorizontalDetail = ({
 /** One segment of a budget bar — a campaign's ALLOCATION, in its
  *  proposition's tint with the proposition's pattern laid faintly over it,
  *  the same mark it wears on every chart. Without an engine, a flat colour. */
-const BudgetSegment = ({ widthPct, color, engine }: { widthPct: number; color: string; engine?: PatternKey }) => {
+export const BudgetSegment = ({ widthPct, color, engine }: { widthPct: number; color: string; engine?: PatternKey }) => {
   if (widthPct <= 0) return null;
   const p = engine ? patternFor(engine) : undefined;
   return (
@@ -568,7 +568,7 @@ const SpentSwatch = () => <span className="inline-block h-[5px] w-2.5 shrink-0 r
 
 /** Open budget — money the plan has but no campaign has been given yet:
  *  the bare track, plain, so nothing competes with the allocations. */
-const OPEN_BUDGET_FILL: React.CSSProperties = { backgroundColor: 'hsl(var(--background))' };
+export const OPEN_BUDGET_FILL: React.CSSProperties = { backgroundColor: 'hsl(var(--background))' };
 
 export const BudgetStackedDetail = ({
   budgetData,

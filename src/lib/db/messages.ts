@@ -1,5 +1,5 @@
 import type { DbData, EngineId, UserSide, MediaPlan } from './types';
-import { deriveTasks, derivePlanHealth, type DerivedTask, type TaskSeverity } from './tasks';
+import { deriveTasks, derivePlanHealth, derivePlanHealthChecks, type DerivedTask, type TaskSeverity, type PlanHealthCheck } from './tasks';
 
 /**
  * The inbox model.
@@ -49,6 +49,8 @@ export interface InboxMessage {
   steps?: DerivedTask['steps'];
   /** A reminder from the workflow, not work that blocks. */
   reminder?: boolean;
+  /** A health message's why: what health is judged on and which checks hold. */
+  checks?: PlanHealthCheck[];
 }
 
 /** Engine → route segment. They match today, but the map keeps it explicit. */
@@ -117,9 +119,18 @@ function taskMessages(db: DbData): InboxMessage[] {
  */
 function healthMessages(db: DbData): InboxMessage[] {
   const messages: InboxMessage[] = [];
+  const all = deriveTasks(db);
   for (const plan of db.mediaPlans) {
     const health = derivePlanHealth(db, plan);
     if (health.level === 'good') continue;
+    // The open work behind the verdict, as a list the panel can show — each
+    // open action, where it sits, blocking or not.
+    const openWork = all
+      .filter((t) => t.mediaPlanId === plan.id && t.kind === 'action' && !t.reminder)
+      .map((t) => ({
+        id: t.id, name: t.title, description: t.detail, owner: 'edge' as const, done: false,
+        mandatory: t.severity === 'blocking', current: false, sub: contextFor(db, t),
+      }));
     messages.push({
       id: `health:${plan.id}`,
       kind: 'health',
@@ -132,6 +143,8 @@ function healthMessages(db: DbData): InboxMessage[] {
       mediaPlanId: plan.id,
       href: `/campaigns/plan/${plan.id}`,
       side: 'both',
+      checks: derivePlanHealthChecks(db, plan),
+      steps: openWork,
     });
   }
   return messages;

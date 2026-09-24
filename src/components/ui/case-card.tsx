@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Check, ChevronDown, Circle, MessageSquare, Settings2, X } from 'lucide-react';
+import { AlertTriangle, Check, ChevronDown, Circle, MessageSquare, Settings2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AreaChartComponent } from './area-chart';
 import { BarChartComponent } from './bar-chart';
@@ -312,6 +312,8 @@ export interface CaseStep {
   /** The step the notification is about. */
   current: boolean;
   due?: string;
+  /** A second line of its own, shown instead of the owner when set. */
+  sub?: string;
 }
 
 const OWNER_LABEL = { advertiser: 'Advertiser', retailer: 'Retailer', edge: 'Edge', external: 'Partner' } as const;
@@ -346,7 +348,7 @@ export const StepsCard: React.FC<{
             <span className="min-w-0 flex-1">
               <span className={cn('block truncate', step.done && 'line-through', step.current && !step.done && 'font-medium')}>{step.name}</span>
               <span className="block truncate text-xs text-muted-foreground">
-                {OWNER_LABEL[step.owner]}
+                {step.sub ?? OWNER_LABEL[step.owner]}
                 {step.due ? ` · due ${step.due}` : ''}
               </span>
             </span>
@@ -354,6 +356,54 @@ export const StepsCard: React.FC<{
           </li>
         ))}
       </ul>
+    </div>
+  );
+};
+
+/** One of the things health is judged on, and how it stands. */
+export interface CaseCheck {
+  label: string;
+  ok: boolean;
+  detail?: string;
+  /** A failed check that only counts once the plan is live. */
+  liveOnly?: boolean;
+}
+
+/**
+ * The case template for a HEALTH message: the why. What health is judged
+ * on, which checks hold and which do not, and the rule that turns them into
+ * a colour — the same evidence the health chip opens on the page, so the
+ * notification never says "at risk" without showing what it saw.
+ */
+export const ChecksCard: React.FC<{
+  checks: CaseCheck[];
+  title?: string;
+  className?: string;
+}> = ({ checks, title = 'What health is judged on', className }) => {
+  const failing = checks.filter((c) => !c.ok).length;
+  return (
+    <div className={cn('space-y-3 rounded-lg border bg-muted/20 p-4', className)}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-semibold text-foreground">{title}</div>
+        <span className="text-xs tabular-nums text-muted-foreground">{checks.length - failing} of {checks.length} hold</span>
+      </div>
+      <ul className="divide-y rounded-md border bg-background">
+        {checks.map((c) => (
+          <li key={c.label} className="flex items-center gap-3 px-3 py-2 text-sm">
+            <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border', c.ok ? 'border-success-200 bg-success-50 text-success-700' : c.liveOnly ? 'border-border bg-background text-muted-foreground' : 'border-warning-200 bg-warning-50 text-warning-700')}>
+              {c.ok ? <Check className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate">{c.label}</span>
+              {c.detail && <span className="block truncate text-xs text-muted-foreground">{c.detail}</span>}
+            </span>
+            {!c.ok && c.liveOnly && <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">Once live</span>}
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        Healthy while nothing blocks; needs attention with open to-dos; at risk when a live plan has a blocker.
+      </p>
     </div>
   );
 };

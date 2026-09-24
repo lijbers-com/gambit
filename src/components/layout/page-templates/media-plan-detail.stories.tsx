@@ -50,7 +50,7 @@ import { BudgetPopover, DatesCell, HealthCell, NotificationsCell } from '@/compo
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronRight, Plus, LayoutGrid, Table2, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, useInboxState, setupStepsForCampaign, setupStepDone, type Campaign, type EngineId, type PlanStatus, type SetupStepKey, type WorkflowStep } from '@/lib/db';
+import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, derivePlanHealthChecks, useInboxState, setupStepsForCampaign, setupStepDone, type Campaign, type EngineId, type PlanStatus, type SetupStepKey, type WorkflowStep } from '@/lib/db';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import {
   Dialog,
@@ -757,29 +757,7 @@ export const MediaPlanDetail: Story = {
      * What the plan's health is judged on — the same facts the to-do engine
      * reads, laid out as checks so the chip can show its evidence.
      */
-    const planHealthChecks = (() => {
-      if (!plan) return undefined;
-      const cs = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
-      const bs = db.bookings.filter((b) => cs.some((c) => c.id === b.campaignId));
-      const openActions = planAllMsgs.filter((m) => m.kind === 'action');
-      const committed = cs.reduce((sum, c) => sum + c.budget, 0);
-      const spend = cs.reduce((sum, c) => sum + c.spend, 0);
-      const live = plan.status === 'running';
-      const start = new Date(plan.startDate).getTime(); const end = new Date(plan.endDate).getTime();
-      const elapsed = Math.min(1, Math.max(0, (Date.now() - start) / Math.max(1, end - start)));
-      const expected = plan.budget * elapsed;
-      const pacingOk = !live || expected === 0 || Math.abs(spend - expected) / expected <= 0.2;
-      const missingCreatives = bs.filter((b) => b.creativeStatus === 'missing').length;
-      const draftCampaigns = cs.filter((c) => c.status === 'draft').length;
-      return [
-        { label: 'No blocking to-dos', ok: planBlockers.length === 0, detail: planBlockers.length ? `${planBlockers.length} blocker${planBlockers.length === 1 ? '' : 's'} — ${planBlockers[0].subject}` : 'Nothing stands in the way', liveOnly: !live },
-        { label: 'No open to-dos', ok: openActions.length === 0, detail: openActions.length ? `${openActions.length} open action${openActions.length === 1 ? '' : 's'}` : 'Everything is done', liveOnly: !live },
-        { label: 'Budget within ceiling', ok: committed <= plan.budget, detail: `€${committed.toLocaleString()} committed of €${plan.budget.toLocaleString()}` },
-        { label: 'Pacing on track', ok: pacingOk, detail: live ? `€${spend.toLocaleString()} spent, €${Math.round(expected).toLocaleString()} expected by now` : 'Judged once the plan is live', liveOnly: !live },
-        { label: 'Every campaign approved', ok: draftCampaigns === 0, detail: draftCampaigns ? `${draftCampaigns} still in draft` : `${cs.length} campaign${cs.length === 1 ? '' : 's'}` },
-        { label: 'Every booking has a creative', ok: missingCreatives === 0, detail: missingCreatives ? `${missingCreatives} booking${missingCreatives === 1 ? '' : 's'} without one` : `${bs.length} booking${bs.length === 1 ? '' : 's'}` },
-      ];
-    })();
+    const planHealthChecks = plan ? derivePlanHealthChecks(db, plan) : undefined;
 
     /**
      * Add a campaign of a chosen proposition to this plan and open it.

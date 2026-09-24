@@ -50,7 +50,7 @@ const levelIcon = {
 
 /** Badge styling per kind. */
 const kindBadge: Record<MessageKind, { label: string; className: string }> = {
-  health: { label: 'At risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
+  health: { label: 'Health at risk', className: 'border-destructive-200 bg-destructive-50 text-destructive-700' },
   action: { label: 'To do', className: 'border-warning-200 bg-warning-50 text-warning-700 font-medium' },
   recommendation: { label: 'Recommendation', className: 'border-primary/20 bg-primary/5 text-primary' },
   insight: { label: 'Insight', className: 'border-border bg-neutral-50 text-neutral-600' },
@@ -59,7 +59,7 @@ const kindBadge: Record<MessageKind, { label: string; className: string }> = {
 /** A health message that isn't blocking is amber "Needs attention", not red. */
 const badgeFor = (item: InboxItem) => {
   if (item.kind === 'health' && item.severity !== 'blocking') {
-    return { label: 'Needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' };
+    return { label: 'Health needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' };
   }
   if (item.kind === 'action' && item.reminder) {
     return { label: 'Reminder', className: 'border-border bg-neutral-50 text-neutral-600' };

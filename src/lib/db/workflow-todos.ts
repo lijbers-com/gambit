@@ -34,6 +34,9 @@ export interface WorkflowTodoStep {
   current: boolean;
   /** "12 Oct (X-4)" when the step has a deadline against the flight start. */
   due?: string;
+  /** A second line of its own — where the step sits ("Summer Launch Plan ·
+   *  Display") — shown instead of the owner when set. */
+  sub?: string;
 }
 
 const daysBefore = (iso: string, days: number) => {

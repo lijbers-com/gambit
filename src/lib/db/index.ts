@@ -44,6 +44,8 @@ export {
   deriveTasksForEngine,
   deriveTasksForUser,
   derivePlanHealth,
+  derivePlanHealthChecks,
+  type PlanHealthCheck,
   type DerivedTask,
   type TaskKind,
   type TaskSeverity,

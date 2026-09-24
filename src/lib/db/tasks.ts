@@ -357,8 +357,9 @@ export type PlanHealthLevel = 'good' | 'attention' | 'risk';
  */
 export function derivePlanHealth(db: DbData, plan: MediaPlan): { level: PlanHealthLevel; message: string } {
   // Only real to-dos count towards health — a recommendation or an insight is
-  // an opportunity, not a problem, and shouldn't turn a fine plan amber.
-  const tasks = deriveTasksForPlan(db, plan.id).filter((t) => t.kind === 'action');
+  // an opportunity, not a problem, and a reminder is a nudge, not work left;
+  // neither should turn a fine plan amber.
+  const tasks = deriveTasksForPlan(db, plan.id).filter((t) => t.kind === 'action' && !t.reminder);
   const blocking = tasks.filter((t) => t.severity === 'blocking');
   const live = plan.status === 'running';
 
@@ -387,4 +388,43 @@ export function derivePlanHealth(db: DbData, plan: MediaPlan): { level: PlanHeal
     };
   }
   return { level: 'good', message: 'Healthy — no open tasks, pacing on track.' };
+}
+
+/** One of the things a plan's health is judged on, and how it stands. */
+export interface PlanHealthCheck {
+  label: string;
+  ok: boolean;
+  /** The number or fact behind the verdict — "3 blockers", "€9,700 of €10,000". */
+  detail?: string;
+  /** A failed check that only counts once the plan is live. */
+  liveOnly?: boolean;
+}
+
+/**
+ * What a plan's health is judged on — the same facts the to-do engine reads,
+ * laid out as checks so the health chip and the health notification can both
+ * show their evidence. The verdict itself is derivePlanHealth's.
+ */
+export function derivePlanHealthChecks(db: DbData, plan: MediaPlan): PlanHealthCheck[] {
+  const cs = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
+  const bs = db.bookings.filter((b) => cs.some((c) => c.id === b.campaignId));
+  const actions = deriveTasksForPlan(db, plan.id).filter((t) => t.kind === 'action' && !t.reminder);
+  const blockers = actions.filter((t) => t.severity === 'blocking');
+  const committed = cs.reduce((sum, c) => sum + c.budget, 0);
+  const spend = cs.reduce((sum, c) => sum + c.spend, 0);
+  const live = plan.status === 'running';
+  const start = new Date(plan.startDate).getTime(); const end = new Date(plan.endDate).getTime();
+  const elapsed = Math.min(1, Math.max(0, (Date.now() - start) / Math.max(1, end - start)));
+  const expected = plan.budget * elapsed;
+  const pacingOk = !live || expected === 0 || Math.abs(spend - expected) / expected <= 0.2;
+  const missingCreatives = bs.filter((b) => b.creativeStatus === 'missing').length;
+  const draftCampaigns = cs.filter((c) => c.status === 'draft').length;
+  return [
+    { label: 'No blocking to-dos', ok: blockers.length === 0, detail: blockers.length ? `${blockers.length} blocker${blockers.length === 1 ? '' : 's'} — ${blockers[0].title}` : 'Nothing stands in the way', liveOnly: !live },
+    { label: 'No open to-dos', ok: actions.length === 0, detail: actions.length ? `${actions.length} open action${actions.length === 1 ? '' : 's'}` : 'Everything is done', liveOnly: !live },
+    { label: 'Budget within ceiling', ok: committed <= plan.budget, detail: `€${committed.toLocaleString()} committed of €${plan.budget.toLocaleString()}` },
+    { label: 'Pacing on track', ok: pacingOk, detail: live ? `€${spend.toLocaleString()} spent, €${Math.round(expected).toLocaleString()} expected by now` : 'Judged once the plan is live', liveOnly: !live },
+    { label: 'Every campaign approved', ok: draftCampaigns === 0, detail: draftCampaigns ? `${draftCampaigns} still in draft` : `${cs.length} campaign${cs.length === 1 ? '' : 's'}` },
+    { label: 'Every booking has a creative', ok: missingCreatives === 0, detail: missingCreatives ? `${missingCreatives} booking${missingCreatives === 1 ? '' : 's'} without one` : `${bs.length} booking${bs.length === 1 ? '' : 's'}` },
+  ];
 }

@@ -90,6 +90,7 @@ export const INDICATOR_CATALOGUE: Record<HealthIndicatorCode, { check: HealthChe
   NO_LIVE_BOOKINGS:            { check: 'budget-allocation', title: 'No live bookings',  meaning: 'The campaign order is live but has no bookings under it, so nothing can deliver against its budget.', levels: ['CAMPAIGN_ORDER'] },
 };
 
+export const CHECK_LABEL: Record<HealthCheckKey, string> = { 'budget-pacing': 'Budget pacing', delivery: 'Delivery', 'objective-performance': 'Objective performance', visibility: 'Visibility', 'budget-allocation': 'Budget allocation' };
 export const SEVERITY_LABEL: Record<HealthSeverity, string> = { NEEDS_ATTENTION: 'Needs attention', AT_RISK: 'At risk' };
 export const LEVEL_LABEL: Record<HealthSubjectLevel, string> = { MEDIA_PLAN: 'Media plan', CAMPAIGN_ORDER: 'Campaign', BOOKING: 'Booking' };
 

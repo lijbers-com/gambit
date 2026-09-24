@@ -9,7 +9,7 @@ import { DateRangePicker } from './date-picker';
 import { BudgetStackedMini } from './card';
 import type { PatternKey } from '@/lib/proposition-patterns';
 import { IndicatorList } from './case-card';
-import type { HealthIndicator } from '@/lib/db/health';
+import { DEFAULT_HEALTH_CONFIG, CHECK_LABEL, type HealthCheckKey, type HealthIndicator } from '@/lib/db/health';
 import { Input, FieldHint } from './input';
 import { Label } from './label';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
@@ -120,8 +120,43 @@ export type HealthLevel = 'good' | 'attention' | 'risk';
  * only means nothing found by the checks that exist today.
  */
 export const HealthCell = ({ health, indicators, message }: { health?: HealthLevel; indicators?: HealthIndicator[]; message?: string }) => {
+  // Nothing found: the chip says the health is good, and opens on what was
+  // checked — so "good" is read as "good by the checks that exist today".
   if (!health || health === 'good' || !indicators?.length) {
-    return <span className="text-sm text-muted-foreground" title={message ?? 'Nothing found by the checks that exist today.'}>No concerns found</span>;
+    const checks = (Object.keys(DEFAULT_HEALTH_CONFIG.checks) as HealthCheckKey[]).filter((k) => DEFAULT_HEALTH_CONFIG.checks[k].enabled);
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button type="button" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <span className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-success-200 bg-success-50 px-2 py-0.5 text-xs font-medium text-success-700 hover:opacity-80">
+              <HeartPulse className="h-3 w-3" />
+              Health good
+              <ChevronDown className="h-3 w-3 opacity-60" />
+            </span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-[24rem] p-0">
+          <div className="flex items-center justify-between border-b px-3 py-2">
+            <span className="text-sm font-medium">What was checked</span>
+            <span className="text-xs text-muted-foreground">nothing found</span>
+          </div>
+          <ul className="divide-y">
+            {checks.map((k) => (
+              <li key={k} className="flex items-center gap-3 px-3 py-2 text-sm">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-success-200 bg-success-50 text-success-700">
+                  <Check className="h-3.5 w-3.5" />
+                </span>
+                <span className="min-w-0 flex-1 truncate">{CHECK_LABEL[k]}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">No concerns</span>
+              </li>
+            ))}
+          </ul>
+          <p className="border-t px-3 py-2 text-xs text-muted-foreground">
+            {message ?? 'Nothing found by the checks that exist today.'} Checks are added over time.
+          </p>
+        </PopoverContent>
+      </Popover>
+    );
   }
   const cfg = {
     attention: { label: 'Health needs attention', className: 'border-warning-200 bg-warning-50 text-warning-700' },

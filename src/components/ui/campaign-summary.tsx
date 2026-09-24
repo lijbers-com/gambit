@@ -718,9 +718,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       const dbPlan = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId) : undefined;
       if (dbPlan) {
         const health = derivePlanHealth(db, dbPlan);
-        // Nothing found is no chip: health reports concerns only.
-        if (health.level === 'good') return undefined;
-        return { level: health.level, message: health.message, explain: budgetPacingExplain() };
+        return { level: health.level, message: health.message, explain: health.level === 'good' ? budgetOptimisationExplain() : budgetPacingExplain() };
       }
       // Display-only fallback for cards without store backing.
       const incomplete = internalEngines.filter((e) => e.status === 'draft' || e.status === 'in-option' || e.status === 'new').length;
@@ -731,7 +729,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       if ((budgetUsagePercentage !== undefined && budgetUsagePercentage >= 75) || incomplete === 1) {
         return { level: 'attention', message: `"${internalTitle}" needs attention — ${incomplete === 1 ? '1 campaign to finish' : 'watch the budget pacing'}.`, explain: budgetPacingExplain() };
       }
-      return undefined;
+      return { level: 'good', message: 'Nothing found by the checks that exist today.', explain: budgetOptimisationExplain() };
     })();
 
     // The at-a-glance detail row (budget / run time / campaigns / bookings). Open

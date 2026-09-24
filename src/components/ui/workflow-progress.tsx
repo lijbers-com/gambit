@@ -119,10 +119,17 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
   const renderStage = (i: number) => {
     const stage = stages[i];
     const list = stepsOf(i);
-    return list.length > 0 ? (
-      <ul className="divide-y">{list.map((x) => renderRow(x, i === currentIndex && x.step.id === nextMine?.step.id))}</ul>
-    ) : (
-      <p className="px-3 py-3 text-sm text-muted-foreground">{stage.description ?? 'Nothing to do in this stage — it is left on its own.'}</p>
+    if (list.length > 0) {
+      return <ul className="divide-y">{list.map((x) => renderRow(x, i === currentIndex && x.step.id === nextMine?.step.id))}</ul>;
+    }
+    // A stage with no steps: say so plainly, and what Edge does on reaching
+    // it, so an empty list never reads as a missing one.
+    const auto = stage.actions.filter((a) => a.type !== 'log').map((a) => a.label);
+    return (
+      <p className="px-3 py-3 text-sm text-muted-foreground">
+        No to-dos in {stage.name} — it is reached on its own.
+        {auto.length > 0 && <> Edge then: {auto.join('; ').toLowerCase()}.</>}
+      </p>
     );
   };
 

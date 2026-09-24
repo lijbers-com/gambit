@@ -12,7 +12,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 30;
+export const SEED_VERSION = 31;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -1120,7 +1120,7 @@ export const seedData: DbData = {
         { id: 'su-targeting', kind: 'fulfilment', name: 'Add products and keywords', description: 'Part of the booking setup — target the right products and terms.', owner: 'advertiser', mandatory: true, setup: 'add-targeting', x: 40, y: 600, actions: [{ id: 'su-targeting-todo', type: 'todo', label: 'To-do: add products and keywords', to: 'advertiser' }] },
         { id: 's-draft',   kind: 'stage',    name: 'Draft',          description: 'Self-service or built on behalf.',           owner: 'advertiser', mandatory: true, x: 40, y: 40,  actions: [] },
         { id: 's-review',  kind: 'stage',    name: 'In review',      description: 'Keywords, bids and products submitted.',      owner: 'retailer',   mandatory: true, x: 360, y: 40, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a1', type: 'todo', label: 'To-do for AdOps: review keywords and bids', to: 'retailer' }] },
-        { id: 's-approve', kind: 'approval', name: 'Approve campaign', description: 'AdOps approves.',                         owner: 'retailer',   mandatory: true, x: 360, y: 180, actions: [{ id: 'a2', type: 'email', label: 'Email the advertiser: approved', to: 'advertiser' }] },
+        { id: 's-approve', kind: 'approval', name: 'Approve campaign', description: 'AdOps approves.',                         owner: 'retailer',   mandatory: true, x: 360, y: 180, slaDays: 2, escalateTo: 'retailer', actions: [{ id: 'a2', type: 'email', label: 'Email the advertiser: approved', to: 'advertiser' }] },
         { id: 'c-feed',    kind: 'check',    name: 'Product feed check', description: 'Products in stock and listed — automatic.', owner: 'edge',     mandatory: true, x: 360, y: 320, actions: [{ id: 'a3', type: 'notification', label: 'Flag products missing from the feed', to: 'advertiser' }] },
         { id: 's-live',    kind: 'stage',    name: 'Live',           description: 'Bidding from the flight date.',               owner: 'edge',       mandatory: true, x: 680, y: 40, actions: [] },
         { id: 's-done',    kind: 'stage',    name: 'Completed',      description: 'After the end date; report.',                 owner: 'edge',       mandatory: true, x: 1000, y: 40, actions: [{ id: 'a4', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },

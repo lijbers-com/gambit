@@ -231,8 +231,10 @@ export function validateWorkflow(wf: Pick<Workflow, 'steps' | 'transitions'>): s
   }
   for (const s of wf.steps) {
     if (!s.name.trim()) issues.push('A step has no name.');
-    if (s.kind === 'approval' && s.owner === 'edge') issues.push(`"${s.name}" is an approval but Edge owns it — a person must decide.`);
-    if (s.kind === 'approval' && !s.slaDays) issues.push(`"${s.name}" has no SLA — say how long the approver has.`);
+    // A setup step is ticked off from the data — nobody waits on an
+    // approver — so the approval rules do not apply to it.
+    if (s.kind === 'approval' && !s.setup && s.owner === 'edge') issues.push(`"${s.name}" is an approval but Edge owns it — a person must decide.`);
+    if (s.kind === 'approval' && !s.setup && !s.slaDays) issues.push(`"${s.name}" has no SLA — say how long the approver has.`);
     if (s.kind === 'gate' && (outgoing.get(s.id) ?? 0) < 2) issues.push(`"${s.name}" is a gate with fewer than two ways out.`);
   }
   const names = wf.steps.map((s) => s.name.trim().toLowerCase());
@@ -495,7 +497,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
             Validate
           </Button>
           <Button variant="outline" onClick={() => save(false)} disabled={!dirty} className="gap-1.5"><Save className="h-4 w-4" /> Save draft</Button>
-          <Button onClick={() => save(true)} disabled={issues.length > 0} className="gap-1.5"><Rocket className="h-4 w-4" /> Publish</Button>
+          <Button onClick={() => save(true)} disabled={issues.length > 0} title={issues.length ? `Fix first: ${issues[0]}` : undefined} className="gap-1.5"><Rocket className="h-4 w-4" /> Publish</Button>
         </div>
       </div>
       <p className="text-sm text-muted-foreground">{record.description}</p>

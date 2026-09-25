@@ -787,7 +787,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                 <div className="space-y-2">
                   <span className="block text-sm font-medium">What Edge does here</span>
                   {selected.actions.map((a) => (
-                    <ActionCard key={a.id} action={a} onOpen={() => setOpenCard(a.id)} />
+                    <ActionCard key={a.id} action={a} onOpen={() => setOpenCard(a.id)} onRemove={() => patchStep(selected.id, { actions: selected.actions.filter((x) => x.id !== a.id) })} />
                   ))}
                   {/* The next card: a dotted place for it, the presets behind it —
                       the way the wizard adds a campaign. */}
@@ -875,14 +875,24 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
 
 /** One card on a step: a preset, worded. It reads like a kanban card —
  *  type, title, message, who gets it — and opens in a dialog to edit. */
-const ActionCard: React.FC<{ action: WorkflowAction; onOpen: () => void }> = ({ action, onOpen }) => (
-  <button type="button" onClick={onOpen} className="w-full rounded-lg border bg-card p-3 text-left shadow-sm transition-shadow hover:shadow-md">
-    <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold', ACTION_TONES[action.type])}>{ACTION_TYPES[action.type].label}</span>
-    {/* A card made before presets has only its wording; that is its title. */}
-    <span className="mt-2 block text-sm font-medium leading-snug">{action.title ?? action.label ?? ACTION_TYPES[action.type].label}</span>
-    {action.title && <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">{action.label || 'Click to word it'}</span>}
-    {action.to && <span className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground"><Users className="h-3 w-3" />{OWNERS[action.to]}</span>}
-  </button>
+const ActionCard: React.FC<{ action: WorkflowAction; onOpen: () => void; onRemove: () => void }> = ({ action, onOpen, onRemove }) => (
+  <div className="relative">
+    <button type="button" onClick={onOpen} className="w-full rounded-lg border bg-card p-3 pr-9 text-left shadow-sm transition-shadow hover:shadow-md">
+      <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold', ACTION_TONES[action.type])}>{ACTION_TYPES[action.type].label}</span>
+      {/* A card made before presets has only its wording; that is its title. */}
+      <span className="mt-2 block text-sm font-medium leading-snug">{action.title ?? action.label ?? ACTION_TYPES[action.type].label}</span>
+      {action.title && <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">{action.label || 'Click to word it'}</span>}
+      {action.to && <span className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground"><Users className="h-3 w-3" />{OWNERS[action.to]}</span>}
+    </button>
+    <button
+      type="button"
+      onClick={onRemove}
+      aria-label={`Remove ${action.title ?? action.label}`}
+      className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+    >
+      <X className="h-3.5 w-3.5" />
+    </button>
+  </div>
 );
 
 /** The card, open: its message and who gets it — or, for a rule, what the

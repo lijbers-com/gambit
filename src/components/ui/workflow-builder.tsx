@@ -8,7 +8,6 @@ import {
   Zap,
   CheckCircle2,
   Flag,
-  GitBranch,
   Mail,
   LayoutGrid,
   ListChecks,
@@ -18,7 +17,6 @@ import {
   Save,
   ShieldCheck,
   Trash2,
-  Truck,
   Users,
   X,
   ZoomIn,
@@ -57,7 +55,7 @@ import {
  * The workflow board — where a retailer shapes a proposition's workflow.
  *
  * Steps are tiles on a dotted board: stages of the shared lifecycle,
- * approvals, checks, fulfilment steps, notifications and gates. Drag a tile
+ * approvals, checks, to-dos, notifications and rules. Drag a tile
  * from the palette onto the board, drag tiles around, draw a line from one
  * tile's foot to another's head to say what follows what, and open a tile
  * to set who owns it, whether it is mandatory, its deadline, SLA, deputy
@@ -75,10 +73,9 @@ const KINDS: Record<WorkflowStepKind, { label: string; hint: string; Icon: React
   stage:        { label: 'Stage',        hint: 'A lifecycle status the booking sits in.',        Icon: Flag,         tone: 'bg-foreground text-background' },
   approval:     { label: 'Approval',     hint: 'Someone decides: approve or request changes.',   Icon: ShieldCheck,  tone: 'bg-warning-100 text-warning-700' },
   check:        { label: 'Check',        hint: 'A condition Edge derives or a person confirms.', Icon: CheckCircle2, tone: 'bg-success-100 text-success-700' },
-  rule:         { label: 'Rule',         hint: 'A configuration rule Edge applies at this point.', Icon: Zap,          tone: 'bg-primary/10 text-primary' },
-  fulfilment:   { label: 'Fulfilment',   hint: 'A physical step: print, distribute, install.',   Icon: Truck,        tone: 'bg-info-100 text-info-700' },
+  todo:         { label: 'To-do',        hint: 'Something a person or partner does: print, install.', Icon: ListChecks, tone: 'bg-info-100 text-info-700' },
   notification: { label: 'Notification', hint: 'Tell someone something happened.',               Icon: Bell,         tone: 'bg-neutral-100 text-neutral-700' },
-  gate:         { label: 'Gate',         hint: 'Branch on an outcome or a condition.',            Icon: GitBranch,    tone: 'bg-destructive-100 text-destructive-700' },
+  rule:         { label: 'Rule',         hint: 'A configuration rule Edge applies at this point.', Icon: Zap,          tone: 'bg-primary/10 text-primary' },
 };
 
 const OWNERS: Record<WorkflowOwner, string> = { advertiser: 'Advertiser', retailer: 'Retailer (AdOps)', edge: 'Edge (automatic)', external: 'External partner' };
@@ -239,7 +236,6 @@ export function validateWorkflow(wf: Pick<Workflow, 'steps' | 'transitions'>): s
     // approver — so the approval rules do not apply to it.
     if (s.kind === 'approval' && !s.setup && s.owner === 'edge') issues.push(`"${s.name}" is an approval but Edge owns it — a person must decide.`);
     if (s.kind === 'approval' && !s.setup && !s.slaDays) issues.push(`"${s.name}" has no SLA — say how long the approver has.`);
-    if (s.kind === 'gate' && (outgoing.get(s.id) ?? 0) < 2) issues.push(`"${s.name}" is a gate with fewer than two ways out.`);
   }
   const names = wf.steps.map((s) => s.name.trim().toLowerCase());
   const dupes = names.filter((n, i) => n && names.indexOf(n) !== i);
@@ -409,7 +405,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
     id: uid('s'),
     kind,
     name: `New ${KINDS[kind].label.toLowerCase()}`,
-    owner: kind === 'check' || kind === 'rule' || kind === 'stage' ? 'edge' : kind === 'fulfilment' ? 'external' : 'retailer',
+    owner: kind === 'check' || kind === 'rule' || kind === 'stage' ? 'edge' : kind === 'todo' ? 'external' : 'retailer',
     mandatory: kind !== 'notification' && kind !== 'rule',
     actions: [],
     x, y,

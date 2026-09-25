@@ -92,7 +92,7 @@ export function targetFor(db: DbData, ref: { mediaPlanId?: string; campaignId?: 
 export function defaultWorkflow(scope: WorkflowScope): Workflow {
   const engine = scope === 'media-plan' ? 'display' : scope;
   const setup = setupWorkflowSteps(undefined, engine).map(({ key }, i) => ({
-    id: `d-${key}`, kind: key.startsWith('approve') ? 'approval' as const : 'fulfilment' as const, setup: key,
+    id: `d-${key}`, kind: key.startsWith('approve') ? 'approval' as const : 'todo' as const, setup: key,
     name: SETUP_STEP_DEFAULTS[key].title, description: SETUP_STEP_DEFAULTS[key].description,
     owner: 'advertiser' as const, mandatory: true, x: 40, y: 180 + i * 140,
     actions: [{ id: `d-${key}-todo`, type: 'todo' as const, label: `To-do: ${SETUP_STEP_DEFAULTS[key].title.toLowerCase()}`, to: 'advertiser' as const }],

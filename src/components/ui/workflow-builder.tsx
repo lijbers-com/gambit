@@ -4,7 +4,6 @@ import * as React from 'react';
 import {
   AlertTriangle,
   Bell,
-  ChevronDown,
   Zap,
   CheckCircle2,
   Flag,
@@ -39,7 +38,6 @@ import { Badge } from './badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 import { Button } from './button';
 import { Input } from './input';
-import { Switch } from './switch';
 import { useToast } from './toast';
 import {
   RightDrawer,
@@ -79,6 +77,35 @@ const KINDS: Record<WorkflowStepKind, { label: string; hint: string; Icon: React
 };
 
 const OWNERS: Record<WorkflowOwner, string> = { advertiser: 'Advertiser', retailer: 'Retailer (AdOps)', edge: 'Edge (automatic)', external: 'External partner' };
+
+/** The cards a step can carry, preset so a user picks rather than writes.
+ *  The message on each is the part that stays editable. */
+interface ActionPreset { id: string; type: WorkflowActionType; title: string; label: string; to?: WorkflowOwner }
+const ACTION_PRESETS: ActionPreset[] = [
+  { id: 'n-approved',  type: 'notification', title: 'Booking approved',    label: 'Your booking is approved and will run as planned.', to: 'advertiser' },
+  { id: 'n-changes',   type: 'notification', title: 'Changes requested',   label: 'AdOps asked for changes — open the booking to see what.', to: 'advertiser' },
+  { id: 'n-review',    type: 'notification', title: 'Ready for review',    label: 'A booking is waiting for your review.', to: 'retailer' },
+  { id: 'n-creative',  type: 'notification', title: 'Creative missing',    label: 'A booking still has no creative — upload one before the start date.', to: 'advertiser' },
+  { id: 'n-live',      type: 'notification', title: 'Now live',            label: 'Your campaign is live.', to: 'advertiser' },
+  { id: 'e-upload',    type: 'email',        title: 'Upload link',         label: 'Here is the link to upload your creatives.', to: 'advertiser' },
+  { id: 'e-approved',  type: 'email',        title: 'Approval confirmed',  label: 'Your booking is approved. The details are attached.', to: 'advertiser' },
+  { id: 'e-summary',   type: 'email',        title: 'Weekly summary',      label: 'Your weekly summary of bookings and delivery.', to: 'retailer' },
+  { id: 't-review',    type: 'todo',         title: 'Review the booking',  label: 'Approve the booking or request changes.', to: 'retailer' },
+  { id: 't-creatives', type: 'todo',         title: 'Upload creatives',    label: 'Upload a creative for every format in the booking.', to: 'advertiser' },
+  { id: 't-print',     type: 'todo',         title: 'Print and deliver',   label: 'Print the materials and deliver them to the stores.', to: 'external' },
+  { id: 's-scheduled', type: 'set-status',   title: 'Mark as scheduled',   label: 'The booking becomes Scheduled.' },
+  { id: 's-live',      type: 'set-status',   title: 'Mark as live',        label: 'The booking becomes Live.' },
+  { id: 'k-engine',    type: 'kafka',        title: 'Send to the engine',  label: 'Hand the booking to the delivery engine.' },
+  { id: 'l-chat',      type: 'log',          title: 'Chat line',           label: 'Write a line in the campaign chat.' },
+];
+const ACTION_TONES: Record<WorkflowActionType, string> = {
+  notification: 'bg-neutral-100 text-neutral-700',
+  email:        'bg-info-100 text-info-700',
+  todo:         'bg-warning-100 text-warning-700',
+  'set-status': 'bg-success-100 text-success-700',
+  kafka:        'bg-primary/10 text-primary',
+  log:          'bg-neutral-100 text-neutral-600',
+};
 
 const ACTION_TYPES: Record<WorkflowActionType, { label: string; Icon: React.ComponentType<{ className?: string }> }> = {
   email:        { label: 'Send an email',          Icon: Mail },
@@ -235,7 +262,6 @@ export function validateWorkflow(wf: Pick<Workflow, 'steps' | 'transitions'>): s
     // A setup step is ticked off from the data — nobody waits on an
     // approver — so the approval rules do not apply to it.
     if (s.kind === 'approval' && !s.setup && s.owner === 'edge') issues.push(`"${s.name}" is an approval but Edge owns it — a person must decide.`);
-    if (s.kind === 'approval' && !s.setup && !s.slaDays) issues.push(`"${s.name}" has no SLA — say how long the approver has.`);
   }
   const names = wf.steps.map((s) => s.name.trim().toLowerCase());
   const dupes = names.filter((n, i) => n && names.indexOf(n) !== i);
@@ -269,6 +295,7 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
   }, [record]);
 
   const [selectedStep, setSelectedStep] = React.useState<string | null>(null);
+  const [openCard, setOpenCard] = React.useState<string | null>(null);
   const [selectedEdge, setSelectedEdge] = React.useState<string | null>(null);
   const boardRef = React.useRef<HTMLDivElement>(null);
 
@@ -709,20 +736,22 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                 <RightDrawerDescription>{KINDS[selected.kind].hint}</RightDrawerDescription>
               </RightDrawerHeader>
               <RightDrawerBody className="space-y-5">
-                {/* What this step is. */}
-                <div className="space-y-3">
+                {/* What this step is. Its type was set when it came onto the
+                    board; the form only says who and by when. */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium">Name</label>
+                  <Input value={selected.name} onChange={(e) => patchStep(selected.id, { name: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium">Name</label>
-                    <Input value={selected.name} onChange={(e) => patchStep(selected.id, { name: e.target.value })} />
+                    <label className="mb-1.5 block text-sm font-medium">Role</label>
+                    <Input dropdown options={(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))} value={selected.owner} onChange={(v) => patchStep(selected.id, { owner: v as WorkflowOwner })} />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium">Type of step</label>
-                      <Input dropdown options={(Object.keys(KINDS) as WorkflowStepKind[]).map((k) => ({ value: k, label: KINDS[k].label }))} value={selected.kind} onChange={(v) => patchStep(selected.id, { kind: v as WorkflowStepKind })} />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium">Who does it</label>
-                      <Input dropdown options={(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))} value={selected.owner} onChange={(v) => patchStep(selected.id, { owner: v as WorkflowOwner })} />
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium">Deadline</label>
+                    <div className="flex items-center gap-2">
+                      <Input type="number" min={0} className="w-20" value={selected.dueDaysBeforeStart ?? ''} placeholder="—" onChange={(e) => patchStep(selected.id, { dueDaysBeforeStart: e.target.value ? Number(e.target.value) : undefined })} />
+                      <span className="text-xs text-muted-foreground">days before the start</span>
                     </div>
                   </div>
                 </div>
@@ -759,103 +788,80 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                   );
                 })()}
 
-                {/* The flow, read top to bottom: when the step is reached,
-                    what happens; then what Edge does; then where it goes. */}
-                <div className="overflow-hidden rounded-lg border">
-                  <div className="border-b bg-muted/30 px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">When this step is reached</div>
-                  <div className="p-3">
-                    <Input value={selected.description ?? ''} placeholder="What happens here, in one line" onChange={(e) => patchStep(selected.id, { description: e.target.value })} />
-                  </div>
-                  <div className="flex items-center justify-between border-y bg-muted/30 px-3 py-2">
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Then Edge…</span>
-                    <Button
-                      variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs"
-                      onClick={() => patchStep(selected.id, { actions: [...selected.actions, { id: uid('a'), type: 'notification', label: '', to: 'advertiser' }] })}
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Add
-                    </Button>
-                  </div>
-                  <div className="p-3">
-                    {selected.actions.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">…does nothing on its own. Add an email, a notification or a to-do.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {selected.actions.map((a) => (
-                          <ActionRow
-                            key={a.id}
-                            action={a}
-                            onChange={(next) => patchStep(selected.id, { actions: selected.actions.map((x) => (x.id === a.id ? next : x)) })}
-                            onRemove={() => patchStep(selected.id, { actions: selected.actions.filter((x) => x.id !== a.id) })}
-                          />
+                {/* The cards: what Edge does at this step, each one picked
+                    from a preset and then worded. */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium">What Edge does here</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-8 gap-1 px-2.5 text-xs"><Plus className="h-3.5 w-3.5" /> Add a card</Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="max-h-80 w-72 overflow-y-auto">
+                        {(Object.keys(ACTION_TYPES) as WorkflowActionType[]).map((type) => (
+                          <React.Fragment key={type}>
+                            <div className="px-2 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{ACTION_TYPES[type].label}</div>
+                            {ACTION_PRESETS.filter((pr) => pr.type === type).map((pr) => (
+                              <DropdownMenuItem
+                                key={pr.id}
+                                className="flex-col items-start gap-0.5"
+                                onSelect={() => {
+                                  const card: WorkflowAction = { id: uid('a'), type: pr.type, title: pr.title, label: pr.label, to: pr.to };
+                                  patchStep(selected.id, { actions: [...selected.actions, card] });
+                                  setOpenCard(card.id);
+                                }}
+                              >
+                                <span className="text-sm">{pr.title}</span>
+                                <span className="line-clamp-1 text-xs text-muted-foreground">{pr.label}</span>
+                              </DropdownMenuItem>
+                            ))}
+                          </React.Fragment>
                         ))}
-                      </div>
-                    )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <div className="border-y bg-muted/30 px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Then move on to</div>
-                  <div className="p-3">
-                    {(() => {
-                      const next = transitions.filter((t) => t.from === selected.id).map((t) => ({ t, to: steps.find((st) => st.id === t.to) })).filter((x) => !!x.to);
-                      if (next.length === 0) return <p className="text-xs text-muted-foreground">Nothing yet — this is where the flow ends. Use the + on the card to add what comes next.</p>;
-                      return (
-                        <ul className="space-y-1.5">
-                          {next.map(({ t, to }) => {
-                            const { Icon: NIcon, tone } = KINDS[to!.kind];
-                            return (
-                              <li key={t.id} className="flex items-center gap-2 text-sm">
-                                <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-md', tone)}><NIcon className="h-3.5 w-3.5" /></span>
-                                <span className="min-w-0 flex-1 truncate">{to!.name}</span>
-                                {t.label && <span className="shrink-0 text-xs text-muted-foreground">when {t.label}</span>}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      );
-                    })()}
-                  </div>
+                  {selected.actions.length === 0 ? (
+                    <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
+                      No cards yet. Add a notification, an email or a to-do — pick one, then word it.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {selected.actions.map((a) => (
+                        <ActionCard
+                          key={a.id}
+                          action={a}
+                          open={openCard === a.id}
+                          onToggle={() => setOpenCard(openCard === a.id ? null : a.id)}
+                          onChange={(next) => patchStep(selected.id, { actions: selected.actions.map((x) => (x.id === a.id ? next : x)) })}
+                          onRemove={() => { patchStep(selected.id, { actions: selected.actions.filter((x) => x.id !== a.id) }); setOpenCard(null); }}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                {/* The rest, in plain words, out of the way. */}
-                <details className="group rounded-lg border">
-                  <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-sm font-medium">
-                    More options
-                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
-                  </summary>
-                  <div className="space-y-4 border-t p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <span>
-                        <span className="block text-sm font-medium">Must be done before the flow moves on</span>
-                        <span className="block text-xs text-muted-foreground">Off: the flow can continue without it.</span>
-                      </span>
-                      <Switch checked={selected.mandatory} onCheckedChange={(on) => patchStep(selected.id, { mandatory: on })} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium">Deadline</label>
-                        <div className="flex items-center gap-2">
-                          <Input type="number" min={0} className="w-20" value={selected.dueDaysBeforeStart ?? ''} placeholder="—" onChange={(e) => patchStep(selected.id, { dueDaysBeforeStart: e.target.value ? Number(e.target.value) : undefined })} />
-                          <span className="text-xs text-muted-foreground">days before the campaign starts</span>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium">Time to respond</label>
-                        <div className="flex items-center gap-2">
-                          <Input type="number" min={0} className="w-20" value={selected.slaDays ?? ''} placeholder="—" onChange={(e) => patchStep(selected.id, { slaDays: e.target.value ? Number(e.target.value) : undefined })} />
-                          <span className="text-xs text-muted-foreground">days</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium">If nobody responds in time, tell</label>
-                        <Input dropdown options={[{ value: '', label: 'Nobody' }, ...(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))]} value={selected.escalateTo ?? ''} onChange={(v) => patchStep(selected.id, { escalateTo: (v || undefined) as WorkflowOwner | undefined })} placeholder="Nobody" />
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium">Who steps in when the owner is away</label>
-                        <Input value={selected.deputy ?? ''} placeholder="e.g. Second AdOps" onChange={(e) => patchStep(selected.id, { deputy: e.target.value || undefined })} />
-                      </div>
-                    </div>
-                  </div>
-                </details>
+                {/* Where the flow goes from here. */}
+                <div className="space-y-2">
+                  <span className="text-sm font-medium">Then move on to</span>
+                  {(() => {
+                    const next = transitions.filter((t) => t.from === selected.id).map((t) => ({ t, to: steps.find((st) => st.id === t.to) })).filter((x) => !!x.to);
+                    if (next.length === 0) return <p className="text-xs text-muted-foreground">Nothing yet — this is where the flow ends. Use the + on the card to add what comes next.</p>;
+                    return (
+                      <ul className="space-y-1.5">
+                        {next.map(({ t, to }) => {
+                          const { Icon: NIcon, tone } = KINDS[to!.kind];
+                          return (
+                            <li key={t.id} className="flex items-center gap-2 text-sm">
+                              <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-md', tone)}><NIcon className="h-3.5 w-3.5" /></span>
+                              <span className="min-w-0 flex-1 truncate">{to!.name}</span>
+                              {t.label && <span className="shrink-0 text-xs text-muted-foreground">when {t.label}</span>}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    );
+                  })()}
+                </div>
               </RightDrawerBody>
               <RightDrawerFooter className="justify-between">
                 <Button variant="outline" className="gap-1.5 text-destructive-700" onClick={() => removeStep(selected.id)}><Trash2 className="h-4 w-4" /> Remove step</Button>
@@ -869,30 +875,42 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
   );
 };
 
-const ActionRow: React.FC<{ action: WorkflowAction; onChange: (a: WorkflowAction) => void; onRemove: () => void }> = ({ action, onChange, onRemove }) => {
+/** One card on a step: a preset, worded. Closed it reads like a kanban
+ *  card — type, title, message, who gets it; open it edits the message. */
+const ActionCard: React.FC<{ action: WorkflowAction; open: boolean; onToggle: () => void; onChange: (a: WorkflowAction) => void; onRemove: () => void }> = ({ action, open, onToggle, onChange, onRemove }) => {
   const needsTarget = action.type === 'email' || action.type === 'notification' || action.type === 'todo';
   return (
-    <div className="space-y-2 rounded-md border p-2.5">
-      <div className="flex items-center gap-2">
-        <Input
-          dropdown
-          className="flex-1"
-          options={(Object.keys(ACTION_TYPES) as WorkflowActionType[]).map((t) => ({ value: t, label: ACTION_TYPES[t].label }))}
-          value={action.type}
-          onChange={(v) => onChange({ ...action, type: v as WorkflowActionType })}
-        />
-        {needsTarget && (
-          <Input
-            dropdown
-            className="w-40"
-            options={(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))}
-            value={action.to ?? 'advertiser'}
-            onChange={(v) => onChange({ ...action, to: v as WorkflowOwner })}
-          />
-        )}
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-label="Remove action" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>
-      </div>
-      <Input value={action.label} placeholder="What it says or does" onChange={(e) => onChange({ ...action, label: e.target.value })} />
+    <div className={cn('rounded-lg border bg-card text-left shadow-sm transition-shadow', open ? 'col-span-2 border-foreground ring-2 ring-foreground/10' : 'hover:shadow-md')}>
+      <button type="button" onClick={onToggle} className="w-full p-3 text-left">
+        <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold', ACTION_TONES[action.type])}>{ACTION_TYPES[action.type].label}</span>
+        {/* A card made before presets has only its wording; that is its title. */}
+        <span className="mt-2 block text-sm font-medium leading-snug">{action.title ?? action.label ?? ACTION_TYPES[action.type].label}</span>
+        {!open && action.title && <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">{action.label || 'Click to word it'}</span>}
+        {!open && action.to && <span className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground"><Users className="h-3 w-3" />{OWNERS[action.to]}</span>}
+      </button>
+      {open && (
+        <div className="space-y-3 border-t p-3">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium">Message</label>
+            <textarea
+              rows={3}
+              value={action.label}
+              onChange={(e) => onChange({ ...action, label: e.target.value })}
+              className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+          </div>
+          {needsTarget && (
+            <div>
+              <label className="mb-1.5 block text-xs font-medium">To</label>
+              <Input dropdown options={(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))} value={action.to ?? 'advertiser'} onChange={(v) => onChange({ ...action, to: v as WorkflowOwner })} />
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-destructive hover:text-destructive" onClick={onRemove}><Trash2 className="h-3.5 w-3.5" /> Remove</Button>
+            <Button variant="outline" size="sm" className="h-8" onClick={onToggle}>Done</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -480,6 +480,8 @@ export type WorkflowActionType = 'email' | 'notification' | 'todo' | 'set-status
 export interface WorkflowAction {
   id: string;
   type: WorkflowActionType;
+  /** The card's title — the preset it was made from ("Booking approved"). */
+  title?: string;
   /** "Email the advertiser the upload link" — what it does, in words. */
   label: string;
   /** Who receives it, for email / notification / to-do. */

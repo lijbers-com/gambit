@@ -785,46 +785,44 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                 {/* The cards: what Edge does at this step, each one picked
                     from a preset and then worded. */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">What Edge does here</span>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1 px-2.5 text-xs"><Plus className="h-3.5 w-3.5" /> Add a card</Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="max-h-80 w-72 overflow-y-auto">
-                        {(Object.keys(ACTION_TYPES) as WorkflowActionType[]).filter((type) => presetsFor(selected.kind).some((pr) => pr.type === type)).map((type) => (
-                          <React.Fragment key={type}>
-                            <div className="px-2 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{ACTION_TYPES[type].label}</div>
-                            {presetsFor(selected.kind).filter((pr) => pr.type === type).map((pr) => (
-                              <DropdownMenuItem
-                                key={pr.id}
-                                className="flex-col items-start gap-0.5"
-                                onSelect={() => {
-                                  const card: WorkflowAction = { id: uid('a'), type: pr.type, title: pr.title, label: pr.label, to: pr.to, rule: pr.rule };
-                                  patchStep(selected.id, { actions: [...selected.actions, card] });
-                                  setOpenCard(card.id);
-                                }}
-                              >
-                                <span className="text-sm">{pr.title}</span>
-                                <span className="line-clamp-1 text-xs text-muted-foreground">{pr.label}</span>
-                              </DropdownMenuItem>
-                            ))}
-                          </React.Fragment>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  {selected.actions.length === 0 ? (
-                    <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-                      No cards yet — add one from the presets, then word it.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {selected.actions.map((a) => (
-                        <ActionCard key={a.id} action={a} onOpen={() => setOpenCard(a.id)} />
+                  <span className="block text-sm font-medium">What Edge does here</span>
+                  {selected.actions.map((a) => (
+                    <ActionCard key={a.id} action={a} onOpen={() => setOpenCard(a.id)} />
+                  ))}
+                  {/* The next card: a dotted place for it, the presets behind it —
+                      the way the wizard adds a campaign. */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="w-full rounded-lg border-2 border-dashed border-border p-4 text-center transition-colors hover:border-primary/50 hover:bg-muted/30"
+                      >
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground"><Plus className="h-4 w-4" />Add a card</span>
+                        <span className="mt-1 block text-xs text-muted-foreground">Pick a preset, then word it</span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="max-h-80 w-[--radix-dropdown-menu-trigger-width] overflow-y-auto">
+                      {(Object.keys(ACTION_TYPES) as WorkflowActionType[]).filter((type) => presetsFor(selected.kind).some((pr) => pr.type === type)).map((type) => (
+                        <React.Fragment key={type}>
+                          <div className="px-2 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{ACTION_TYPES[type].label}</div>
+                          {presetsFor(selected.kind).filter((pr) => pr.type === type).map((pr) => (
+                            <DropdownMenuItem
+                              key={pr.id}
+                              className="flex-col items-start gap-0.5"
+                              onSelect={() => {
+                                const card: WorkflowAction = { id: uid('a'), type: pr.type, title: pr.title, label: pr.label, to: pr.to, rule: pr.rule };
+                                patchStep(selected.id, { actions: [...selected.actions, card] });
+                                setOpenCard(card.id);
+                              }}
+                            >
+                              <span className="text-sm">{pr.title}</span>
+                              <span className="line-clamp-1 text-xs text-muted-foreground">{pr.label}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </React.Fragment>
                       ))}
-                    </div>
-                  )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {(() => {

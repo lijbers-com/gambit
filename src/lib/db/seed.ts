@@ -12,7 +12,7 @@ import type { DbData } from './types';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 33;
+export const SEED_VERSION = 34;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -999,9 +999,9 @@ export const seedData: DbData = {
         { id: 's-scheduled', kind: 'stage',        name: 'Scheduled',          description: 'Derived: approved + creatives approved + screens targeted.', owner: 'edge', mandatory: true, x: 680, y: 40, actions: [{ id: 'a9', type: 'notification', label: 'Notify both sides: ready to go live', to: 'advertiser' }] },
         { id: 's-live',      kind: 'stage',        name: 'Live',               description: 'From the flight date; screens play.',                 owner: 'edge',       mandatory: true,  x: 1000, y: 40, actions: [{ id: 'a10', type: 'notification', label: 'Notify the advertiser: campaign live', to: 'advertiser' }] },
         { id: 's-done',      kind: 'stage',        name: 'Completed',          description: 'After the end date; performance report; offload to Databricks.', owner: 'edge', mandatory: true, x: 1320, y: 40, actions: [{ id: 'a11', type: 'email', label: 'Send the performance report', to: 'advertiser' }, { id: 'a12', type: 'kafka', label: 'Offload to Databricks' }] },
-        { id: 'r-1', kind: 'rule', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
-        { id: 'r-2', kind: 'rule', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
-        { id: 'r-3', kind: 'rule', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
+        { id: 'r-1', kind: 'check', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [{ id: 'r-1-card', type: 'rule', rule: 'RULE-001', title: 'Product Category Targeting', label: 'Keeps a booking on the category pages of the products it advertises.' }] },
+        { id: 'r-2', kind: 'check', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [{ id: 'r-2-card', type: 'rule', rule: 'RULE-002', title: 'Audience Segmentation', label: 'Splits delivery over the audience segments a booking targets.' }] },
+        { id: 'r-3', kind: 'check', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [{ id: 'r-3-card', type: 'rule', rule: 'RULE-003', title: 'Budget Optimization', label: 'Moves unspent budget from slow placements to the ones that deliver.' }] },
       ],
       transitions: [
         { id: 'ts1', from: 's-draft', to: 'su-campaign' },
@@ -1046,9 +1046,9 @@ export const seedData: DbData = {
         { id: 'f-installed', kind: 'todo',  name: 'Installed in stores',      description: 'Hamilton Bright / Smart Spotter → real stores.', owner: 'external', mandatory: true, x: 1000, y: 180, actions: [{ id: 'a13', type: 'notification', label: 'Notify the advertiser: material installed', to: 'advertiser' }] },
         { id: 's-run',       kind: 'stage',       name: 'Run',                      description: 'From X, the run period.',                        owner: 'edge',     mandatory: true, x: 1000, y: 40, actions: [] },
         { id: 's-done',      kind: 'stage',       name: 'Done',                     description: 'After the end date; correct store list; sign off; offload to Databricks.', owner: 'retailer', mandatory: true, x: 1320, y: 40, actions: [{ id: 'a14', type: 'todo', label: 'To-do: correct the store list', to: 'retailer' }, { id: 'a15', type: 'kafka', label: 'Offload to Databricks' }] },
-        { id: 'r-1', kind: 'rule', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
-        { id: 'r-2', kind: 'rule', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
-        { id: 'r-3', kind: 'rule', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
+        { id: 'r-1', kind: 'check', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [{ id: 'r-1-card', type: 'rule', rule: 'RULE-001', title: 'Product Category Targeting', label: 'Keeps a booking on the category pages of the products it advertises.' }] },
+        { id: 'r-2', kind: 'check', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [{ id: 'r-2-card', type: 'rule', rule: 'RULE-002', title: 'Audience Segmentation', label: 'Splits delivery over the audience segments a booking targets.' }] },
+        { id: 'r-3', kind: 'check', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [{ id: 'r-3-card', type: 'rule', rule: 'RULE-003', title: 'Budget Optimization', label: 'Moves unspent budget from slow placements to the ones that deliver.' }] },
       ],
       transitions: [
         { id: 'ts1', from: 's-sales', to: 'su-campaign' },
@@ -1086,9 +1086,9 @@ export const seedData: DbData = {
         { id: 's-scheduled', kind: 'stage',       name: 'Scheduled',         description: 'Derived: approved + every required format approved.', owner: 'edge', mandatory: true, x: 680, y: 40, actions: [] },
         { id: 's-live',     kind: 'stage',        name: 'Live',              description: 'Ad server delivering from the flight date.',         owner: 'edge',       mandatory: true, x: 1000, y: 40, actions: [{ id: 'a7', type: 'notification', label: 'Notify the advertiser: live', to: 'advertiser' }] },
         { id: 's-done',     kind: 'stage',        name: 'Completed',         description: 'After the end date; report; make-good if needed.',   owner: 'edge',       mandatory: true, x: 1320, y: 40, actions: [{ id: 'a8', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
-        { id: 'r-1', kind: 'rule', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
-        { id: 'r-2', kind: 'rule', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
-        { id: 'r-3', kind: 'rule', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
+        { id: 'r-1', kind: 'check', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [{ id: 'r-1-card', type: 'rule', rule: 'RULE-001', title: 'Product Category Targeting', label: 'Keeps a booking on the category pages of the products it advertises.' }] },
+        { id: 'r-2', kind: 'check', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [{ id: 'r-2-card', type: 'rule', rule: 'RULE-002', title: 'Audience Segmentation', label: 'Splits delivery over the audience segments a booking targets.' }] },
+        { id: 'r-3', kind: 'check', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [{ id: 'r-3-card', type: 'rule', rule: 'RULE-003', title: 'Budget Optimization', label: 'Moves unspent budget from slow placements to the ones that deliver.' }] },
       ],
       transitions: [
         { id: 'ts1', from: 's-draft', to: 'su-campaign' },
@@ -1124,9 +1124,9 @@ export const seedData: DbData = {
         { id: 'c-feed',    kind: 'check',    name: 'Product feed check', description: 'Products in stock and listed — automatic.', owner: 'edge',     mandatory: true, x: 360, y: 320, actions: [{ id: 'a3', type: 'notification', label: 'Flag products missing from the feed', to: 'advertiser' }] },
         { id: 's-live',    kind: 'stage',    name: 'Live',           description: 'Bidding from the flight date.',               owner: 'edge',       mandatory: true, x: 680, y: 40, actions: [] },
         { id: 's-done',    kind: 'stage',    name: 'Completed',      description: 'After the end date; report.',                 owner: 'edge',       mandatory: true, x: 1000, y: 40, actions: [{ id: 'a4', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
-        { id: 'r-1', kind: 'rule', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
-        { id: 'r-2', kind: 'rule', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
-        { id: 'r-3', kind: 'rule', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
+        { id: 'r-1', kind: 'check', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [{ id: 'r-1-card', type: 'rule', rule: 'RULE-001', title: 'Product Category Targeting', label: 'Keeps a booking on the category pages of the products it advertises.' }] },
+        { id: 'r-2', kind: 'check', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [{ id: 'r-2-card', type: 'rule', rule: 'RULE-002', title: 'Audience Segmentation', label: 'Splits delivery over the audience segments a booking targets.' }] },
+        { id: 'r-3', kind: 'check', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [{ id: 'r-3-card', type: 'rule', rule: 'RULE-003', title: 'Budget Optimization', label: 'Moves unspent budget from slow placements to the ones that deliver.' }] },
       ],
       transitions: [
         { id: 'ts1', from: 's-draft', to: 'su-campaign' },
@@ -1158,9 +1158,9 @@ export const seedData: DbData = {
         { id: 'f-partner', kind: 'todo', name: 'Sent to partner',  description: 'Creatives and audience handed to the partner network.', owner: 'external', mandatory: true, x: 360, y: 320, actions: [{ id: 'a3', type: 'kafka', label: 'Publish the line to the partner' }] },
         { id: 's-live',    kind: 'stage',      name: 'Live',             description: 'Partner delivering from the flight date.',         owner: 'external',   mandatory: true, x: 680, y: 40, actions: [{ id: 'a4', type: 'notification', label: 'Notify the advertiser: live', to: 'advertiser' }] },
         { id: 's-done',    kind: 'stage',      name: 'Completed',        description: 'After the end date; partner report merged.',       owner: 'edge',       mandatory: true, x: 1000, y: 40, actions: [{ id: 'a5', type: 'email', label: 'Send the performance report', to: 'advertiser' }] },
-        { id: 'r-1', kind: 'rule', rule: 'RULE-001', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [] },
-        { id: 'r-2', kind: 'rule', rule: 'RULE-002', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [] },
-        { id: 'r-3', kind: 'rule', rule: 'RULE-003', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [] },
+        { id: 'r-1', kind: 'check', name: 'Product Category Targeting', description: 'Keeps a booking on the category pages of the products it advertises.', owner: 'edge', mandatory: false, x: 1000, y: 180, actions: [{ id: 'r-1-card', type: 'rule', rule: 'RULE-001', title: 'Product Category Targeting', label: 'Keeps a booking on the category pages of the products it advertises.' }] },
+        { id: 'r-2', kind: 'check', name: 'Audience Segmentation', description: 'Splits delivery over the audience segments a booking targets.', owner: 'edge', mandatory: false, x: 1000, y: 320, actions: [{ id: 'r-2-card', type: 'rule', rule: 'RULE-002', title: 'Audience Segmentation', label: 'Splits delivery over the audience segments a booking targets.' }] },
+        { id: 'r-3', kind: 'check', name: 'Budget Optimization', description: 'Moves unspent budget from slow placements to the ones that deliver.', owner: 'edge', mandatory: false, x: 1000, y: 460, actions: [{ id: 'r-3-card', type: 'rule', rule: 'RULE-003', title: 'Budget Optimization', label: 'Moves unspent budget from slow placements to the ones that deliver.' }] },
       ],
       transitions: [
         { id: 'ts1', from: 's-draft', to: 'su-campaign' },

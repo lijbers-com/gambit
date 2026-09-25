@@ -105,8 +105,9 @@ export function defaultWorkflow(scope: WorkflowScope): Workflow {
   ];
   // The configuration rules run as checks once live.
   const rules: WorkflowStep[] = CONFIGURATION_RULES.map((r, i) => ({
-    id: `d-rule-${r.id}`, kind: 'rule', rule: r.id, name: r.name, description: r.summary,
-    owner: 'edge', mandatory: false, x: 680, y: 180 + i * 140, actions: [],
+    id: `d-rule-${r.id}`, kind: 'check', name: r.name, description: r.summary,
+    owner: 'edge', mandatory: false, x: 680, y: 180 + i * 140,
+    actions: [{ id: `d-rule-${r.id}-card`, type: 'rule', rule: r.id, title: r.name, label: r.summary }],
   }));
   const chain = [stages[0], ...setup, stages[1], stages[2], stages[3]];
   return {
@@ -228,9 +229,12 @@ export function readWorkflow(db: DbData, workflow: Workflow, target: WorkflowTar
         : target.level === 'campaign' && campaign ? setupStepDone(db, campaign, step.setup)
         : setupStepDoneForBooking(db, entity, step.setup);
     }
-    // A rule applied as a check: in force while the rule is active.
-    if (step.rule) return (ruleById(step.rule)?.status ?? 'Active') === 'Active';
-    const n = step.name.toLowerCase();
+    // A check that applies rules: in force while every rule on it is active.
+    const rules = step.actions.filter((a) => a.type === 'rule' && a.rule);
+    if (rules.length) return rules.every((a) => (ruleById(a.rule!)?.status ?? 'Active') === 'Active');
+    // What the check watches: its name, and the check cards on it.
+    const n = [step.name, ...step.actions.filter((a) => a.type === 'check').map((a) => a.title ?? a.label)].join(' ').toLowerCase();
+    if (/booking approved|approved by/.test(n)) return !['draft', 'in-review', 'changes-requested'].includes(lifecycle);
     if (/creative/.test(n)) return entity.creativeStatus === 'approved';
     if (/store|screen|placement|position/.test(n)) return entity.positionIds.length > 0;
     if (/product/.test(n)) return true; // assigned with the campaign

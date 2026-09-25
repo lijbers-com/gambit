@@ -470,12 +470,13 @@ export interface Creative {
 // ── Workflows ───────────────────────────────────────────────────────────
 
 /** What a step is: a lifecycle stage, a human approval, a derived check, a
- *  to-do for a person or partner (print, install), a notification, or a rule. */
-export type WorkflowStepKind = 'stage' | 'approval' | 'check' | 'todo' | 'notification' | 'rule';
+ *  to-do for a person or partner (print, install), or a notification. A
+ *  configuration rule is a card on a check. */
+export type WorkflowStepKind = 'stage' | 'approval' | 'check' | 'todo' | 'notification';
 /** Whose move it is. */
 export type WorkflowOwner = 'advertiser' | 'retailer' | 'edge' | 'external';
 /** What Edge does when a step is reached or completed. */
-export type WorkflowActionType = 'email' | 'notification' | 'todo' | 'set-status' | 'kafka' | 'log';
+export type WorkflowActionType = 'email' | 'notification' | 'todo' | 'check' | 'rule' | 'set-status' | 'kafka' | 'log';
 
 export interface WorkflowAction {
   id: string;
@@ -486,6 +487,8 @@ export interface WorkflowAction {
   label: string;
   /** Who receives it, for email / notification / to-do. */
   to?: WorkflowOwner;
+  /** The configuration rule a 'rule' card applies, by id. */
+  rule?: string;
 }
 
 /**
@@ -502,9 +505,6 @@ export interface WorkflowStep {
   kind: WorkflowStepKind;
   /** Which setup step this stands for, when Edge derives its done state. */
   setup?: SetupStepKey;
-  /** A configuration rule this step applies as a check, by id — the board
-   *  says when the rule runs. */
-  rule?: string;
   name: string;
   description?: string;
   owner: WorkflowOwner;

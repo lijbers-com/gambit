@@ -35,6 +35,7 @@ import {
   type WorkflowTransition,
 } from '@/lib/db';
 import { Badge } from './badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './dialog';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 import { Button } from './button';
 import { Input } from './input';
@@ -68,37 +69,63 @@ const GRID = 20;
 import { CONFIGURATION_RULES, ruleById } from '@/lib/configuration-rules';
 
 const KINDS: Record<WorkflowStepKind, { label: string; hint: string; Icon: React.ComponentType<{ className?: string }>; tone: string }> = {
-  stage:        { label: 'Stage',        hint: 'A lifecycle status the booking sits in.',        Icon: Flag,         tone: 'bg-foreground text-background' },
-  approval:     { label: 'Approval',     hint: 'Someone decides: approve or request changes.',   Icon: ShieldCheck,  tone: 'bg-warning-100 text-warning-700' },
-  check:        { label: 'Check',        hint: 'A condition Edge derives or a person confirms.', Icon: CheckCircle2, tone: 'bg-success-100 text-success-700' },
-  todo:         { label: 'To-do',        hint: 'Something a person or partner does: print, install.', Icon: ListChecks, tone: 'bg-info-100 text-info-700' },
-  notification: { label: 'Notification', hint: 'Tell someone something happened.',               Icon: Bell,         tone: 'bg-neutral-100 text-neutral-700' },
-  rule:         { label: 'Rule',         hint: 'A configuration rule Edge applies at this point.', Icon: Zap,          tone: 'bg-primary/10 text-primary' },
+  stage:        { label: 'Stage',        hint: 'The status a booking or campaign sits in.',        Icon: Flag,         tone: 'bg-foreground text-background' },
+  approval:     { label: 'Approval',     hint: 'Someone decides if it is ok to proceed.',   Icon: ShieldCheck,  tone: 'bg-warning-100 text-warning-700' },
+  check:        { label: 'Check',        hint: 'A check by Edge.', Icon: CheckCircle2, tone: 'bg-success-100 text-success-700' },
+  todo:         { label: 'To-do',        hint: 'A task to complete in the workflow.', Icon: ListChecks, tone: 'bg-info-100 text-info-700' },
+  notification: { label: 'Notification', hint: 'A message to notify a user.',               Icon: Bell,         tone: 'bg-neutral-100 text-neutral-700' },
 };
 
 const OWNERS: Record<WorkflowOwner, string> = { advertiser: 'Advertiser', retailer: 'Retailer (AdOps)', edge: 'Edge (automatic)', external: 'External partner' };
 
 /** The cards a step can carry, preset so a user picks rather than writes.
- *  The message on each is the part that stays editable. */
-interface ActionPreset { id: string; type: WorkflowActionType; title: string; label: string; to?: WorkflowOwner }
+ *  Each says which kinds of step offer it: a to-do step offers work, an
+ *  approval its outcomes, a check its conditions and rules, a stage and a
+ *  notification what to tell people. The message stays editable. */
+interface ActionPreset { id: string; type: WorkflowActionType; title: string; label: string; to?: WorkflowOwner; rule?: string; kinds: WorkflowStepKind[] }
 const ACTION_PRESETS: ActionPreset[] = [
-  { id: 'n-approved',  type: 'notification', title: 'Booking approved',    label: 'Your booking is approved and will run as planned.', to: 'advertiser' },
-  { id: 'n-changes',   type: 'notification', title: 'Changes requested',   label: 'AdOps asked for changes — open the booking to see what.', to: 'advertiser' },
-  { id: 'n-review',    type: 'notification', title: 'Ready for review',    label: 'A booking is waiting for your review.', to: 'retailer' },
-  { id: 'n-creative',  type: 'notification', title: 'Creative missing',    label: 'A booking still has no creative — upload one before the start date.', to: 'advertiser' },
-  { id: 'n-live',      type: 'notification', title: 'Now live',            label: 'Your campaign is live.', to: 'advertiser' },
-  { id: 'e-upload',    type: 'email',        title: 'Upload link',         label: 'Here is the link to upload your creatives.', to: 'advertiser' },
-  { id: 'e-approved',  type: 'email',        title: 'Approval confirmed',  label: 'Your booking is approved. The details are attached.', to: 'advertiser' },
-  { id: 'e-summary',   type: 'email',        title: 'Weekly summary',      label: 'Your weekly summary of bookings and delivery.', to: 'retailer' },
-  { id: 't-review',    type: 'todo',         title: 'Review the booking',  label: 'Approve the booking or request changes.', to: 'retailer' },
-  { id: 't-creatives', type: 'todo',         title: 'Upload creatives',    label: 'Upload a creative for every format in the booking.', to: 'advertiser' },
-  { id: 't-print',     type: 'todo',         title: 'Print and deliver',   label: 'Print the materials and deliver them to the stores.', to: 'external' },
-  { id: 's-scheduled', type: 'set-status',   title: 'Mark as scheduled',   label: 'The booking becomes Scheduled.' },
-  { id: 's-live',      type: 'set-status',   title: 'Mark as live',        label: 'The booking becomes Live.' },
-  { id: 'k-engine',    type: 'kafka',        title: 'Send to the engine',  label: 'Hand the booking to the delivery engine.' },
-  { id: 'l-chat',      type: 'log',          title: 'Chat line',           label: 'Write a line in the campaign chat.' },
+  // A notification: a message to notify a user
+  { id: 'n-review',    type: 'notification', title: 'Ready for review',    label: 'A booking is waiting for your review.', to: 'retailer', kinds: ['notification'] },
+  { id: 'n-approved',  type: 'notification', title: 'Booking approved',    label: 'Your booking is approved and will run as planned.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'n-changes',   type: 'notification', title: 'Changes requested',   label: 'AdOps asked for changes — open the booking to see what.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'n-live',      type: 'notification', title: 'Now live',            label: 'Your campaign is live.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'n-done',      type: 'notification', title: 'Completed',           label: 'Your campaign has ended — the report is ready.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'n-reminder',  type: 'notification', title: 'Reminder',            label: 'You still have a to-do open on this booking.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'n-creative',  type: 'notification', title: 'Creative missing',    label: 'A booking still has no creative — upload one before the start date.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'e-upload',    type: 'email',        title: 'Upload link',         label: 'Here is the link to upload your creatives.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'e-approved',  type: 'email',        title: 'Approval confirmed',  label: 'Your booking is approved. The details are attached.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'e-summary',   type: 'email',        title: 'Weekly summary',      label: 'Your weekly summary of bookings and delivery.', to: 'retailer', kinds: ['notification'] },
+  { id: 'e-report',    type: 'email',        title: 'Performance report',  label: 'Your end-of-campaign report is attached.', to: 'advertiser', kinds: ['notification'] },
+  // An approval: someone decides if it is ok to proceed
+  { id: 't-review',    type: 'todo',         title: 'Review the booking',  label: 'Approve the booking or request changes.', to: 'retailer', kinds: ['approval'] },
+  { id: 't-sign-off',  type: 'todo',         title: 'Sign off the plan',   label: 'Confirm the media plan may go ahead.', to: 'retailer', kinds: ['approval'] },
+  { id: 't-creative-ok', type: 'todo',       title: 'Approve the creative', label: 'Check the creative against the brand rules and approve it.', to: 'retailer', kinds: ['approval'] },
+  // A to-do: a task to complete in the workflow
+  { id: 't-booking',   type: 'todo',         title: 'Create a booking',    label: 'Choose the schedule, placements and budget.', to: 'advertiser', kinds: ['todo'] },
+  { id: 't-creatives', type: 'todo',         title: 'Upload creatives',    label: 'Upload a creative for every format in the booking.', to: 'advertiser', kinds: ['todo'] },
+  { id: 't-targeting', type: 'todo',         title: 'Add products and keywords', label: 'Pick the products and keywords the booking targets.', to: 'advertiser', kinds: ['todo'] },
+  { id: 't-briefing',  type: 'todo',         title: 'Send the briefing',   label: 'Send the advertiser the briefing for this campaign.', to: 'retailer', kinds: ['todo'] },
+  { id: 't-print',     type: 'todo',         title: 'Print and deliver',   label: 'Print the materials and deliver them to the stores.', to: 'external', kinds: ['todo'] },
+  { id: 't-install',   type: 'todo',         title: 'Install in stores',   label: 'Install the materials in every store on the list.', to: 'external', kinds: ['todo'] },
+  // A check: by Edge
+  { id: 'c-approved',  type: 'check',        title: 'Booking approved',    label: 'The booking has been approved by AdOps.', kinds: ['check'] },
+  { id: 'c-creatives', type: 'check',        title: 'Creatives approved',  label: 'Every creative on the booking passed its spec check.', kinds: ['check'] },
+  { id: 'c-placements',type: 'check',        title: 'Placements chosen',   label: 'The booking has at least one placement or screen.', kinds: ['check'] },
+  { id: 'c-products',  type: 'check',        title: 'Products in the feed', label: 'The products advertised are listed and in stock.', kinds: ['check'] },
+  { id: 'c-budget',    type: 'check',        title: 'Budget within the plan', label: 'The bookings do not exceed the plan\'s budget.', kinds: ['check'] },
+  { id: 'c-pacing',    type: 'check',        title: 'Pacing on track',     label: 'Spend is within 20% of where it should be by now.', kinds: ['check'] },
+  // A stage: the status a booking or campaign sits in — what Edge tells the systems there
+  { id: 'k-engine',    type: 'kafka',        title: 'Send to the engine',  label: 'Hand the booking to the delivery engine.', kinds: ['stage'] },
+  { id: 'k-report',    type: 'kafka',        title: 'Send to reporting',   label: 'Hand the results to the reporting warehouse.', kinds: ['stage'] },
+  { id: 'l-chat',      type: 'log',          title: 'Chat line',           label: 'Write a line in the campaign chat.', kinds: ['stage'] },
+  // The configuration rules, one card each, on a check
+  ...CONFIGURATION_RULES.map((r): ActionPreset => ({ id: `r-${r.id}`, type: 'rule', title: r.name, label: r.summary, rule: r.id, kinds: ['check'] })),
 ];
+/** The presets a kind of step offers, in the order its types are listed. */
+const presetsFor = (kind: WorkflowStepKind) => ACTION_PRESETS.filter((pr) => pr.kinds.includes(kind));
 const ACTION_TONES: Record<WorkflowActionType, string> = {
+  check:        'bg-success-100 text-success-700',
+  rule:         'bg-primary/10 text-primary',
   notification: 'bg-neutral-100 text-neutral-700',
   email:        'bg-info-100 text-info-700',
   todo:         'bg-warning-100 text-warning-700',
@@ -108,6 +135,8 @@ const ACTION_TONES: Record<WorkflowActionType, string> = {
 };
 
 const ACTION_TYPES: Record<WorkflowActionType, { label: string; Icon: React.ComponentType<{ className?: string }> }> = {
+  check:        { label: 'Check that',             Icon: CheckCircle2 },
+  rule:         { label: 'Apply a rule',           Icon: Zap },
   email:        { label: 'Send an email',          Icon: Mail },
   notification: { label: 'Show a notification',    Icon: Bell },
   todo:         { label: 'Create a to-do',         Icon: ListChecks },
@@ -258,7 +287,6 @@ export function validateWorkflow(wf: Pick<Workflow, 'steps' | 'transitions'>): s
   }
   for (const s of wf.steps) {
     if (!s.name.trim()) issues.push('A step has no name.');
-    if (s.kind === 'rule' && !s.rule) issues.push(`"${s.name}" has no rule picked yet.`);
     // A setup step is ticked off from the data — nobody waits on an
     // approver — so the approval rules do not apply to it.
     if (s.kind === 'approval' && !s.setup && s.owner === 'edge') issues.push(`"${s.name}" is an approval but Edge owns it — a person must decide.`);
@@ -432,8 +460,8 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
     id: uid('s'),
     kind,
     name: `New ${KINDS[kind].label.toLowerCase()}`,
-    owner: kind === 'check' || kind === 'rule' || kind === 'stage' ? 'edge' : kind === 'todo' ? 'external' : 'retailer',
-    mandatory: kind !== 'notification' && kind !== 'rule',
+    owner: kind === 'check' || kind === 'stage' ? 'edge' : kind === 'todo' ? 'external' : 'retailer',
+    mandatory: kind !== 'notification',
     actions: [],
     x, y,
   });
@@ -617,8 +645,9 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
               // A step that applies a configuration rule is drawn as a rule
               // card: the rule's own mark, its summary, and the check it
               // makes at this point of the board.
-              const rule = s.rule ? ruleById(s.rule) : undefined;
-              const { Icon, tone, label } = KINDS[s.rule || s.kind === 'rule' ? 'rule' : s.kind];
+              const ruleCard = s.actions.find((a) => a.type === 'rule' && a.rule);
+              const rule = ruleCard ? ruleById(ruleCard.rule!) : undefined;
+              const { Icon, tone, label } = KINDS[s.kind];
               const isSel = s.id === selectedStep;
               return (
                 <div
@@ -749,44 +778,9 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium">Deadline</label>
-                    <div className="flex items-center gap-2">
-                      <Input type="number" min={0} className="w-20" value={selected.dueDaysBeforeStart ?? ''} placeholder="—" onChange={(e) => patchStep(selected.id, { dueDaysBeforeStart: e.target.value ? Number(e.target.value) : undefined })} />
-                      <span className="text-xs text-muted-foreground">days before the start</span>
-                    </div>
+                    <Input type="number" min={0} value={selected.dueDaysBeforeStart ?? ''} placeholder="Days before start" onChange={(e) => patchStep(selected.id, { dueDaysBeforeStart: e.target.value ? Number(e.target.value) : undefined })} />
                   </div>
                 </div>
-
-                {selected.kind === 'rule' && (
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">Which rule</label>
-                    <Input
-                      dropdown
-                      options={CONFIGURATION_RULES.map((r) => ({ value: r.id, label: r.name }))}
-                      value={selected.rule ?? ''}
-                      placeholder="Pick a rule"
-                      onChange={(v) => {
-                        const rule = ruleById(v);
-                        patchStep(selected.id, rule ? { rule: rule.id, name: rule.name, description: rule.summary } : { rule: undefined });
-                      }}
-                    />
-                  </div>
-                )}
-
-                {selected.rule && (() => {
-                  const rule = ruleById(selected.rule);
-                  if (!rule) return null;
-                  return (
-                    <div className="space-y-2 rounded-md border border-primary/20 bg-primary/5 p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="flex items-center gap-1.5 text-sm font-medium"><Zap className="h-4 w-4 text-primary" />This step applies a rule</span>
-                        <Badge variant={rule.status === 'Active' ? 'success' : 'secondary'}>{rule.status}</Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">If</span> {rule.when}</p>
-                      <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Then</span> {rule.then}</p>
-                      <a href={`/configuration/${engine}/rules/${rule.id}`} className="text-xs font-medium text-primary hover:underline">Open the rule →</a>
-                    </div>
-                  );
-                })()}
 
                 {/* The cards: what Edge does at this step, each one picked
                     from a preset and then worded. */}
@@ -798,15 +792,15 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                         <Button variant="outline" size="sm" className="h-8 gap-1 px-2.5 text-xs"><Plus className="h-3.5 w-3.5" /> Add a card</Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="max-h-80 w-72 overflow-y-auto">
-                        {(Object.keys(ACTION_TYPES) as WorkflowActionType[]).map((type) => (
+                        {(Object.keys(ACTION_TYPES) as WorkflowActionType[]).filter((type) => presetsFor(selected.kind).some((pr) => pr.type === type)).map((type) => (
                           <React.Fragment key={type}>
                             <div className="px-2 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{ACTION_TYPES[type].label}</div>
-                            {ACTION_PRESETS.filter((pr) => pr.type === type).map((pr) => (
+                            {presetsFor(selected.kind).filter((pr) => pr.type === type).map((pr) => (
                               <DropdownMenuItem
                                 key={pr.id}
                                 className="flex-col items-start gap-0.5"
                                 onSelect={() => {
-                                  const card: WorkflowAction = { id: uid('a'), type: pr.type, title: pr.title, label: pr.label, to: pr.to };
+                                  const card: WorkflowAction = { id: uid('a'), type: pr.type, title: pr.title, label: pr.label, to: pr.to, rule: pr.rule };
                                   patchStep(selected.id, { actions: [...selected.actions, card] });
                                   setOpenCard(card.id);
                                 }}
@@ -822,23 +816,29 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
                   </div>
                   {selected.actions.length === 0 ? (
                     <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-                      No cards yet. Add a notification, an email or a to-do — pick one, then word it.
+                      No cards yet — add one from the presets, then word it.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
                       {selected.actions.map((a) => (
-                        <ActionCard
-                          key={a.id}
-                          action={a}
-                          open={openCard === a.id}
-                          onToggle={() => setOpenCard(openCard === a.id ? null : a.id)}
-                          onChange={(next) => patchStep(selected.id, { actions: selected.actions.map((x) => (x.id === a.id ? next : x)) })}
-                          onRemove={() => { patchStep(selected.id, { actions: selected.actions.filter((x) => x.id !== a.id) }); setOpenCard(null); }}
-                        />
+                        <ActionCard key={a.id} action={a} onOpen={() => setOpenCard(a.id)} />
                       ))}
                     </div>
                   )}
                 </div>
+
+                {(() => {
+                  const card = selected.actions.find((a) => a.id === openCard) ?? null;
+                  return (
+                    <ActionCardDialog
+                      action={card}
+                      engine={engine}
+                      onClose={() => setOpenCard(null)}
+                      onChange={(next) => patchStep(selected.id, { actions: selected.actions.map((x) => (x.id === next.id ? next : x)) })}
+                      onRemove={() => { if (card) patchStep(selected.id, { actions: selected.actions.filter((x) => x.id !== card.id) }); setOpenCard(null); }}
+                    />
+                  );
+                })()}
 
                 {/* Where the flow goes from here. */}
                 <div className="space-y-2">
@@ -875,42 +875,71 @@ export const WorkflowBuilder: React.FC<{ engine: WorkflowScope; className?: stri
   );
 };
 
-/** One card on a step: a preset, worded. Closed it reads like a kanban
- *  card — type, title, message, who gets it; open it edits the message. */
-const ActionCard: React.FC<{ action: WorkflowAction; open: boolean; onToggle: () => void; onChange: (a: WorkflowAction) => void; onRemove: () => void }> = ({ action, open, onToggle, onChange, onRemove }) => {
-  const needsTarget = action.type === 'email' || action.type === 'notification' || action.type === 'todo';
+/** One card on a step: a preset, worded. It reads like a kanban card —
+ *  type, title, message, who gets it — and opens in a dialog to edit. */
+const ActionCard: React.FC<{ action: WorkflowAction; onOpen: () => void }> = ({ action, onOpen }) => (
+  <button type="button" onClick={onOpen} className="w-full rounded-lg border bg-card p-3 text-left shadow-sm transition-shadow hover:shadow-md">
+    <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold', ACTION_TONES[action.type])}>{ACTION_TYPES[action.type].label}</span>
+    {/* A card made before presets has only its wording; that is its title. */}
+    <span className="mt-2 block text-sm font-medium leading-snug">{action.title ?? action.label ?? ACTION_TYPES[action.type].label}</span>
+    {action.title && <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">{action.label || 'Click to word it'}</span>}
+    {action.to && <span className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground"><Users className="h-3 w-3" />{OWNERS[action.to]}</span>}
+  </button>
+);
+
+/** The card, open: its message and who gets it — or, for a rule, what the
+ *  rule does and where to change it. */
+const ActionCardDialog: React.FC<{ action: WorkflowAction | null; engine: string; onClose: () => void; onChange: (a: WorkflowAction) => void; onRemove: () => void }> = ({ action, engine, onClose, onChange, onRemove }) => {
+  const rule = action?.type === 'rule' && action.rule ? ruleById(action.rule) : undefined;
+  const needsTarget = !!action && (action.type === 'email' || action.type === 'notification' || action.type === 'todo');
   return (
-    <div className={cn('rounded-lg border bg-card text-left shadow-sm transition-shadow', open ? 'col-span-2 border-foreground ring-2 ring-foreground/10' : 'hover:shadow-md')}>
-      <button type="button" onClick={onToggle} className="w-full p-3 text-left">
-        <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold', ACTION_TONES[action.type])}>{ACTION_TYPES[action.type].label}</span>
-        {/* A card made before presets has only its wording; that is its title. */}
-        <span className="mt-2 block text-sm font-medium leading-snug">{action.title ?? action.label ?? ACTION_TYPES[action.type].label}</span>
-        {!open && action.title && <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">{action.label || 'Click to word it'}</span>}
-        {!open && action.to && <span className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground"><Users className="h-3 w-3" />{OWNERS[action.to]}</span>}
-      </button>
-      {open && (
-        <div className="space-y-3 border-t p-3">
-          <div>
-            <label className="mb-1.5 block text-xs font-medium">Message</label>
-            <textarea
-              rows={3}
-              value={action.label}
-              onChange={(e) => onChange({ ...action, label: e.target.value })}
-              className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </div>
-          {needsTarget && (
-            <div>
-              <label className="mb-1.5 block text-xs font-medium">To</label>
-              <Input dropdown options={(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))} value={action.to ?? 'advertiser'} onChange={(v) => onChange({ ...action, to: v as WorkflowOwner })} />
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-destructive hover:text-destructive" onClick={onRemove}><Trash2 className="h-3.5 w-3.5" /> Remove</Button>
-            <Button variant="outline" size="sm" className="h-8" onClick={onToggle}>Done</Button>
-          </div>
-        </div>
-      )}
-    </div>
+    <Dialog open={!!action} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="sm:max-w-md">
+        {action && (
+          <>
+            <DialogHeader>
+              <span className={cn('inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold', ACTION_TONES[action.type])}>{ACTION_TYPES[action.type].label}</span>
+              <DialogTitle>{action.title ?? action.label}</DialogTitle>
+              {rule && <DialogDescription>{rule.summary}</DialogDescription>}
+            </DialogHeader>
+            {action.type === 'check' ? (
+              <p className="text-sm text-muted-foreground">{action.label}</p>
+            ) : rule ? (
+              <div className="space-y-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">How the rule works</span>
+                  <Badge variant={rule.status === 'Active' ? 'success' : 'secondary'}>{rule.status}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">If</span> {rule.when}</p>
+                <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Then</span> {rule.then}</p>
+                <a href={`/configuration/${engine}/rules/${rule.id}`} className="block text-xs font-medium text-primary hover:underline">Open the rule →</a>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium">Message</label>
+                  <textarea
+                    rows={4}
+                    value={action.label}
+                    onChange={(e) => onChange({ ...action, label: e.target.value })}
+                    className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  />
+                </div>
+                {needsTarget && (
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium">To</label>
+                    <Input dropdown options={(Object.keys(OWNERS) as WorkflowOwner[]).map((o) => ({ value: o, label: OWNERS[o] }))} value={action.to ?? 'advertiser'} onChange={(v) => onChange({ ...action, to: v as WorkflowOwner })} />
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter className="flex-row justify-between sm:justify-between">
+              <Button variant="ghost" className="gap-1.5 text-destructive hover:text-destructive" onClick={onRemove}><Trash2 className="h-4 w-4" /> Remove</Button>
+              <Button onClick={onClose}>Done</Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };

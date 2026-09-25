@@ -179,7 +179,7 @@ const createEngineConfigurationStories = (
     // with the retailer's own people as the last row.
     const stageRows = workflow
       ? stepsByStage(workflow).map(({ stage: st, steps: inStage }) => {
-          const rules = inStage.filter((x) => !!x.rule).length;
+          const rules = inStage.filter((x) => x.actions.some((a) => a.type === 'rule')).length;
           return { id: st.id, stage: st.name, steps: inStage.length - rules, rules };
         })
       : [];

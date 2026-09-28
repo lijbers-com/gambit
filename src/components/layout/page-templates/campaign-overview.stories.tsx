@@ -25,7 +25,8 @@ import { productImages } from '@/lib/product-images';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { addDays } from 'date-fns';
-import { useDb, type EngineId } from '@/lib/db';
+import { useDb, buyingTypeOfCampaign, campaignGuaranteedTotals, bookingPrice, deliveryProgress, isGuaranteed, type BookingGoal, type BookingPriceView, type EngineId } from '@/lib/db';
+import { AgreedPriceCell, BuyingTypeLabel, DeliveryProgressBar, GoalCell } from '@/components/ui/guaranteed-booking';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { AddButton } from '@/components/ui/add-button';
@@ -225,11 +226,17 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
       const advertiserName = db.advertisers.find((a) => a.id === plan?.advertiserId)?.name ?? '';
       const bookings = db.bookings.filter((b) => b.campaignId === c.id);
       const positions = new Set(bookings.flatMap((b) => b.positionIds)).size;
+      const buyingType = buyingTypeOfCampaign(db, c);
+      const totals = buyingType === 'guaranteed' ? campaignGuaranteedTotals(db, c) : undefined;
       return {
         id: c.id,
         status: statusLabel[c.status] ?? c.status,
         advertiser: advertiserName,
         name: c.name,
+        buyingType,
+        goal: totals?.goal as BookingGoal | undefined,
+        progress: totals?.progress,
+        price: totals?.price as BookingPriceView | undefined,
         bookings: bookings.length,
         creatives: bookings.length, // creatives ≈ one per booking until modelled
         placements: positions,
@@ -259,6 +266,11 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
         name: b.name,
         engine: engineType,
         parentId: c.id,
+        // A booking buys the way its campaign does.
+        buyingType: c.buyingType,
+        goal: isGuaranteed(db, b) ? b.goal : undefined,
+        progress: (() => { const p = isGuaranteed(db, b) ? deliveryProgress(b) : undefined; return p ? { share: p.share, expectedShare: p.expectedShare } : undefined; })(),
+        price: isGuaranteed(db, b) ? bookingPrice(db, b) : undefined,
         products: { images: [] as string[], total: 0 },
         creatives: 0,
         placements: b.positionIds.length,
@@ -292,7 +304,8 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
             ...bookingsForCampaign(c),
             {
               _type: 'add' as const, _id: `add-${c.id}`, id: '', status: '', advertiser: '',
-              name: '', engine: engineType, parentId: c.id,
+              name: '', engine: engineType, parentId: c.id, buyingType: c.buyingType,
+              goal: undefined, progress: undefined, price: undefined,
               products: { images: [] as string[], total: 0 }, creatives: 0, placements: 0,
               spendToDate: 0, spendingLimit: 0, start: '', end: '',
             },
@@ -500,6 +513,9 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       ) },
                       { key: 'id', header: 'ID', width: 200, render: row => (row._type === 'add' ? null : row.id) },
                       { key: 'status', header: 'Status', render: row => (row._type === 'add' ? null : <Badge variant={statusVariant(row.status)}>{row.status}</Badge>) },
+                      // Guaranteed or auction: what kind of campaign this is.
+                      // Its bookings buy the same way, so only the campaign says it.
+                      { key: 'buyingType', header: 'Type', render: row => (row._type === 'campaign' ? <BuyingTypeLabel type={row.buyingType} /> : null) },
                       { key: 'advertiser', header: 'Advertiser' },
                       ...(engineType === 'offsite' ? [{ key: 'platform', header: 'Platform', render: () => 'Epsilon' }] : []),
                       { key: 'products', header: 'Retail products', render: row => {
@@ -521,6 +537,12 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       { key: 'placements', header: 'Placements', render: row => row._type === 'campaign' ? <Badge variant="secondary">{row.placements}</Badge> : null },
                       { key: 'spendToDate', summary: 'sum', header: 'Spend to date', render: row => (row._type === 'add' ? null : `$${row.spendToDate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`) },
                       { key: 'spendingLimit', summary: 'sum', header: 'Spending limit', render: row => row._type === 'campaign' ? `$${row.spendingLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
+                      // A guaranteed campaign sells a goal at an agreed price.
+                      ...(filteredCampaignData.some((c) => c.buyingType === 'guaranteed') ? [
+                        { key: 'goal', header: 'Goal', render: (row: AnyRow) => (row._type === 'add' ? null : row.goal ? <GoalCell goal={row.goal} /> : <span className="text-muted-foreground">—</span>) },
+                        { key: 'delivery', header: 'Delivery progress', width: 220, render: (row: AnyRow) => (row._type === 'add' ? null : row.progress ? <DeliveryProgressBar share={row.progress.share} expectedShare={row.progress.expectedShare} /> : <span className="text-muted-foreground">—</span>) },
+                        { key: 'agreedPrice', header: 'Agreed price', render: (row: AnyRow) => (row._type === 'add' ? null : row.price ? <AgreedPriceCell view={row.price} /> : <span className="text-muted-foreground">—</span>) },
+                      ] : []),
                       { key: 'runtime', header: 'Run time', render: row => (row._type === 'add' ? null : `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`) },
                     ]}
                     data={tableRows}

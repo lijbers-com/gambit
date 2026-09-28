@@ -10,6 +10,7 @@ import { InsightsTab } from './insights-tab';
 import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
 import { EntityControlBar } from '@/components/ui/entity-control-bar';
 import { useRouteCampaign } from '@/lib/db';
+import { CampaignBookingsPricing } from '@/components/ui/guaranteed-booking';
 import { CampaignCreativesPanel } from '@/components/ui/campaign-creatives-panel';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
@@ -1408,7 +1409,15 @@ export const DigitalInstoreRunning: Story = {
             {
               label: 'Bookings',
               value: 'bookings',
-              content: (
+              content: routeCampaign ? (
+                // The campaign's own bookings, with what they cost: goal,
+                // delivery and agreed price on a guaranteed campaign.
+                <CampaignBookingsPricing
+                  campaign={routeCampaign}
+                  bookingHref={(id) => `/campaigns/digital-instore/booking/${id}`}
+                  className="mt-6"
+                />
+              ) : (
                 <div className="space-y-6 mt-6">
                   <FilterBar
                     filters={[

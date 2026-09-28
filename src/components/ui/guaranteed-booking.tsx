@@ -8,6 +8,8 @@ import { Button } from './button';
 import { Input } from './input';
 import { FormSection } from './form-section';
 import { useToast } from './toast';
+import { Table } from './table';
+import { planStatusLabel } from '@/lib/status-vocabulary';
 import {
   BILLING_STATE_LABEL,
   BILLING_STATE_VARIANT,
@@ -34,6 +36,9 @@ import {
   type GoalMetric,
   priceFor,
   amountFor,
+  buyingTypeOfCampaign,
+  campaignGuaranteedTotals,
+  type Campaign,
 } from '@/lib/db';
 
 /**
@@ -297,6 +302,83 @@ export const GoalPricePreview: React.FC<{
         <p className="mt-1 text-sm text-muted-foreground">Excl. VAT · invoiced afterwards</p>
         <p className="mt-3 text-xs text-muted-foreground">A preview does not hold inventory. Check availability on the booking to lock the price; approval makes it the agreed price.</p>
       </div>
+    </div>
+  );
+};
+
+/** "Guaranteed" or "Auction", the way every table names a campaign's type. */
+export const BuyingTypeLabel: React.FC<{ type: 'guaranteed' | 'auction'; className?: string }> = ({ type, className }) => (
+  <Badge variant={type === 'guaranteed' ? 'info' : 'outline'} className={cn('font-normal', className)}>
+    {type === 'guaranteed' ? 'Guaranteed' : 'Auction'}
+  </Badge>
+);
+
+const fmtRange = (a: string, b: string) => {
+  const f = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  return `${f(a)} – ${f(b)}`;
+};
+
+/**
+ * A campaign's bookings with what they cost. On a guaranteed campaign the
+ * rate card sits on top — the product, its unit price, the goal summed over
+ * the bookings, delivery against it and the agreed total — and every booking
+ * shows its goal, delivery and price. An auction campaign shows its bookings
+ * with budget and spend.
+ */
+export const CampaignBookingsPricing: React.FC<{ campaign: Campaign; bookingHref: (bookingId: string) => string; className?: string }> = ({ campaign, bookingHref, className }) => {
+  const db = useDb();
+  const bookings = db.bookings.filter((b) => b.campaignId === campaign.id);
+  const type = buyingTypeOfCampaign(db, campaign);
+  const guaranteed = type === 'guaranteed';
+  const totals = guaranteed ? campaignGuaranteedTotals(db, campaign) : undefined;
+  const product = guaranteed && bookings[0] ? (() => {
+    const position = bookings.flatMap((b) => b.positionIds).map((id) => db.positions.find((p) => p.id === id)).find(Boolean);
+    return db.mediaProducts.find((m) => m.id === position?.mediaProductId)
+      ?? db.mediaProducts.find((m) => m.engine === campaign.engine && (m.buyingModels ?? []).includes('guaranteed'));
+  })() : undefined;
+
+  const stat = (label: string, value: React.ReactNode, sub?: React.ReactNode) => (
+    <div className="min-w-0 rounded-lg border p-4">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="mt-1 text-lg font-semibold tabular-nums">{value}</div>
+      {sub && <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>}
+    </div>
+  );
+
+  return (
+    <div className={cn('space-y-4', className)}>
+      {guaranteed && (
+        <div className="grid grid-cols-1 gap-row sm:grid-cols-2 xl:grid-cols-4">
+          {stat('Buying', 'Guaranteed', product?.pricingBasis && product.listPrice !== undefined ? `${product.name} · ${formatUnitPrice(product.listPrice, product.pricingBasis)} list` : 'Sold on a goal at an agreed price')}
+          {stat('Goal', totals ? formatGoal(totals.goal) : '—', `over ${bookings.length} booking${bookings.length === 1 ? '' : 's'}`)}
+          {stat('Delivery', totals?.progress ? `${(totals.progress.share * 100).toFixed(1)}%` : '—', totals?.progress ? `expected ${(totals.progress.expectedShare * 100).toFixed(1)}% by now` : 'not delivering yet')}
+          {stat(totals?.price.state === 'agreed' ? 'Agreed price' : 'Price', totals?.price.amount !== undefined ? formatEuro(totals.price.amount) : '—', totals ? `${PRICE_STATE_LABEL[totals.price.state].label} · excl. VAT, invoiced afterwards` : undefined)}
+        </div>
+      )}
+      <Table
+        columns={[
+          { key: 'name', header: 'Name', render: (b) => <span className="font-medium">{b.name}</span> },
+          { key: 'id', header: 'ID', render: (b) => <span className="tabular-nums text-muted-foreground">{b.id}</span> },
+          { key: 'status', header: 'Status', render: (b) => <Badge variant="outline">{planStatusLabel(b.status)}</Badge> },
+          ...(guaranteed ? [
+            { key: 'goal', header: 'Goal', render: (b: Booking) => <GoalCell goal={b.goal} /> },
+            { key: 'delivery', header: 'Delivery progress', width: 220, render: (b: Booking) => {
+              const p = deliveryProgress(b);
+              return <DeliveryProgressBar share={p?.share} expectedShare={p?.expectedShare} />;
+            } },
+            { key: 'price', header: 'Agreed price', summary: (rows: Booking[]) => formatEuro(rows.reduce((n, b) => n + (bookingPrice(db, b).amount ?? 0), 0)), render: (b: Booking) => <AgreedPriceCell view={bookingPrice(db, b)} /> },
+          ] : [
+            { key: 'budget', header: 'Budget', summary: 'sum' as const, render: (b: Booking) => <span className="tabular-nums">{formatEuro(b.budget)}</span> },
+            { key: 'spend', header: 'Spend', summary: 'sum' as const, render: (b: Booking) => <span className="tabular-nums">{formatEuro(b.spend)}</span> },
+          ]),
+          { key: 'runtime', header: 'Run time', render: (b) => fmtRange(b.startDate, b.endDate) },
+        ]}
+        data={bookings}
+        rowKey={(b) => b.id}
+        onRowClick={(b) => { window.location.href = bookingHref(b.id); }}
+        hideActions
+        emptyState="No bookings on this campaign yet."
+      />
     </div>
   );
 };

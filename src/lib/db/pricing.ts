@@ -46,6 +46,7 @@ export const BASIS_LABEL: Record<PricingBasis, string> = {
   cpm: 'CPM',
   cpc: 'CPC',
   'per-day': 'per day',
+  'per-store': 'per store',
   flat: 'flat',
 };
 

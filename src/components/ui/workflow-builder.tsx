@@ -92,6 +92,8 @@ const ACTION_PRESETS: ActionPreset[] = [
   { id: 'n-done',      type: 'notification', title: 'Completed',           label: 'Your campaign has ended — the report is ready.', to: 'advertiser', kinds: ['notification'] },
   { id: 'n-reminder',  type: 'notification', title: 'Reminder',            label: 'You still have a to-do open on this booking.', to: 'advertiser', kinds: ['notification'] },
   { id: 'n-creative',  type: 'notification', title: 'Creative missing',    label: 'A booking still has no creative — upload one before the start date.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'n-invoice',   type: 'notification', title: 'Invoice ready',       label: 'Your invoice is ready — find it under Billing.', to: 'advertiser', kinds: ['notification'] },
+  { id: 'n-overdue',   type: 'notification', title: 'Invoice overdue',     label: 'An invoice is past its due date.', to: 'retailer', kinds: ['notification'] },
   { id: 'e-upload',    type: 'email',        title: 'Upload link',         label: 'Here is the link to upload your creatives.', to: 'advertiser', kinds: ['notification'] },
   { id: 'e-approved',  type: 'email',        title: 'Approval confirmed',  label: 'Your booking is approved. The details are attached.', to: 'advertiser', kinds: ['notification'] },
   { id: 'e-summary',   type: 'email',        title: 'Weekly summary',      label: 'Your weekly summary of bookings and delivery.', to: 'retailer', kinds: ['notification'] },
@@ -105,6 +107,7 @@ const ACTION_PRESETS: ActionPreset[] = [
   { id: 't-creatives', type: 'todo',         title: 'Upload creatives',    label: 'Upload a creative for every format in the booking.', to: 'advertiser', kinds: ['todo'] },
   { id: 't-targeting', type: 'todo',         title: 'Add products and keywords', label: 'Pick the products and keywords the booking targets.', to: 'advertiser', kinds: ['todo'] },
   { id: 't-briefing',  type: 'todo',         title: 'Send the briefing',   label: 'Send the advertiser the briefing for this campaign.', to: 'retailer', kinds: ['todo'] },
+  { id: 't-po',        type: 'todo',         title: 'Add the PO number',   label: 'Add your purchase order number so the plan can be invoiced.', to: 'advertiser', kinds: ['todo'] },
   { id: 't-print',     type: 'todo',         title: 'Print and deliver',   label: 'Print the materials and deliver them to the stores.', to: 'external', kinds: ['todo'] },
   { id: 't-install',   type: 'todo',         title: 'Install in stores',   label: 'Install the materials in every store on the list.', to: 'external', kinds: ['todo'] },
   // A check: by Edge
@@ -113,9 +116,12 @@ const ACTION_PRESETS: ActionPreset[] = [
   { id: 'c-placements',type: 'check',        title: 'Placements chosen',   label: 'The booking has at least one placement or screen.', kinds: ['check'] },
   { id: 'c-products',  type: 'check',        title: 'Products in the feed', label: 'The products advertised are listed and in stock.', kinds: ['check'] },
   { id: 'c-budget',    type: 'check',        title: 'Budget within the plan', label: 'The bookings do not exceed the plan\'s budget.', kinds: ['check'] },
+  { id: 'c-price',     type: 'check',        title: 'Price agreed',        label: 'A guaranteed booking\'s price is agreed — frozen at approval, what gets invoiced.', kinds: ['check'] },
+  { id: 'c-po',        type: 'check',        title: 'PO number present',   label: 'The media plan has the advertiser\'s purchase order number, needed on the invoice.', kinds: ['check'] },
   { id: 'c-pacing',    type: 'check',        title: 'Pacing on track',     label: 'Spend is within 20% of where it should be by now.', kinds: ['check'] },
   // A stage: the status a booking or campaign sits in — what Edge tells the systems there
   { id: 'k-engine',    type: 'kafka',        title: 'Send to the engine',  label: 'Hand the booking to the delivery engine.', kinds: ['stage'] },
+  { id: 'k-billing',   type: 'kafka',        title: 'Send to billing',     label: 'Hand the completed bookings to the billing service, at their agreed price.', kinds: ['stage'] },
   { id: 'k-report',    type: 'kafka',        title: 'Send to reporting',   label: 'Hand the results to the reporting warehouse.', kinds: ['stage'] },
   { id: 'l-chat',      type: 'log',          title: 'Chat line',           label: 'Write a line in the campaign chat.', kinds: ['stage'] },
   // The configuration rules, one card each, on a check

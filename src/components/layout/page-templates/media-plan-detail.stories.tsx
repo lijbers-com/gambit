@@ -50,7 +50,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorSpeaker, MonitorPlay, Store, Globe, Eye, Brain, ShoppingCart, Heart, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { scoreHealth, type HealthIndicator, type HealthScore } from '@/lib/db/health';
-import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, markRead, markDone, applyPlanLifecycle, setupStepDone, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
+import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, markRead, markDone, applyPlanLifecycle, setupStepDone, buyingTypeOfCampaign, bookingPrice, deliveryProgress, campaignGuaranteedTotals, isGuaranteed, type BookingGoal, type BookingPriceView, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
+import { AgreedPriceCell, DeliveryProgressBar, GoalCell } from '@/components/ui/guaranteed-booking';
+import { PlanBilling } from '@/components/ui/plan-billing';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
 import { MessageDrawer } from '@/components/ui/message-drawer';
@@ -183,6 +185,10 @@ type Row = {
   health?: 'good' | 'attention' | 'risk';
   healthIndicators?: HealthIndicator[];
   healthScore?: HealthScore;
+  /** Guaranteed only: the goal, delivery against it, and the price. */
+  goal?: BookingGoal;
+  progress?: { share: number; expectedShare: number };
+  price?: BookingPriceView;
 };
 
 /** Health for a row, matching the chip the media plan card shows. */
@@ -867,9 +873,24 @@ export const MediaPlanDetail: Story = {
       };
     };
 
+    // Guaranteed terms per row: a booking's own, a campaign's summed.
+    const guaranteedFor = (c: Campaign) => {
+      if (buyingTypeOfCampaign(db, c) !== 'guaranteed') return {};
+      const t = campaignGuaranteedTotals(db, c);
+      if (!t) return {};
+      return { goal: t.goal, progress: t.progress, price: t.price };
+    };
+    const guaranteedForBooking = (b: (typeof db.bookings)[number]) => {
+      if (!isGuaranteed(db, b)) return {};
+      const p = deliveryProgress(b);
+      return { goal: b.goal, progress: p ? { share: p.share, expectedShare: p.expectedShare } : undefined, price: bookingPrice(db, b) };
+    };
+    const planHasGuaranteed = filteredCampaigns.some(({ campaign: c }) => buyingTypeOfCampaign(db, c) === 'guaranteed');
+
     const rows: Row[] = filteredCampaigns.flatMap(({ campaign: c, bookings }) => [
       {
-        _type: 'campaign' as const, _id: c.id, name: c.name, engine: c.engine, buyingType: c.buyingType, state: c.status,
+        _type: 'campaign' as const, _id: c.id, name: c.name, engine: c.engine, buyingType: buyingTypeOfCampaign(db, c), state: c.status,
+        ...guaranteedFor(c),
         budget: fmtEuro(c.budget), budgetValue: c.budget, startDate: c.startDate, endDate: c.endDate,
         dates: fmtRange(c.startDate, c.endDate),
         objectiveKpi: objectiveKpiLabel, bookingsCount: bookings.length,
@@ -881,6 +902,7 @@ export const MediaPlanDetail: Story = {
               _type: 'booking' as const, _id: b.id, name: b.name, engine: c.engine, status: b.status,
               budget: fmtEuro(b.budget), dailyCap: '—', dates: fmtRange(b.startDate, b.endDate),
               objectiveKpi: 'Inherits from campaign', inherits: true,
+              ...guaranteedForBooking(b),
               ...countsFor({ bookingId: b.id }),
             })),
             {
@@ -985,6 +1007,22 @@ export const MediaPlanDetail: Story = {
             />
           ),
       },
+      // A guaranteed campaign sells an amount at an agreed price: its goal,
+      // how far delivery is against it, and the price, beside the budget.
+      ...(planHasGuaranteed ? [
+        {
+          key: 'goal', header: 'Goal', width: 110,
+          render: (r: Row) => (r._type === 'add' ? null : r.goal ? <GoalCell goal={r.goal} /> : <span className="text-muted-foreground">—</span>),
+        },
+        {
+          key: 'delivery', header: 'Delivery progress', width: 220,
+          render: (r: Row) => (r._type === 'add' ? null : r.progress ? <DeliveryProgressBar share={r.progress.share} expectedShare={r.progress.expectedShare} /> : <span className="text-muted-foreground">—</span>),
+        },
+        {
+          key: 'agreedPrice', header: 'Agreed price', width: 160,
+          render: (r: Row) => (r._type === 'add' ? null : r.price ? <AgreedPriceCell view={r.price} /> : <span className="text-muted-foreground">—</span>),
+        },
+      ] as TableColumn<Row>[] : []),
       {
         key: 'health', header: 'Health',
         // The chip opens its own findings; only the row click is kept out.
@@ -1514,6 +1552,12 @@ export const MediaPlanDetail: Story = {
                 label: 'Insights',
                 value: 'insights',
                 content: <InsightsTab engineType="all" scope="campaign" mediaPlanId={plan?.id} />,
+              }]),
+              // Billing, once something on the plan has been bought.
+              ...(inSetup || !plan ? [] : [{
+                label: 'Billing',
+                value: 'billing',
+                content: <PlanBilling mediaPlanId={plan.id} />,
               }]),
               ...(inSetup ? [] : [{
                 label: 'Logs',

@@ -29,7 +29,14 @@ export {
   createPricingRule,
   updatePricingRule,
   deletePricingRule,
+  setBookingGoal,
+  quoteBookingPrice,
+  sendToBilling,
+  syncBilling,
+  billingServiceMode,
 } from './store';
+export * from './guaranteed';
+export * from './billing';
 export * from './pricing';
 export * from './retail-products';
 export { login, logout, getCurrentUser, subscribeSession } from './session';

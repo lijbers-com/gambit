@@ -173,8 +173,53 @@ export interface Booking {
   positionIds: string[];
   /** Creative readiness — a booking cannot go live without an approved creative. */
   creativeStatus: CreativeStatus;
+  /** Guaranteed only: what the booking promises to deliver. A booking
+   *  under a guaranteed campaign is guaranteed itself (see guaranteed.ts). */
+  goal?: BookingGoal;
+  /** Guaranteed only: how much of the goal has been delivered so far. */
+  delivered?: number;
+  /** Guaranteed only: the price once it is locked. Absent means the price
+   *  is still indicative — worked out live from the pricing engine. */
+  price?: BookingPrice;
   createdAt: string;
   updatedAt: string;
+}
+
+/** What a guaranteed goal counts: impressions on screens and pages, or the
+ *  stores a printed booking runs in. */
+export type GoalMetric = 'impressions' | 'stores';
+
+export interface BookingGoal {
+  metric: GoalMetric;
+  amount: number;
+}
+
+/**
+ * A guaranteed booking's price moves through four states:
+ *
+ *   not priced → indicative → quoted → agreed
+ *
+ * - not priced — no goal yet, so there is nothing to price.
+ * - indicative — the pricing engine's unit price times the goal. A preview:
+ *   it holds nothing and moves with the pricing rules. Never stored.
+ * - quoted     — "Check availability" placed an inventory hold, which locks
+ *   the unit price for the product's hold days.
+ * - agreed     — frozen when the booking is approved. From here on no
+ *   pricing rule or yield change touches it: it is what gets invoiced.
+ */
+export type BookingPriceState = 'not-priced' | 'indicative' | 'quoted' | 'agreed';
+
+export interface BookingPrice {
+  state: 'quoted' | 'agreed';
+  basis: PricingBasis;
+  /** The price of one unit in the basis — € per 1,000 impressions, € per store. */
+  unitPrice: number;
+  /** The unit price times the goal, in euros excluding VAT. */
+  amount: number;
+  /** When it was quoted, or agreed. */
+  lockedAt: string;
+  /** The inventory hold behind a quote. */
+  holdId?: string;
 }
 
 // ── Metric registry (per engine) ───────────────────────────────────────
@@ -215,7 +260,7 @@ export interface MetricDefinition {
 
 export type BuyingModel = 'guaranteed' | 'auction';
 /** What the list price is a price of. */
-export type PricingBasis = 'cpm' | 'cpc' | 'per-day' | 'flat';
+export type PricingBasis = 'cpm' | 'cpc' | 'per-day' | 'per-store' | 'flat';
 export type MediaProductStatus = 'draft' | 'active' | 'archived';
 
 export interface MediaProduct {
@@ -555,6 +600,45 @@ export interface Workflow {
 
 // ── The database document ──────────────────────────────────────────────
 
+// ── Billing ─────────────────────────────────────────────────────────────
+//
+// Invoices come from the retailer's billing service (RE); Edge mirrors them.
+// Edge's part is what is billable: a completed booking, at its agreed price
+// when guaranteed, at its spend when bought at auction. See billing.ts for
+// what is billable and billing-service.ts for the contract with the service.
+
+/** Where an invoice stands, as the billing service reports it. */
+export type InvoiceStatus = 'sent' | 'paid' | 'overdue' | 'credited';
+
+export interface InvoiceLine {
+  id: string;
+  bookingId: string;
+  description: string;
+  /** Agreed price (guaranteed) or spend (auction), excluding VAT. */
+  amount: number;
+  /** A correction on the amount — negative for a credit, e.g. under-delivery. */
+  adjustment?: number;
+  adjustmentReason?: string;
+}
+
+export interface Invoice {
+  id: string;
+  /** The billing service's own number. */
+  number: string;
+  advertiserId: string;
+  mediaPlanId: string;
+  poNumber?: string;
+  status: InvoiceStatus;
+  issuedAt: string;
+  dueAt: string;
+  paidAt?: string;
+  lines: InvoiceLine[];
+  /** VAT rate applied on the total, 0.21 for 21%. */
+  vatRate: number;
+  /** When Edge last heard from the billing service about this invoice. */
+  syncedAt: string;
+}
+
 export interface DbData {
   /** Bumped when the seed shape changes — mismatched stores are re-seeded. */
   version: number;
@@ -579,6 +663,7 @@ export interface DbData {
   creatives: Creative[];
   workflows: Workflow[];
   listings: PropositionListing[];
+  invoices: Invoice[];
 }
 
 /**

@@ -41,7 +41,8 @@ import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleRow, ToggleSect
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
-import { useDb, getDb, createCampaign, createBooking, updateBooking, updateCampaign, updateCreative, type EngineId } from '@/lib/db';
+import { useDb, getDb, createCampaign, createBooking, updateBooking, updateCampaign, updateCreative, buyingTypeOfCampaign, goalMetricFor, type BookingGoal, type EngineId } from '@/lib/db';
+import { GoalPricePreview } from '@/components/ui/guaranteed-booking';
 import { queueToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
@@ -445,7 +446,18 @@ const PropositionWizard = ({
   // inherits the answer from the existing campaign.
   const hasBuyingType = propositionType === 'display' || propositionType === 'digital-instore';
   const [buyingType, setBuyingType] = React.useState<'auction' | 'guaranteed'>('auction');
-  const isAuction = (routeCampaign?.buyingType ?? buyingType) !== 'guaranteed';
+  // Guaranteed bookings sell a goal at a price: the campaign's answer when it
+  // was asked, else what the proposition sells (in-store is guaranteed only).
+  // Everything else bids — placements carry a CPC and the budget is paced.
+  const sellsGoal = routeCampaign
+    ? buyingTypeOfCampaign(db, routeCampaign) === 'guaranteed'
+    : hasBuyingType ? buyingType === 'guaranteed' : propositionType === 'offline-instore';
+  const isAuction = !sellsGoal;
+  const [bookingGoal, setBookingGoal] = React.useState('');
+  const goalOf = (raw: string) => {
+    const n = parseInt(raw.replace(/[^\d]/g, ''), 10);
+    return sellsGoal && Number.isFinite(n) && n > 0 ? { metric: goalMetricFor(propositionType as EngineId), amount: n } : undefined;
+  };
 
   // Step 1: Setup
   const [campaignName, setCampaignName] = React.useState('');
@@ -502,6 +514,8 @@ const PropositionWizard = ({
     /** The creatives it runs, chosen on the booking's own last step. */
     creativeIds: string[];
     deliveryBehavior: DeliveryBehaviorValue; objectivesEnabled: boolean; deliveryObjectives: DeliveryObjectivesValue;
+    /** Guaranteed only: what the booking promises to deliver. */
+    goal?: BookingGoal;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
   // The booking's questions, in order: what it is, when it runs and what it
@@ -577,6 +591,7 @@ const PropositionWizard = ({
         startDate: toIso(bookingDateRange?.from) ?? routeBooking.startDate,
         endDate: toIso(bookingDateRange?.to) ?? routeBooking.endDate,
         positionIds: bookingPositionIds.length > 0 ? bookingPositionIds : routeBooking.positionIds,
+        ...(goalOf(bookingGoal) ? { goal: goalOf(bookingGoal) } : {}),
       });
       linkCreatives(routeBooking.id, bookingCreativeIds);
       queueToast({ title: 'Booking approved', description: bookingName || routeBooking.name });
@@ -593,10 +608,11 @@ const PropositionWizard = ({
       inclTargets: { ...inclTargets }, exclTargets: { ...exclTargets },
       creativeIds: [...bookingCreativeIds],
       deliveryBehavior: { ...deliveryBehavior }, objectivesEnabled, deliveryObjectives: { ...deliveryObjectives },
+      goal: goalOf(bookingGoal),
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
-    setBookingName(''); setBookingBudget(''); setBookingDateRange(undefined);
+    setBookingName(''); setBookingBudget(''); setBookingDateRange(undefined); setBookingGoal('');
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
@@ -870,6 +886,7 @@ const PropositionWizard = ({
       endDate: toIso(b.endDate) ?? campaignRecord.endDate,
       positionIds: b.positionIds,
       creativeStatus: 'missing',
+      goal: b.goal,
     }));
     // The creatives each booking chose — on its own step or on the campaign's
     // creatives step — are linked now that the booking exists.
@@ -2075,6 +2092,19 @@ const PropositionWizard = ({
                                 />
                               ) : undefined}
                             />
+                            {/* Guaranteed sells an amount: the goal, and what it costs. */}
+                            {sellsGoal && (
+                              <FormSection title="Goal & price">
+                                <GoalPricePreview
+                                  engine={propositionType as EngineId}
+                                  goal={bookingGoal}
+                                  onGoalChange={setBookingGoal}
+                                  startDate={bookingDateRange?.from}
+                                  endDate={bookingDateRange?.to}
+                                  budget={parseFloat(bookingBudget) || undefined}
+                                />
+                              </FormSection>
+                            )}
                             <div className="flex justify-end gap-3">
                               <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
                               <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
@@ -2454,7 +2484,7 @@ const PropositionWizard = ({
                       budget: routeCampaign.budget,
                       start: new Date(routeCampaign.startDate),
                       end: new Date(routeCampaign.endDate),
-                      type: routeCampaign.buyingType ?? 'auction',
+                      type: buyingTypeOfCampaign(db, routeCampaign),
                     }
                   : {
                       name: campaignName || 'New campaign',

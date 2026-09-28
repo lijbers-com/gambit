@@ -38,6 +38,7 @@ import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
+import { GuaranteedGoalPrice, useGuaranteedSummaryItems } from '@/components/ui/guaranteed-booking';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { useBookingCreativeItems } from '@/components/ui/booking-creatives-summary';
@@ -558,6 +559,7 @@ export const Display: Story = {
     const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
+    const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -837,6 +839,8 @@ export const Display: Story = {
                 ) : undefined}
               />
 
+              <GuaranteedGoalPrice booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+
               <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && 'hidden')}>
                 <CreatePlacement
                   productLabel="Find channel"
@@ -1108,6 +1112,7 @@ export const Display: Story = {
                   actions={summaryActionsFor(bookingTab)}
                   className="bg-card"
                   items={[
+                    ...guaranteedItems,
                     ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                     ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
                     ...((endDate) ? [{ label: 'End', value: `${format(endDate, 'dd/MM/yyyy')} ${endTime}` }] : []),
@@ -1155,6 +1160,7 @@ export const DigitalInStore: Story = {
     const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
+    const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -1878,6 +1884,8 @@ export const DigitalInStore: Story = {
                         onActiveDaysChange={setDInstoreActiveDays}
                       />
 
+                      <GuaranteedGoalPrice booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+
                       <FormSection bordered title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
                         <CreatePlacement
                           productLabel="Find channel"
@@ -2441,6 +2449,7 @@ export const DigitalInStore: Story = {
                     actions={summaryActionsFor(bookingTab)}
                     className="bg-card"
                     items={[
+                      ...guaranteedItems,
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                       ...(selectedBrands.length > 0 ? [{ label: 'Brands', value: `${selectedBrands.length} selected` }] : []),
                       ...(selectedRetailProducts.length > 0 ? [{ label: 'Retail products', value: `${selectedRetailProducts.length} selected` }] : []),
@@ -2535,6 +2544,7 @@ export const OfflineInStore: Story = {
     const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
+    const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -3140,6 +3150,8 @@ export const OfflineInStore: Story = {
   campaignBudget="€10,000"
   campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
 />
+
+<GuaranteedGoalPrice booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
 
 <FormSection bordered title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-2 min-w-0">
@@ -3782,6 +3794,7 @@ export const OfflineInStore: Story = {
                     actions={summaryActionsFor(bookingTab)}
                     className="bg-card"
                     items={[
+                      ...guaranteedItems,
                       { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
                       { label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` },
                       {
@@ -3867,6 +3880,7 @@ export const SponsoredProducts: Story = {
     const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
+    const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const routeEntityId = useRouteEntityId();
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
     const [bookingBudget, setBookingBudget] = React.useState('');
@@ -4467,6 +4481,7 @@ export const OffsiteDisplay: Story = {
     const [summaryOpen, setSummaryOpen] = React.useState(true);
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
+    const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -4698,6 +4713,8 @@ export const OffsiteDisplay: Story = {
                     onActiveDaysChange={setBookingActiveDays}
                   />
 
+                  <GuaranteedGoalPrice booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+
                   <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
                     <CreatePlacement
                       productLabel="Find platform"
@@ -4907,6 +4924,7 @@ export const OffsiteDisplay: Story = {
                 actions={summaryActionsFor(bookingTab)}
                 className="bg-card"
                 items={[
+                  ...guaranteedItems,
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                   ...(mediaProductLabel ? [{ label: 'Media product', value: mediaProductLabel }] : []),
                   ...(positionsSummary ? [{ label: 'Positions', value: positionsSummary }] : []),

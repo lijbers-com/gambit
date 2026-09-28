@@ -31,6 +31,7 @@ export type HealthSeverity = 'NEEDS_ATTENTION' | 'AT_RISK';
 export type HealthIndicatorCode =
   | 'SEVERELY_UNDERPACING' | 'UNDERPACING' | 'OVERPACING' | 'SEVERELY_OVERPACING'
   | 'NOT_DELIVERING' | 'DELIVERY_STOPPED' | 'DAILY_CAP_LIMITING_DELIVERY'
+  | 'UNDER_DELIVERING' | 'SEVERELY_UNDER_DELIVERING'
   | 'SEVERELY_BELOW_KPI_TARGET' | 'BELOW_KPI_TARGET'
   | 'LOW_WIN_RATE' | 'LOW_SHARE_OF_VOICE'
   | 'BUDGET_NOT_FULLY_ALLOCATED' | 'NO_LIVE_BOOKINGS';
@@ -82,6 +83,8 @@ export const INDICATOR_CATALOGUE: Record<HealthIndicatorCode, { check: HealthChe
   NOT_DELIVERING:              { check: 'delivery', title: 'Not delivering',            meaning: 'Live but has never spent.', levels: ['BOOKING'] },
   DELIVERY_STOPPED:            { check: 'delivery', title: 'Delivery stopped',          meaning: 'Was spending, has now stopped while budget and flight remain.', levels: ['BOOKING'] },
   DAILY_CAP_LIMITING_DELIVERY: { check: 'delivery', title: 'Daily cap limiting delivery', meaning: 'Consistently spending up to its daily cap while underpacing — the cap is throttling delivery.', levels: ['BOOKING'] },
+  UNDER_DELIVERING:            { check: 'delivery', title: 'Behind on its goal',        meaning: 'A guaranteed booking delivering below the rate needed to reach its goal by the end date.', levels: ['BOOKING'] },
+  SEVERELY_UNDER_DELIVERING:   { check: 'delivery', title: 'Far behind on its goal',    meaning: 'A guaranteed booking delivering so far below its rate that it will miss its goal — and be invoiced for less.', levels: ['BOOKING'] },
   SEVERELY_BELOW_KPI_TARGET:   { check: 'objective-performance', title: 'Severely below KPI target', meaning: 'KPI far worse than target.', levels: ['BOOKING', 'CAMPAIGN_ORDER'] },
   BELOW_KPI_TARGET:            { check: 'objective-performance', title: 'Below KPI target',          meaning: 'KPI worse than target.', levels: ['BOOKING', 'CAMPAIGN_ORDER'] },
   LOW_WIN_RATE:                { check: 'visibility', title: 'Low win rate',            meaning: 'Losing a high share of the auctions it enters.', levels: ['BOOKING'] },
@@ -100,7 +103,7 @@ export interface HealthConfig {
   enabled: boolean;
   checks: {
     'budget-pacing': { enabled: boolean; severelyUnderpacingBelow: number; underpacingBelow: number; overpacingAbove: number; severelyOverpacingAbove: number; severities: Record<'SEVERELY_UNDERPACING' | 'UNDERPACING' | 'OVERPACING' | 'SEVERELY_OVERPACING', HealthSeverity> };
-    delivery: { enabled: boolean; noSpendDays: number; stoppedDays: number; capUtilisationAbove: number; severities: Record<'NOT_DELIVERING' | 'DELIVERY_STOPPED' | 'DAILY_CAP_LIMITING_DELIVERY', HealthSeverity> };
+    delivery: { enabled: boolean; noSpendDays: number; stoppedDays: number; capUtilisationAbove: number; underDeliveringBelow: number; severelyUnderDeliveringBelow: number; severities: Record<'NOT_DELIVERING' | 'DELIVERY_STOPPED' | 'DAILY_CAP_LIMITING_DELIVERY' | 'UNDER_DELIVERING' | 'SEVERELY_UNDER_DELIVERING', HealthSeverity> };
     'objective-performance': { enabled: boolean; belowTargetBy: number; severelyBelowTargetBy: number; severities: Record<'BELOW_KPI_TARGET' | 'SEVERELY_BELOW_KPI_TARGET', HealthSeverity> };
     visibility: { enabled: boolean; winRateBelow: number; shareOfVoiceBelow: number; severities: Record<'LOW_WIN_RATE' | 'LOW_SHARE_OF_VOICE', HealthSeverity> };
     'budget-allocation': { enabled: boolean; unallocatedShareAbove: number; severities: Record<'BUDGET_NOT_FULLY_ALLOCATED' | 'NO_LIVE_BOOKINGS', HealthSeverity> };
@@ -116,8 +119,8 @@ export const DEFAULT_HEALTH_CONFIG: HealthConfig = {
       severities: { SEVERELY_UNDERPACING: 'AT_RISK', UNDERPACING: 'NEEDS_ATTENTION', OVERPACING: 'NEEDS_ATTENTION', SEVERELY_OVERPACING: 'AT_RISK' },
     },
     delivery: {
-      enabled: true, noSpendDays: 3, stoppedDays: 2, capUtilisationAbove: 0.95,
-      severities: { NOT_DELIVERING: 'AT_RISK', DELIVERY_STOPPED: 'AT_RISK', DAILY_CAP_LIMITING_DELIVERY: 'NEEDS_ATTENTION' },
+      enabled: true, noSpendDays: 3, stoppedDays: 2, capUtilisationAbove: 0.95, underDeliveringBelow: 0.90, severelyUnderDeliveringBelow: 0.80,
+      severities: { NOT_DELIVERING: 'AT_RISK', DELIVERY_STOPPED: 'AT_RISK', DAILY_CAP_LIMITING_DELIVERY: 'NEEDS_ATTENTION', UNDER_DELIVERING: 'NEEDS_ATTENTION', SEVERELY_UNDER_DELIVERING: 'AT_RISK' },
     },
     'objective-performance': {
       enabled: true, belowTargetBy: 0.20, severelyBelowTargetBy: 0.40,
@@ -200,9 +203,20 @@ export function assessMediaPlan(db: DbData, plan: MediaPlan, config: HealthConfi
     const elapsed = elapsedFraction(booking.startDate, booking.endDate, now);
     const daysIn = (now - new Date(booking.startDate).getTime()) / DAY;
 
+    // A guaranteed booking has a fixed price, so how fast it spends says
+    // nothing: what counts is delivery against its goal, at this point.
+    const guaranteed = !!booking.goal && booking.goal.amount > 0;
+    const delivering = config.checks.delivery;
+    if (guaranteed && delivering.enabled && live && elapsed >= 0.05) {
+      const expected = booking.goal!.amount * elapsed;
+      const ratio = Math.round(((booking.delivered ?? 0) / expected) * 100) / 100;
+      if (ratio < delivering.severelyUnderDeliveringBelow) found.push(ind('SEVERELY_UNDER_DELIVERING', delivering.severities.SEVERELY_UNDER_DELIVERING, subject, ratio, delivering.severelyUnderDeliveringBelow, 'RATIO'));
+      else if (ratio < delivering.underDeliveringBelow) found.push(ind('UNDER_DELIVERING', delivering.severities.UNDER_DELIVERING, subject, ratio, delivering.underDeliveringBelow, 'RATIO'));
+    }
+
     // Budget pacing: spend so far against the spend expected at this point.
     const pacing = config.checks['budget-pacing'];
-    if (pacing.enabled && live && booking.budget > 0 && elapsed >= 0.05) {
+    if (!guaranteed && pacing.enabled && live && booking.budget > 0 && elapsed >= 0.05) {
       const expected = booking.budget * elapsed;
       const ratio = Math.round((booking.spend / expected) * 100) / 100;
       if (booking.spend > 0) {
@@ -316,6 +330,7 @@ const fmtValue = (v: number, unit?: HealthMetricUnit): string => {
 const MEASURE: Partial<Record<HealthIndicatorCode, string>> = {
   SEVERELY_UNDERPACING: 'pacing', UNDERPACING: 'pacing', OVERPACING: 'pacing', SEVERELY_OVERPACING: 'pacing',
   NOT_DELIVERING: 'days live without spend', DAILY_CAP_LIMITING_DELIVERY: 'cap utilisation',
+  UNDER_DELIVERING: 'delivery against the goal', SEVERELY_UNDER_DELIVERING: 'delivery against the goal',
   LOW_WIN_RATE: 'win rate', LOW_SHARE_OF_VOICE: 'share of voice',
   BUDGET_NOT_FULLY_ALLOCATED: 'unallocated share', NO_LIVE_BOOKINGS: 'live bookings',
 };
@@ -369,6 +384,7 @@ export function indicatorReason(i: HealthIndicator): string {
     case 'NOT_DELIVERING': return v !== undefined ? `not delivering for ${v} day${v === 1 ? '' : 's'}` : 'not delivering';
     case 'DELIVERY_STOPPED': return 'delivery stopped';
     case 'DAILY_CAP_LIMITING_DELIVERY': return 'daily cap throttling delivery';
+    case 'UNDER_DELIVERING': case 'SEVERELY_UNDER_DELIVERING': return v !== undefined ? `delivery ${pct(1 - v)} behind the goal` : 'behind on its goal';
     case 'SEVERELY_BELOW_KPI_TARGET': case 'BELOW_KPI_TARGET': return v !== undefined ? `${pct(v)} below KPI target` : 'below KPI target';
     case 'LOW_WIN_RATE': return v !== undefined ? `win rate ${pct(v)}` : 'low win rate';
     case 'LOW_SHARE_OF_VOICE': return v !== undefined ? `share of voice ${pct(v)}` : 'low share of voice';

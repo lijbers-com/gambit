@@ -36,6 +36,7 @@ import {
   CirclePlus,
   Headset,
   Package,
+  ReceiptText,
 } from 'lucide-react';
 import { OrganisationsIcon, BrandsIcon } from './custom-icons';
 
@@ -85,6 +86,7 @@ export const renderIcon = (icon: string) => {
     LayoutList,
     OrganisationsIcon,
     BrandsIcon,
+    ReceiptText,
   };
   const IconComponent = icons[icon as keyof typeof icons];
   return IconComponent ? <IconComponent size={20} /> : null;

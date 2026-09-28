@@ -235,6 +235,8 @@ export function readWorkflow(db: DbData, workflow: Workflow, target: WorkflowTar
     // What the check watches: its name, and the check cards on it.
     const n = [step.name, ...step.actions.filter((a) => a.type === 'check').map((a) => a.title ?? a.label)].join(' ').toLowerCase();
     if (/booking approved|approved by/.test(n)) return !['draft', 'in-review', 'changes-requested'].includes(lifecycle);
+    if (/po number/.test(n)) return !!plan?.poNumber?.trim();
+    if (/price agreed/.test(n)) return (entity as { price?: { state: string } }).price?.state === 'agreed' || !['draft', 'in-review', 'changes-requested'].includes(lifecycle);
     if (/creative/.test(n)) return entity.creativeStatus === 'approved';
     if (/store|screen|placement|position/.test(n)) return entity.positionIds.length > 0;
     if (/product/.test(n)) return true; // assigned with the campaign

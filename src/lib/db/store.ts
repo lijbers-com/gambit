@@ -1,4 +1,7 @@
-import type { Booking, Campaign, Creative, CreativeApprovalStatus, DbData, FaqEntry, InventoryHold, MediaPlan, MediaProduct, Placement, Position, PricingRule, TermEntry, ReleaseNote, Workflow } from './types';
+import type { Booking, BookingGoal, Campaign, Creative, CreativeApprovalStatus, DbData, FaqEntry, Invoice, InventoryHold, MediaPlan, MediaProduct, Placement, Position, PricingRule, TermEntry, ReleaseNote, Workflow } from './types';
+import { bookingPrice, isGuaranteed, productForBooking } from './guaranteed';
+import { billableLines } from './billing';
+import { billingService, type InvoiceRecord } from '@/lib/billing-service';
 import { fillRateFor, priceFor } from './pricing';
 import { SEED_VERSION, seedData } from './seed';
 import { nextStatus, type LifecycleAction } from './lifecycle';
@@ -186,6 +189,122 @@ function holdInventory(db: DbData, booking: Booking) {
     });
   }
 }
+
+// ── Guaranteed bookings ────────────────────────────────────────────────
+
+/** Set what a guaranteed booking promises to deliver. A new goal changes
+ *  what a quote was for, so an unagreed quote falls back to indicative. */
+export function setBookingGoal(bookingId: string, goal: BookingGoal | undefined) {
+  const db = load();
+  const booking = db.bookings.find((b) => b.id === bookingId);
+  if (!booking || booking.price?.state === 'agreed') return;
+  booking.goal = goal;
+  if (booking.price?.state === 'quoted') {
+    const hold = booking.price.holdId && db.inventoryHolds.find((h) => h.id === booking.price!.holdId);
+    if (hold && hold.status === 'held') hold.status = 'released';
+    booking.price = undefined;
+  }
+  booking.updatedAt = timestamp();
+  notify();
+}
+
+/**
+ * "Check availability": hold the booking's inventory for the product's hold
+ * days and lock today's price as a quote. A preview holds nothing; this does.
+ */
+export function quoteBookingPrice(bookingId: string): 'quoted' | 'no-goal' | 'agreed' {
+  const db = load();
+  const booking = db.bookings.find((b) => b.id === bookingId);
+  if (!booking) return 'no-goal';
+  if (booking.price?.state === 'agreed') return 'agreed';
+  const view = bookingPrice(db, { ...booking, price: undefined });
+  if (view.state !== 'indicative') return 'no-goal';
+  const product = productForBooking(db, booking);
+  const positionId = booking.positionIds[0] ?? db.positions.find((p) => p.mediaProductId === product?.id)?.id;
+  const heldAt = new Date();
+  const hold: InventoryHold | undefined = positionId ? {
+    id: nextId('IH', db.inventoryHolds),
+    bookingId: booking.id,
+    positionId,
+    from: booking.startDate,
+    to: booking.endDate,
+    units: 1,
+    priceLocked: view.unitPrice!,
+    heldAt: heldAt.toISOString(),
+    expiresAt: new Date(heldAt.getTime() + (product?.holdDays ?? 5) * 86400000).toISOString(),
+    status: 'held',
+  } : undefined;
+  if (hold) db.inventoryHolds.push(hold);
+  booking.price = { state: 'quoted', basis: view.basis!, unitPrice: view.unitPrice!, amount: view.amount!, lockedAt: heldAt.toISOString(), holdId: hold?.id };
+  booking.updatedAt = timestamp();
+  notify();
+  return 'quoted';
+}
+
+// ── Billing ────────────────────────────────────────────────────────────
+
+const client = () => billingService(() => load().invoices);
+
+function upsertInvoice(db: DbData, record: InvoiceRecord, syncedAt: string) {
+  const invoice: Invoice = { ...record, syncedAt };
+  const at = db.invoices.findIndex((i) => i.id === invoice.id || i.number === invoice.number);
+  if (at >= 0) db.invoices[at] = invoice;
+  else db.invoices.push(invoice);
+}
+
+/**
+ * Send a plan's completed bookings to the billing service. They go as one
+ * request, so they land on one invoice under the plan's PO number; the
+ * invoice the service returns is stored as its mirror.
+ */
+export async function sendToBilling(mediaPlanId: string): Promise<{ ok: true; invoice: Invoice } | { ok: false; reason: string }> {
+  const db = load();
+  const plan = db.mediaPlans.find((p) => p.id === mediaPlanId);
+  if (!plan) return { ok: false, reason: 'Media plan not found.' };
+  if (!plan.poNumber?.trim()) return { ok: false, reason: 'The plan has no PO number — ask the advertiser for it first.' };
+  const ready = billableLines(db, { mediaPlanId }).filter((l) => l.state === 'ready');
+  if (!ready.length) return { ok: false, reason: 'Nothing on this plan is ready to invoice.' };
+  try {
+    const record = await client().submitBillableLines({
+      mediaPlanId,
+      advertiserId: plan.advertiserId,
+      poNumber: plan.poNumber,
+      currency: 'EUR',
+      lines: ready.map((l) => ({
+        bookingId: l.bookingId,
+        campaignId: l.campaignId,
+        description: l.booking.name,
+        basis: l.basis,
+        amount: l.amount,
+        adjustment: l.adjustment,
+        adjustmentReason: l.adjustmentReason,
+      })),
+    });
+    const current = load();
+    upsertInvoice(current, record, timestamp());
+    notify();
+    return { ok: true, invoice: current.invoices.find((i) => i.number === record.number)! };
+  } catch (e) {
+    return { ok: false, reason: e instanceof Error ? e.message : 'The billing service did not answer.' };
+  }
+}
+
+/** Pull invoice changes from the billing service — paid, overdue, credited. */
+export async function syncBilling(): Promise<{ ok: boolean; count: number; reason?: string }> {
+  try {
+    const records = await client().listInvoices();
+    const db = load();
+    const stamp = timestamp();
+    records.forEach((r) => upsertInvoice(db, r, stamp));
+    notify();
+    return { ok: true, count: records.length };
+  } catch (e) {
+    return { ok: false, count: 0, reason: e instanceof Error ? e.message : 'The billing service did not answer.' };
+  }
+}
+
+/** Which billing service answers: the mock, or the live one. */
+export const billingServiceMode = () => client().mode;
 
 export function setHoldStatus(id: string, status: InventoryHold['status']) {
   const db = load();
@@ -404,6 +523,31 @@ export function moveFaq(id: string, direction: 'up' | 'down') {
 // ── Lifecycle (play / pause / stop) ────────────────────────────────────
 
 /**
+ * Approving a guaranteed booking agrees its price. The first time it leaves
+ * draft or review for running, whatever the price then stands at — the
+ * quote if one holds, else today's indicative price — is frozen as agreed,
+ * and its inventory hold is confirmed. From here the price never moves.
+ */
+function agreeOnApproval(db: DbData, booking: Booking, from: Booking['status'], to: Booking['status'], stamp: string) {
+  if (to !== 'running' || (from !== 'draft' && from !== 'in-option')) return;
+  if (booking.price?.state === 'agreed' || !isGuaranteed(db, booking)) return;
+  const view = bookingPrice(db, booking);
+  if (view.state !== 'indicative' && view.state !== 'quoted') return;
+  booking.price = { state: 'agreed', basis: view.basis!, unitPrice: view.unitPrice!, amount: view.amount!, lockedAt: stamp, holdId: booking.price?.holdId };
+  const hold = booking.price.holdId && db.inventoryHolds.find((h) => h.id === booking.price!.holdId);
+  if (hold && hold.status === 'held') hold.status = 'confirmed';
+}
+
+/** Move a booking to its next status, agreeing its price when approved. */
+function moveBooking(db: DbData, booking: Booking, action: LifecycleAction, stamp: string): boolean {
+  const next = nextStatus(action, booking.status);
+  if (!next) return false;
+  agreeOnApproval(db, booking, booking.status, next, stamp);
+  Object.assign(booking, { status: next, updatedAt: stamp });
+  return true;
+}
+
+/**
  * Apply a lifecycle action to a media plan and everything under it.
  *
  * One write, one notify: pausing a plan and its twelve bookings should be a
@@ -427,10 +571,7 @@ export function applyPlanLifecycle(planId: string, action: LifecycleAction) {
     const next = nextStatus(action, c.status);
     if (next) Object.assign(c, { status: next, updatedAt: stamp });
   });
-  bookings.forEach((b) => {
-    const next = nextStatus(action, b.status);
-    if (next) Object.assign(b, { status: next, updatedAt: stamp });
-  });
+  bookings.forEach((b) => moveBooking(db, b, action, stamp));
   notify();
 }
 
@@ -445,10 +586,7 @@ export function applyCampaignLifecycle(campaignId: string, action: LifecycleActi
   if (next) Object.assign(campaign, { status: next, updatedAt: stamp });
   db.bookings
     .filter((b) => b.campaignId === campaignId)
-    .forEach((b) => {
-      const bookingNext = nextStatus(action, b.status);
-      if (bookingNext) Object.assign(b, { status: bookingNext, updatedAt: stamp });
-    });
+    .forEach((b) => moveBooking(db, b, action, stamp));
   notify();
 }
 
@@ -457,11 +595,7 @@ export function applyBookingLifecycle(bookingId: string, action: LifecycleAction
   const db = load();
   const booking = db.bookings.find((b) => b.id === bookingId);
   if (!booking) return;
-  const next = nextStatus(action, booking.status);
-  if (next) {
-    Object.assign(booking, { status: next, updatedAt: timestamp() });
-    notify();
-  }
+  if (moveBooking(db, booking, action, timestamp())) notify();
 }
 
 

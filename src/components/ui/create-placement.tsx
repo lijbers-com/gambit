@@ -44,6 +44,8 @@ export interface CreatePlacementProps {
   bids?: Record<string, string>;
   onBidChange?: (positionId: string, value: string) => void;
   suggestedBid?: (positionId: string) => string;
+  /** A line at the top of the selected card — the product's price. */
+  selectedMeta?: (mediaProductId: string) => React.ReactNode;
   className?: string;
 }
 
@@ -59,6 +61,7 @@ export const CreatePlacement: React.FC<CreatePlacementProps> = ({
   bids,
   onBidChange,
   suggestedBid,
+  selectedMeta,
   className,
 }) => {
   const showBids = !!bids && !!onBidChange;
@@ -96,8 +99,9 @@ export const CreatePlacement: React.FC<CreatePlacementProps> = ({
         onChange={onMediaProductChange}
         multiple={false}
         hideSelectedDescription
-        renderSelectedExtra={() => (
+        renderSelectedExtra={(option) => (
           <div className="space-y-2">
+            {selectedMeta?.(option.value)}
             {/* Same shape as a store list: an icon and a count, not a list. */}
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />

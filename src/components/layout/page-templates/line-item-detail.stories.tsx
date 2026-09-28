@@ -38,7 +38,7 @@ import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
-import { BookingBuying, useGuaranteedSummaryItems } from '@/components/ui/guaranteed-booking';
+import { BookingBuying, useDeliveryMetrics, useGuaranteedSummaryItems, withBudgetSetting } from '@/components/ui/guaranteed-booking';
 import { BookingMediaProduct } from '@/components/ui/booking-media-product';
 import { buyingTypeOf } from '@/lib/db';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
@@ -562,6 +562,7 @@ export const Display: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('display', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -724,7 +725,7 @@ export const Display: Story = {
           />
           <div className="mb-section">
             <MetricRow
-              metrics={getPropositionMetrics('display', 'booking')}
+              metrics={bookingMetrics}
               maxVisible={5}
               defaultVariant="default"
               removable={false}
@@ -823,7 +824,7 @@ export const Display: Story = {
                 campaignRuntime="01 Jun, 2024 - 30 Jun, 2024"
                 activeDays={activeDays}
                 onActiveDaysChange={setActiveDays}
-                pacing={displayIsAuction ? (budgetField) => (
+                pacing={withBudgetSetting(routeBooking, displayIsAuction ? (budgetField) => (
                 <BudgetPacing
                 budgetField={budgetField}
                 totalBudget={Number(bookingBudget) || undefined}
@@ -837,7 +838,7 @@ export const Display: Story = {
                 overrides={pacingOverrides}
                 onOverridesChange={setPacingOverrides}
               />
-                ) : undefined}
+                ) : undefined)}
               />
 
               {routeBooking ? (
@@ -1167,6 +1168,7 @@ export const DigitalInStore: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('digital-instore', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -1800,7 +1802,7 @@ export const DigitalInStore: Story = {
         />
         <div className="mb-section">
           <MetricRow
-            metrics={getPropositionMetrics('digital-instore', 'booking')}
+            metrics={bookingMetrics}
             maxVisible={5}
             defaultVariant="default"
             removable={false}
@@ -1888,6 +1890,7 @@ export const DigitalInStore: Story = {
                         campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
                         activeDays={dInstoreActiveDays}
                         onActiveDaysChange={setDInstoreActiveDays}
+                        pacing={withBudgetSetting(routeBooking)}
                       />
 
                       {routeBooking ? (
@@ -2556,6 +2559,7 @@ export const OfflineInStore: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('offline-instore', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -3083,7 +3087,7 @@ export const OfflineInStore: Story = {
         />
         <div className="mb-section">
           <MetricRow
-            metrics={getPropositionMetrics('offline-instore', 'booking')}
+            metrics={bookingMetrics}
             maxVisible={5}
             defaultVariant="default"
             removable={false}
@@ -3160,6 +3164,7 @@ export const OfflineInStore: Story = {
   onEndTimeChange={setBookingEndTime}
   campaignBudget="€10,000"
   campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
+  pacing={withBudgetSetting(routeBooking)}
 />
 
 <BookingMediaProduct booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
@@ -3894,6 +3899,7 @@ export const SponsoredProducts: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('sponsored-products', 'booking'), routeBooking);
     // Bids and pacing belong to auction; a guaranteed booking buys a goal.
     const spDb = useDb();
     const spIsAuction = !routeBooking || buyingTypeOf(spDb, routeBooking) !== 'guaranteed';
@@ -4101,7 +4107,7 @@ export const SponsoredProducts: Story = {
         />
         <div className="mb-section">
           <MetricRow
-            metrics={getPropositionMetrics('sponsored-products', 'booking')}
+            metrics={bookingMetrics}
             maxVisible={5}
             defaultVariant="default"
             removable={false}
@@ -4185,7 +4191,7 @@ export const SponsoredProducts: Story = {
                         campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
                         activeDays={activeDays}
                         onActiveDaysChange={setActiveDays}
-                        pacing={spIsAuction ? (budgetField) => (
+                        pacing={withBudgetSetting(routeBooking, spIsAuction ? (budgetField) => (
                           <BudgetPacing
                             budgetField={budgetField}
                             totalBudget={Number(bookingBudget) || undefined}
@@ -4198,7 +4204,7 @@ export const SponsoredProducts: Story = {
                             overrides={pacingOverrides}
                             onOverridesChange={setPacingOverrides}
                           />
-                        ) : undefined}
+                        ) : undefined)}
                         budgetExtra={
                           <ToggleRow
                             label="Email budget notifications"
@@ -4502,6 +4508,7 @@ export const OffsiteDisplay: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('offsite', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -4731,6 +4738,7 @@ export const OffsiteDisplay: Story = {
                     campaignRuntime="01 Jun, 2024 - 30 Jun, 2024"
                     activeDays={bookingActiveDays}
                     onActiveDaysChange={setBookingActiveDays}
+                    pacing={withBudgetSetting(routeBooking)}
                   />
 
                   {routeBooking ? (

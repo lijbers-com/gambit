@@ -64,14 +64,17 @@ export const BookingMediaProduct: React.FC<{ booking: Booking | undefined; class
           positions={positions.map((p) => ({ value: p.id, label: p.name, description: p.format, format: p.format }))}
           positionsValue={booking.positionIds.filter((id) => positions.some((p) => p.id === id))}
           onPositionsChange={(ids) => updateBooking(booking.id, { positionIds: ids })}
+          selectedMeta={(id) => {
+            const m = offered.find((x) => x.id === id);
+            return m ? (
+              <div className="flex items-center gap-1.5 text-sm font-medium">
+                <Tag className="h-4 w-4 text-muted-foreground" />
+                <span className="tabular-nums">{productPriceLine(m, type)}</span>
+                <span className="font-normal text-muted-foreground">{type === 'guaranteed' ? '· the base of the billable amount' : '· the lowest bid accepted'}</span>
+              </div>
+            ) : null;
+          }}
         />
-        {selectedId && selected && (
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Tag className="h-4 w-4" />
-            {productPriceLine(selected, type)}
-            {type === 'guaranteed' ? ' — the base of the billable amount.' : ' — the lowest bid this product accepts.'}
-          </p>
-        )}
         {offered.length === 0 && (
           <p className="text-sm text-muted-foreground">No retail media product is sold {type === 'guaranteed' ? 'guaranteed' : 'at auction'} on this proposition yet. Add one under Media products.</p>
         )}

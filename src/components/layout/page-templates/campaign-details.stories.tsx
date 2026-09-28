@@ -10,7 +10,7 @@ import { InsightsTab } from './insights-tab';
 import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
 import { EntityControlBar } from '@/components/ui/entity-control-bar';
 import { useRouteCampaign } from '@/lib/db';
-import { CampaignBookingsPricing, CampaignBuyingTypePicker } from '@/components/ui/guaranteed-booking';
+import { CampaignBookingsPricing, CampaignBuyingTypePicker, useCampaignDeliveryMetrics } from '@/components/ui/guaranteed-booking';
 import { CampaignCreativesPanel } from '@/components/ui/campaign-creatives-panel';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
@@ -1137,6 +1137,7 @@ export const DigitalInstoreRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
+    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('digital-instore', 'campaign'), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1196,7 +1197,7 @@ export const DigitalInstoreRunning: Story = {
     // campaign). See getPropositionMetrics().
     const ForecastSection = () => (
       <MetricRow
-        metrics={getPropositionMetrics('digital-instore', 'campaign')}
+        metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"
         removable={false}
@@ -1650,6 +1651,7 @@ export const OfflineInstoreRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
+    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('offline-instore', 'campaign'), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1680,7 +1682,7 @@ export const OfflineInstoreRunning: Story = {
     // /campaigns/offline-instore, values scoped to this campaign.
     const ForecastSection = () => (
       <MetricRow
-        metrics={getPropositionMetrics('offline-instore', 'campaign')}
+        metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"
         removable={false}
@@ -2158,6 +2160,7 @@ export const DisplayRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
+    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('display', 'campaign'), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -2214,7 +2217,7 @@ export const DisplayRunning: Story = {
 
     const ForecastSection = () => (
       <MetricRow
-        metrics={getPropositionMetrics('display', 'campaign')}
+        metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"
         removable={false}
@@ -4419,6 +4422,7 @@ export const SponsoredProductsRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
+    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('sponsored-products', 'campaign'), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('15000');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('500');
     const [detailsCPC, setDetailsCPC] = useState<string>('0.42');
@@ -4509,7 +4513,7 @@ export const SponsoredProductsRunning: Story = {
 
     const ForecastSection = () => (
       <MetricRow
-        metrics={getPropositionMetrics('sponsored-products', 'campaign')}
+        metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"
         removable={false}
@@ -4908,6 +4912,7 @@ export const OffsiteRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
+    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('offsite', 'campaign'), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -4938,7 +4943,7 @@ export const OffsiteRunning: Story = {
     // /campaigns/offsite, values scoped to this campaign.
     const ForecastSection = () => (
       <MetricRow
-        metrics={getPropositionMetrics('offsite', 'campaign')}
+        metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"
         removable={false}

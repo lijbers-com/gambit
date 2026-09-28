@@ -38,12 +38,14 @@ export const isGuaranteed = (db: DbData, booking: Booking) => buyingTypeOf(db, b
 
 /** What a guaranteed goal counts on each proposition. */
 export function goalMetricFor(engine: EngineId): GoalMetric {
-  return engine === 'offline-instore' ? 'stores' : 'impressions';
+  // Sponsored products sells clicks at a fixed CPC when bought guaranteed.
+  return engine === 'offline-instore' ? 'stores' : engine === 'sponsored-products' ? 'clicks' : 'impressions';
 }
 
 export const GOAL_LABEL: Record<GoalMetric, { one: string; many: string }> = {
   impressions: { one: 'impression', many: 'impressions' },
   stores: { one: 'store', many: 'stores' },
+  clicks: { one: 'click', many: 'clicks' },
 };
 
 /** 1,000,000 → "1.0M", 500,000 → "500k", 30 → "30". */
@@ -65,6 +67,9 @@ export function formatGoal(goal: BookingGoal): string {
 /** The product a booking buys: the one its first position sits in, else the
  *  proposition's first guaranteed product. */
 export function productForBooking(db: DbData, booking: Booking): MediaProduct | undefined {
+  // The product chosen in the booking's form wins.
+  const chosen = booking.mediaProductId && db.mediaProducts.find((m) => m.id === booking.mediaProductId);
+  if (chosen) return chosen;
   const position = booking.positionIds.map((id) => db.positions.find((p) => p.id === id)).find(Boolean);
   const fromPosition = position && db.mediaProducts.find((m) => m.id === position.mediaProductId);
   if (fromPosition) return fromPosition;
@@ -73,7 +78,7 @@ export function productForBooking(db: DbData, booking: Booking): MediaProduct | 
 }
 
 /** How many priced units a goal is: thousands of impressions for a CPM,
- *  stores for a per-store price. */
+ *  stores for a per-store price, clicks for a CPC. */
 export function unitsFor(basis: PricingBasis, goal: BookingGoal): number {
   return basis === 'cpm' ? goal.amount / 1000 : goal.amount;
 }

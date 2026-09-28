@@ -13,7 +13,7 @@ import { amountFor, buyingTypeOf, goalMetricFor, productForBooking } from './gua
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 35;
+export const SEED_VERSION = 37;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -227,12 +227,12 @@ const baseSeed: DbData = {
   campaigns: [
     // MP-001 Spring Refresh — completed history
     { id: 'C-001', mediaPlanId: 'MP-001', name: 'Spring Refresh — Display',            engine: 'display',            status: 'completed', budget: 8000, spend: 7900, startDate: '2026-03-01', endDate: '2026-04-15', createdAt: now, updatedAt: now },
-    { id: 'C-002', mediaPlanId: 'MP-001', name: 'Spring Refresh — Digital in-store',   engine: 'digital-instore',    status: 'completed', budget: 7000, spend: 6800, startDate: '2026-03-01', endDate: '2026-04-15', createdAt: now, updatedAt: now },
+    { id: 'C-002', mediaPlanId: 'MP-001', name: 'Spring Refresh — Digital in-store',   engine: 'digital-instore',    buyingType: 'guaranteed', status: 'completed', budget: 7000, spend: 6800, startDate: '2026-03-01', endDate: '2026-04-15', createdAt: now, updatedAt: now },
     { id: 'C-003', mediaPlanId: 'MP-001', name: 'Spring Refresh — Offsite',            engine: 'offsite',            status: 'completed', budget: 5000, spend: 4950, startDate: '2026-03-08', endDate: '2026-04-15', createdAt: now, updatedAt: now },
     // MP-002 Holiday Sale — live flagship
     { id: 'C-004', mediaPlanId: 'MP-002', name: 'Holiday Sale — Display',              engine: 'display',            status: 'running',   budget: 5000, spend: 3800, startDate: '2026-06-01', endDate: '2026-08-15', createdAt: now, updatedAt: now },
     { id: 'C-005', mediaPlanId: 'MP-002', name: 'Holiday Sale — Sponsored products',   engine: 'sponsored-products', status: 'running',   budget: 4000, spend: 3600, startDate: '2026-06-01', endDate: '2026-08-15', createdAt: now, updatedAt: now },
-    { id: 'C-006', mediaPlanId: 'MP-002', name: 'Holiday Sale — Digital in-store',     engine: 'digital-instore',    status: 'in-option', budget: 3000, spend: 1200, startDate: '2026-06-08', endDate: '2026-08-15', createdAt: now, updatedAt: now },
+    { id: 'C-006', mediaPlanId: 'MP-002', name: 'Holiday Sale — Digital in-store',     engine: 'digital-instore',    buyingType: 'guaranteed', status: 'in-option', budget: 3000, spend: 1200, startDate: '2026-06-08', endDate: '2026-08-15', createdAt: now, updatedAt: now },
     { id: 'C-007', mediaPlanId: 'MP-002', name: 'Holiday Sale — Offsite',              engine: 'offsite',            status: 'in-option', budget: 3000, spend: 600,  startDate: '2026-06-08', endDate: '2026-08-15', createdAt: now, updatedAt: now },
     // MP-003 Summer Launch — live
     { id: 'C-008', mediaPlanId: 'MP-003', name: 'Summer Launch — Display',             engine: 'display',            buyingType: 'guaranteed', status: 'running',   budget: 5000, spend: 2100, startDate: '2026-07-01', endDate: '2026-08-31', createdAt: now, updatedAt: now },
@@ -242,14 +242,14 @@ const baseSeed: DbData = {
     { id: 'C-011', mediaPlanId: 'MP-004', name: 'Back to School — Offline in-store',   engine: 'offline-instore',    status: 'draft',     budget: 5000, spend: 0, startDate: '2026-08-17', endDate: '2026-09-10', createdAt: now, updatedAt: now },
     // MP-005 Coffee Moments — running loyalty
     { id: 'C-012', mediaPlanId: 'MP-005', name: 'Coffee Moments — Sponsored products', engine: 'sponsored-products', status: 'running',   budget: 4000, spend: 1400, startDate: '2026-07-01', endDate: '2026-09-30', createdAt: now, updatedAt: now },
-    { id: 'C-013', mediaPlanId: 'MP-005', name: 'Coffee Moments — Digital in-store',   engine: 'digital-instore',    status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-09-30', createdAt: now, updatedAt: now },
+    { id: 'C-013', mediaPlanId: 'MP-005', name: 'Coffee Moments — Digital in-store',   engine: 'digital-instore',    buyingType: 'guaranteed', status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-09-30', createdAt: now, updatedAt: now },
     { id: 'C-014', mediaPlanId: 'MP-005', name: 'Coffee Moments — Offline in-store',   engine: 'offline-instore',    status: 'in-option', budget: 3000, spend: 0,    startDate: '2026-08-01', endDate: '2026-09-30', createdAt: now, updatedAt: now },
     // MP-006 Ice Cream Summer — paused
     { id: 'C-015', mediaPlanId: 'MP-006', name: 'Ice Cream Summer — Display',          engine: 'display',            status: 'paused',    budget: 5000, spend: 2600, startDate: '2026-06-15', endDate: '2026-08-31', createdAt: now, updatedAt: now },
     { id: 'C-016', mediaPlanId: 'MP-006', name: 'Ice Cream Summer — Offline in-store', engine: 'offline-instore',    status: 'paused',    budget: 4000, spend: 1800, startDate: '2026-06-15', endDate: '2026-08-31', createdAt: now, updatedAt: now },
     // MP-007 Black Friday — draft, no bookings yet (create-flow demo)
     { id: 'C-017', mediaPlanId: 'MP-007', name: 'Black Friday — Display',              engine: 'display',            buyingType: 'guaranteed', status: 'draft', budget: 15000, spend: 0, startDate: '2026-11-01', endDate: '2026-11-30', createdAt: now, updatedAt: now },
-    { id: 'C-018', mediaPlanId: 'MP-007', name: 'Black Friday — Digital in-store',     engine: 'digital-instore',    status: 'draft', budget: 10000, spend: 0, startDate: '2026-11-15', endDate: '2026-11-30', createdAt: now, updatedAt: now },
+    { id: 'C-018', mediaPlanId: 'MP-007', name: 'Black Friday — Digital in-store',     engine: 'digital-instore',    buyingType: 'guaranteed', status: 'draft', budget: 10000, spend: 0, startDate: '2026-11-15', endDate: '2026-11-30', createdAt: now, updatedAt: now },
     { id: 'C-019', mediaPlanId: 'MP-007', name: 'Black Friday — Offsite',              engine: 'offsite',            status: 'draft', budget: 15000, spend: 0, startDate: '2026-11-01', endDate: '2026-11-30', createdAt: now, updatedAt: now },
     // MP-008 Winter Warmers — advertiser draft without budget
     { id: 'C-020', mediaPlanId: 'MP-008', name: 'Winter Warmers — Display',            engine: 'display',            status: 'draft', budget: 0, spend: 0, startDate: '2026-12-01', endDate: '2026-12-31', createdAt: now, updatedAt: now },
@@ -257,14 +257,14 @@ const baseSeed: DbData = {
     // has something to narrow: without flights outside the summer, every
     // window would return the same rows and the filter would look broken.
     { id: 'C-021', mediaPlanId: 'MP-009', name: 'Spring Refresh — Sponsored products', engine: 'sponsored-products', status: 'completed', budget: 3000, spend: 2980, startDate: '2026-01-12', endDate: '2026-02-15', createdAt: now, updatedAt: now },
-    { id: 'C-022', mediaPlanId: 'MP-009', name: 'New Year Reset — Digital in-store',   engine: 'digital-instore',    status: 'completed', budget: 2500, spend: 2500, startDate: '2026-01-05', endDate: '2026-01-31', createdAt: now, updatedAt: now },
+    { id: 'C-022', mediaPlanId: 'MP-009', name: 'New Year Reset — Digital in-store',   engine: 'digital-instore',    buyingType: 'guaranteed', status: 'completed', budget: 2500, spend: 2500, startDate: '2026-01-05', endDate: '2026-01-31', createdAt: now, updatedAt: now },
     { id: 'C-023', mediaPlanId: 'MP-010', name: 'Coffee Moments — Offsite',            engine: 'offsite',            status: 'completed', budget: 4200, spend: 4100, startDate: '2026-02-01', endDate: '2026-03-15', createdAt: now, updatedAt: now },
     { id: 'C-024', mediaPlanId: 'MP-010', name: 'Coffee Moments — Offline in-store',   engine: 'offline-instore',    status: 'running',   budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', createdAt: now, updatedAt: now },
-    { id: 'C-025', mediaPlanId: 'MP-011', name: 'Summer Launch — Digital in-store',    engine: 'digital-instore',    status: 'running',   budget: 6500, spend: 2250, startDate: '2026-05-04', endDate: '2026-06-30', createdAt: now, updatedAt: now },
+    { id: 'C-025', mediaPlanId: 'MP-011', name: 'Summer Launch — Digital in-store',    engine: 'digital-instore',    buyingType: 'guaranteed', status: 'running',   budget: 6500, spend: 2250, startDate: '2026-05-04', endDate: '2026-06-30', createdAt: now, updatedAt: now },
     { id: 'C-026', mediaPlanId: 'MP-011', name: 'Ice Cream Summer — Sponsored products', engine: 'sponsored-products', status: 'paused',  budget: 3200, spend: 2100, startDate: '2026-05-18', endDate: '2026-07-31', createdAt: now, updatedAt: now },
     { id: 'C-027', mediaPlanId: 'MP-012', name: 'Back to School — Offsite',            engine: 'offsite',            status: 'in-option', budget: 5400, spend: 0,    startDate: '2026-09-01', endDate: '2026-09-30', createdAt: now, updatedAt: now },
     { id: 'C-028', mediaPlanId: 'MP-012', name: 'Back to School — Offline in-store',   engine: 'offline-instore',    status: 'in-option', budget: 4100, spend: 0,    startDate: '2026-08-24', endDate: '2026-09-20', createdAt: now, updatedAt: now },
-    { id: 'C-029', mediaPlanId: 'MP-012', name: 'Black Friday — Digital in-store',     engine: 'digital-instore',    status: 'draft',     budget: 6000, spend: 0,    startDate: '2026-11-20', endDate: '2026-11-30', createdAt: now, updatedAt: now },
+    { id: 'C-029', mediaPlanId: 'MP-012', name: 'Black Friday — Digital in-store',     engine: 'digital-instore',    buyingType: 'guaranteed', status: 'draft',     budget: 6000, spend: 0,    startDate: '2026-11-20', endDate: '2026-11-30', createdAt: now, updatedAt: now },
     { id: 'C-030', mediaPlanId: 'MP-012', name: 'Winter Warmers — Offsite',            engine: 'offsite',            status: 'draft',     budget: 3500, spend: 0,    startDate: '2026-10-05', endDate: '2026-11-15', createdAt: now, updatedAt: now },
   ],
 
@@ -362,20 +362,20 @@ const baseSeed: DbData = {
   // Media the positions ARE the platforms (Meta, TikTok, Pinterest, YouTube).
   mediaProducts: [
     // Display (onsite)
-    { id: 'mprod-dsp-home', engine: 'display', name: 'Homepage',        description: 'Banners on the storefront homepage.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 14, floorPrice: 9, holdDays: 5, constraints: ['Minimum run time 7 days', 'Max 2 advertisers per day on the hero', 'Billboard, leaderboard, halfpage or native formats'], owner: 'Yield Manager' },
-    { id: 'mprod-dsp-cat',  engine: 'display', name: 'Category pages',  description: 'Banners on category listing pages.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 11, floorPrice: 7, holdDays: 5, constraints: ['Minimum run time 7 days', 'Category must match the advertised products'], owner: 'Yield Manager' },
-    { id: 'mprod-dsp-pdp',  engine: 'display', name: 'Product pages',   description: 'Banners on product detail pages.', status: 'active', buyingModels: ['auction'], pricingBasis: 'cpm', listPrice: 12, floorPrice: 8, holdDays: 3, constraints: ['Products must be listed on the page category'], owner: 'Yield Manager' },
+    { id: 'mprod-dsp-home', engine: 'display', name: 'Homepage',        description: 'Banners on the storefront homepage.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 14, floorPrice: 0.45, holdDays: 5, constraints: ['Minimum run time 7 days', 'Max 2 advertisers per day on the hero', 'Billboard, leaderboard, halfpage or native formats'], owner: 'Yield Manager' },
+    { id: 'mprod-dsp-cat',  engine: 'display', name: 'Category pages',  description: 'Banners on category listing pages.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 11, floorPrice: 0.4, holdDays: 5, constraints: ['Minimum run time 7 days', 'Category must match the advertised products'], owner: 'Yield Manager' },
+    { id: 'mprod-dsp-pdp',  engine: 'display', name: 'Product pages',   description: 'Banners on product detail pages.', status: 'active', buyingModels: ['auction'], pricingBasis: 'cpm', listPrice: 12, floorPrice: 0.5, holdDays: 3, constraints: ['Products must be listed on the page category'], owner: 'Yield Manager' },
     // Sponsored products
-    { id: 'mprod-sp-search', engine: 'sponsored-products', name: 'Search results', description: 'Sponsored product slots in search.', status: 'active', buyingModels: ['auction'], pricingBasis: 'cpc', listPrice: 0.6, floorPrice: 0.35, holdDays: 3, constraints: ['Products must be in stock', 'Keywords reviewed within 2 days'], owner: 'Yield Manager' },
+    { id: 'mprod-sp-search', engine: 'sponsored-products', name: 'Search results', description: 'Sponsored product slots in search.', status: 'active', buyingModels: ['auction', 'guaranteed'], pricingBasis: 'cpc', listPrice: 0.6, floorPrice: 0.35, holdDays: 3, constraints: ['Products must be in stock', 'Keywords reviewed within 2 days'], owner: 'Yield Manager' },
     // Digital in-store
-    { id: 'mprod-dis-instore', engine: 'digital-instore', name: 'In-store screens', description: 'Digital screens in physical stores.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 9, holdDays: 7, constraints: ['Minimum run time 14 days', 'Creatives due X-4', 'Store list generated by Edge', 'Sold on impressions: a goal at a CPM'], owner: 'Media Proposition Developer' },
+    { id: 'mprod-dis-instore', engine: 'digital-instore', name: 'In-store screens', description: 'Digital screens in physical stores.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 9, floorPrice: 0.3, holdDays: 7, constraints: ['Minimum run time 14 days', 'Creatives due X-4', 'Store list generated by Edge', 'Sold on impressions: a goal at a CPM'], owner: 'Media Proposition Developer' },
     // Offline in-store
     { id: 'mprod-ois-print',   engine: 'offline-instore', name: 'Printed materials', description: 'Shelf displays, floor stickers, posters.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'per-store', listPrice: 32, holdDays: 10, constraints: ['Minimum run time 14 days', 'Print files due X-8', 'Installed by Hamilton Bright'], owner: 'Media Proposition Developer' },
     // Offsite — channel terminology per the activation-arm diagram
-    { id: 'mprod-off-display',    engine: 'offsite', name: 'Display',                    description: 'Programmatic display on the open web.', partner: 'Epsilon', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 6, floorPrice: 3.5, holdDays: 5, constraints: ['Audience data shared only with the partner'], owner: 'Yield Manager' },
+    { id: 'mprod-off-display',    engine: 'offsite', name: 'Display',                    description: 'Programmatic display on the open web.', partner: 'Epsilon', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 6, floorPrice: 0.35, holdDays: 5, constraints: ['Audience data shared only with the partner'], owner: 'Yield Manager' },
     { id: 'mprod-off-olv',        engine: 'offsite', name: 'Online Video (OLV)',         description: 'In-stream and out-stream online video.', partner: 'Epsilon', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 18, holdDays: 5, constraints: ['15s or 6s video', 'Minimum €5,000'], owner: 'Yield Manager' },
     { id: 'mprod-off-ctv',        engine: 'offsite', name: 'Connected TV (CTV)',         description: 'Streaming TV inventory on connected devices.', partner: 'Epsilon', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 32, holdDays: 7, constraints: ['20s spot', 'Minimum €10,000'], owner: 'Yield Manager' },
-    { id: 'mprod-off-contextual', engine: 'offsite', name: 'Contextual Commerce Media',  description: 'Recipe and contextual commerce placements.', partner: 'Chicory', status: 'active', buyingModels: ['auction'], pricingBasis: 'cpm', listPrice: 9, floorPrice: 5, holdDays: 3, constraints: ['Recipe or article context only'], owner: 'Yield Manager' },
+    { id: 'mprod-off-contextual', engine: 'offsite', name: 'Contextual Commerce Media',  description: 'Recipe and contextual commerce placements.', partner: 'Chicory', status: 'active', buyingModels: ['auction'], pricingBasis: 'cpm', listPrice: 9, floorPrice: 0.4, holdDays: 3, constraints: ['Recipe or article context only'], owner: 'Yield Manager' },
     { id: 'mprod-off-social',     engine: 'offsite', name: 'Social Media',               description: 'Paid social — the positions are the platforms.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'flat', listPrice: 2500, holdDays: 5, constraints: ['Platform creative specs apply'], owner: 'Media Proposition Developer' },
     { id: 'mprod-off-dooh',       engine: 'offsite', name: 'Digital Out Of Home',        description: 'Digital screens out of home.', partner: 'Vistar', status: 'draft', buyingModels: ['guaranteed'], pricingBasis: 'per-day', listPrice: 1150, holdDays: 7, constraints: ['Minimum run time 7 days'], owner: 'Media Proposition Developer' },
   ],

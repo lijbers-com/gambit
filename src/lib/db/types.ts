@@ -181,13 +181,18 @@ export interface Booking {
   /** Guaranteed only: the price once it is locked. Absent means the price
    *  is still indicative — worked out live from the pricing engine. */
   price?: BookingPrice;
+  /** Auction only: the most the booking pays per click (CPC), in euros. */
+  bid?: number;
+  /** The retail media product the booking runs on, as chosen in its form —
+   *  the source of its list price (guaranteed) or floor price (auction). */
+  mediaProductId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 /** What a guaranteed goal counts: impressions on screens and pages, or the
  *  stores a printed booking runs in. */
-export type GoalMetric = 'impressions' | 'stores';
+export type GoalMetric = 'impressions' | 'stores' | 'clicks';
 
 export interface BookingGoal {
   metric: GoalMetric;
@@ -276,7 +281,7 @@ export interface MediaProduct {
   /** The rate card: what the list price is a price of, and the price itself. */
   pricingBasis?: PricingBasis;
   listPrice?: number;
-  /** Auction: the lowest bid accepted. */
+  /** Auction: the lowest bid accepted — a CPC, the way auction bids are made. */
   floorPrice?: number;
   /** How long a booking in review holds inventory — and its price — before
    *  the hold is released. */

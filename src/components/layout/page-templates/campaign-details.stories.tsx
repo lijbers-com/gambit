@@ -10,7 +10,7 @@ import { InsightsTab } from './insights-tab';
 import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
 import { EntityControlBar } from '@/components/ui/entity-control-bar';
 import { useRouteCampaign } from '@/lib/db';
-import { CampaignBookingsPricing } from '@/components/ui/guaranteed-booking';
+import { CampaignBookingsPricing, CampaignBuyingTypePicker } from '@/components/ui/guaranteed-booking';
 import { CampaignCreativesPanel } from '@/components/ui/campaign-creatives-panel';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { Table } from '@/components/ui/table';
@@ -775,7 +775,7 @@ const updatedForecastMetrics = [
                     <div className="md:col-span-2">
                       {/* How the campaign buys is part of what it is — the wizard asks it
                           with the name, so it sits here too. */}
-                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
                     </div>
                   </div>
                 </FormSection>
@@ -1273,7 +1273,7 @@ export const DigitalInstoreRunning: Story = {
                     <div className="md:col-span-2">
                       {/* How the campaign buys is part of what it is — the wizard asks it
                           with the name, so it sits here too. */}
-                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
                     </div>
                   </div>
                 </FormSection>
@@ -1743,6 +1743,10 @@ export const OfflineInstoreRunning: Story = {
                     <div>
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
+                    </div>
+                    <div className="md:col-span-2">
+                      {/* The campaign type every booking under it follows. */}
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
                     </div>
                   </div>
                 </FormSection>
@@ -2277,7 +2281,7 @@ export const DisplayRunning: Story = {
                     <div className="md:col-span-2">
                       {/* How the campaign buys is part of what it is — the wizard asks it
                           with the name, so it sits here too. */}
-                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
                     </div>
                   </div>
                 </FormSection>
@@ -2741,6 +2745,10 @@ export const OfflineInstoreInOption: Story = {
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
                     </div>
+                    <div className="md:col-span-2">
+                      {/* The campaign type every booking under it follows. */}
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
+                    </div>
                   </div>
                 </FormSection>
                 <FormSection bordered title="Advertiser" className="mb-6">
@@ -3195,7 +3203,7 @@ export const DisplayInOption: Story = {
                     <div className="md:col-span-2">
                       {/* How the campaign buys is part of what it is — the wizard asks it
                           with the name, so it sits here too. */}
-                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
                     </div>
                   </div>
                 </FormSection>
@@ -3985,7 +3993,7 @@ export const SponsoredProductsInOption: Story = {
                     <div className="md:col-span-2">
                       {/* How the campaign buys is part of what it is — the wizard asks it
                           with the name, so it sits here too. */}
-                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
                     </div>
                   </div>
                 </FormSection>
@@ -4568,7 +4576,7 @@ export const SponsoredProductsRunning: Story = {
                     <div className="md:col-span-2">
                       {/* How the campaign buys is part of what it is — the wizard asks it
                           with the name, so it sits here too. */}
-                      <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
                     </div>
                   </div>
                 </FormSection>
@@ -4993,6 +5001,10 @@ export const OffsiteRunning: Story = {
                     <div>
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
+                    </div>
+                    <div className="md:col-span-2">
+                      {/* The campaign type every booking under it follows. */}
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
                     </div>
                   </div>
                 </FormSection>
@@ -5458,6 +5470,10 @@ export const OffsiteInOption: Story = {
                     <div>
                       <label className="block text-sm font-medium mb-1">PO Number</label>
                       <Input placeholder="Enter PO number" />
+                    </div>
+                    <div className="md:col-span-2">
+                      {/* The campaign type every booking under it follows. */}
+                      {routeCampaign ? <CampaignBuyingTypePicker campaign={routeCampaign} /> : <BuyingTypePicker value={detailsBuyingType} onChange={setDetailsBuyingType} />}
                     </div>
                   </div>
                 </FormSection>

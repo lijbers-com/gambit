@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { addDays } from 'date-fns';
 import { useDb, buyingTypeOfCampaign, campaignGuaranteedTotals, bookingPrice, deliveryProgress, isGuaranteed, type BookingGoal, type BookingPriceView, type EngineId } from '@/lib/db';
-import { AgreedPriceCell, BuyingTypeLabel, DeliveryProgressBar, GoalCell } from '@/components/ui/guaranteed-booking';
+import { BillableAmountCell, BuyingTypeLabel, DeliveryProgressBar, GoalCell } from '@/components/ui/guaranteed-booking';
 import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { AddButton } from '@/components/ui/add-button';
@@ -541,7 +541,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       ...(filteredCampaignData.some((c) => c.buyingType === 'guaranteed') ? [
                         { key: 'goal', header: 'Goal', render: (row: AnyRow) => (row._type === 'add' ? null : row.goal ? <GoalCell goal={row.goal} /> : <span className="text-muted-foreground">—</span>) },
                         { key: 'delivery', header: 'Delivery progress', width: 220, render: (row: AnyRow) => (row._type === 'add' ? null : row.progress ? <DeliveryProgressBar share={row.progress.share} expectedShare={row.progress.expectedShare} /> : <span className="text-muted-foreground">—</span>) },
-                        { key: 'agreedPrice', header: 'Agreed price', render: (row: AnyRow) => (row._type === 'add' ? null : row.price ? <AgreedPriceCell view={row.price} /> : <span className="text-muted-foreground">—</span>) },
+                        { key: 'agreedPrice', header: 'Billable amount', render: (row: AnyRow) => (row._type === 'add' ? null : row.price ? <BillableAmountCell view={row.price} /> : <span className="text-muted-foreground">—</span>) },
                       ] : []),
                       { key: 'runtime', header: 'Run time', render: row => (row._type === 'add' ? null : `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`) },
                     ]}

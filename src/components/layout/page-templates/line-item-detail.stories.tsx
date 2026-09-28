@@ -38,7 +38,9 @@ import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
-import { GuaranteedGoalPrice, useGuaranteedSummaryItems } from '@/components/ui/guaranteed-booking';
+import { BookingBuying, useGuaranteedSummaryItems } from '@/components/ui/guaranteed-booking';
+import { BookingMediaProduct } from '@/components/ui/booking-media-product';
+import { buyingTypeOf } from '@/lib/db';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
 import { HierarchySidebar } from '@/components/ui/hierarchy-sidebar';
 import { useBookingCreativeItems } from '@/components/ui/booking-creatives-summary';
@@ -602,8 +604,7 @@ export const Display: Story = {
     const dbDisplay = useDb();
     // Guaranteed campaigns buy a fixed delivery, so there is no pacing to set.
     // An unset buying type is an auction — the same default the wizard uses.
-    const displayIsAuction =
-      (dbDisplay.campaigns.find((c) => c.id === routeBooking?.campaignId)?.buyingType ?? 'auction') !== 'guaranteed';
+    const displayIsAuction = !routeBooking || buyingTypeOf(dbDisplay, routeBooking) !== 'guaranteed';
     const displayMediaProducts = dbDisplay.mediaProducts
       .filter((m) => m.engine === 'display')
       .map((m) => ({ value: m.id, label: m.name, description: m.description ?? '' }));
@@ -839,19 +840,24 @@ export const Display: Story = {
                 ) : undefined}
               />
 
-              <GuaranteedGoalPrice booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+              {routeBooking ? (
+                <BookingMediaProduct booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+              ) : (
+                <FormSection bordered title="Retail media product" className={cn(bookingTab !== 'details' && 'hidden')}>
+                  <CreatePlacement
+                    productLabel="Find channel"
+                    mediaProducts={displayMediaProducts}
+                    mediaProduct={displayMediaProduct}
+                    onMediaProductChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
+                    positions={displayCurrentPositions}
+                    positionsValue={displayPositions}
+                    onPositionsChange={setDisplayPositions}
+                  />
+                </FormSection>
+              )}
 
-              <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && 'hidden')}>
-                <CreatePlacement
-                  productLabel="Find channel"
-                  mediaProducts={displayMediaProducts}
-                  mediaProduct={displayMediaProduct}
-                  onMediaProductChange={(v) => { setDisplayMediaProduct(v); setDisplayPositions([]); }}
-                  positions={displayCurrentPositions}
-                  positionsValue={displayPositions}
-                  onPositionsChange={setDisplayPositions}
-                />
-              </FormSection>
+              <BookingBuying booking={routeBooking} pacingOnPage className={cn(bookingTab !== 'details' && 'hidden')} />
+
 
               {/* 2. Targeting — Targeting tab */}
               <div className={cn('rounded-xl border border-border p-6', bookingTab !== 'targeting' && 'hidden')}>
@@ -1884,23 +1890,28 @@ export const DigitalInStore: Story = {
                         onActiveDaysChange={setDInstoreActiveDays}
                       />
 
-                      <GuaranteedGoalPrice booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+                      {routeBooking ? (
+                        <BookingMediaProduct booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+                      ) : (
+                        <FormSection bordered title="Retail media product" className={cn(bookingTab !== 'details' && "hidden")}>
+                          <CreatePlacement
+                            productLabel="Find channel"
+                            positionsLabel="Ad spaces"
+                            mediaProducts={mockPlacements.map((pl) => ({ label: pl.name, value: String(pl.id), description: pl.adSpaces }))}
+                            mediaProduct={selectedPlacement ? [String(selectedPlacement.id)] : []}
+                            onMediaProductChange={(v) => {
+                              setSelectedPlacement(mockPlacements.find((pl) => String(pl.id) === v[0]) ?? null);
+                              setBookingPositions([]);
+                            }}
+                            positions={String(selectedPlacement?.adSpaces ?? '').split(', ').filter(Boolean).map((a) => ({ label: a, value: a }))}
+                            positionsValue={bookingPositions}
+                            onPositionsChange={setBookingPositions}
+                          />
+                        </FormSection>
+                      )}
 
-                      <FormSection bordered title="Placement" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <CreatePlacement
-                          productLabel="Find channel"
-                          positionsLabel="Ad spaces"
-                          mediaProducts={mockPlacements.map((pl) => ({ label: pl.name, value: String(pl.id), description: pl.adSpaces }))}
-                          mediaProduct={selectedPlacement ? [String(selectedPlacement.id)] : []}
-                          onMediaProductChange={(v) => {
-                            setSelectedPlacement(mockPlacements.find((pl) => String(pl.id) === v[0]) ?? null);
-                            setBookingPositions([]);
-                          }}
-                          positions={String(selectedPlacement?.adSpaces ?? '').split(', ').filter(Boolean).map((a) => ({ label: a, value: a }))}
-                          positionsValue={bookingPositions}
-                          onPositionsChange={setBookingPositions}
-                        />
-                      </FormSection>
+                      <BookingBuying booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+
 
 
                       {renderTargetListSection('stores')}
@@ -3151,7 +3162,9 @@ export const OfflineInStore: Story = {
   campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
 />
 
-<GuaranteedGoalPrice booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+<BookingMediaProduct booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+
+<BookingBuying booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
 
 <FormSection bordered title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-2 min-w-0">
@@ -3881,6 +3894,9 @@ export const SponsoredProducts: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    // Bids and pacing belong to auction; a guaranteed booking buys a goal.
+    const spDb = useDb();
+    const spIsAuction = !routeBooking || buyingTypeOf(spDb, routeBooking) !== 'guaranteed';
     const routeEntityId = useRouteEntityId();
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
     const [bookingBudget, setBookingBudget] = React.useState('');
@@ -4169,7 +4185,7 @@ export const SponsoredProducts: Story = {
                         campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
                         activeDays={activeDays}
                         onActiveDaysChange={setActiveDays}
-                        pacing={(budgetField) => (
+                        pacing={spIsAuction ? (budgetField) => (
                           <BudgetPacing
                             budgetField={budgetField}
                             totalBudget={Number(bookingBudget) || undefined}
@@ -4182,7 +4198,7 @@ export const SponsoredProducts: Story = {
                             overrides={pacingOverrides}
                             onOverridesChange={setPacingOverrides}
                           />
-                        )}
+                        ) : undefined}
                         budgetExtra={
                           <ToggleRow
                             label="Email budget notifications"
@@ -4192,6 +4208,10 @@ export const SponsoredProducts: Story = {
                           />
                         }
                       />
+
+                      <BookingMediaProduct booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+
+                      <BookingBuying booking={routeBooking} auctionOnPage className={cn(bookingTab !== 'details' && 'hidden')} />
 
                       {/* Targeting is products, keywords and categories — the
                           same three blocks the create flow builds, in the same
@@ -4210,8 +4230,8 @@ export const SponsoredProducts: Story = {
                           <KeywordTable
                             keywords={keywords}
                             onChange={setKeywords}
-                            bids={spBids}
-                            onBidChange={(k, v) => setSpBids((prev) => ({ ...prev, [k]: v }))}
+                            bids={spIsAuction ? spBids : undefined}
+                            onBidChange={spIsAuction ? (k, v) => setSpBids((prev) => ({ ...prev, [k]: v })) : undefined}
                             maxHeightClassName="max-h-[40rem]"
                           />
                         </div>
@@ -4257,7 +4277,7 @@ export const SponsoredProducts: Story = {
                                     {cat.description && <span className="block text-xs text-muted-foreground">{cat.description}</span>}
                                   </span>
                                 </label>
-                                {isSelected && (
+                                {isSelected && spIsAuction && (
                                   <BidRow
                                     id={cat.value}
                                     value={spBids[cat.value] ?? ''}
@@ -4713,19 +4733,24 @@ export const OffsiteDisplay: Story = {
                     onActiveDaysChange={setBookingActiveDays}
                   />
 
-                  <GuaranteedGoalPrice booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+                  {routeBooking ? (
+                    <BookingMediaProduct booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+                  ) : (
+                    <FormSection bordered title="Retail media product" className={cn(bookingTab !== 'details' && "hidden")}>
+                      <CreatePlacement
+                        productLabel="Find platform"
+                        mediaProducts={offsiteMediaProducts}
+                        mediaProduct={mediaProduct}
+                        onMediaProductChange={(v) => { setMediaProduct(v); setPositions([]); }}
+                        positions={currentPositions}
+                        positionsValue={positions}
+                        onPositionsChange={setPositions}
+                      />
+                    </FormSection>
+                  )}
 
-                  <FormSection bordered title="Create placement" className={cn(bookingTab !== 'details' && "hidden")}>
-                    <CreatePlacement
-                      productLabel="Find platform"
-                      mediaProducts={offsiteMediaProducts}
-                      mediaProduct={mediaProduct}
-                      onMediaProductChange={(v) => { setMediaProduct(v); setPositions([]); }}
-                      positions={currentPositions}
-                      positionsValue={positions}
-                      onPositionsChange={setPositions}
-                    />
-                  </FormSection>
+                  <BookingBuying booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
+
 
                   <FormSection bordered title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
                     <RetailProductSelect

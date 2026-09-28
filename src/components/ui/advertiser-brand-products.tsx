@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { AdvertiserSelect } from './advertiser-select';
 import { SearchSelectList } from './search-select-list';
 import { RetailProductSelect } from './retail-product-select';
+import { useDb, advertiserFor, brandsFor } from '@/lib/db';
 
 /**
  * Advertiser, brand and retail products — who a booking is for and what it
@@ -38,19 +38,31 @@ export const AdvertiserBrandProducts: React.FC<AdvertiserBrandProductsProps> = (
   onProductsChange,
   productCatalog,
   className,
-}) => (
-  <div className={className ?? 'space-y-4 min-w-0'}>
-    <div>
-      <label className="block text-sm font-medium mb-2">Advertiser</label>
-      <AdvertiserSelect value={advertiser} onChange={onAdvertiserChange} className="w-full" />
+}) => {
+  const db = useDb();
+  // The same advertiser field the media plan asks: a search-select of the
+  // organisations. A key that names a brand resolves to its organisation.
+  const orgOptions = db.advertisers.map((a) => ({ label: a.name, value: a.id }));
+  const selectedOrg = advertiserFor(db, advertiser)
+    ?? db.advertisers.find((a) => a.brands.some((b) => brandsFor(db, [advertiser]).includes(b)));
+  return (
+    <div className={className ?? 'space-y-4 min-w-0'}>
+      <SearchSelectList
+        label="Advertiser"
+        placeholder="Search advertiser…"
+        options={orgOptions}
+        value={selectedOrg ? [selectedOrg.id] : []}
+        onChange={(vals) => onAdvertiserChange(vals[0] ?? '')}
+        multiple={false}
+      />
+      <SearchSelectList
+        label="Brands"
+        placeholder="Search brands…"
+        options={brandOptions}
+        value={brands}
+        onChange={onBrandsChange}
+      />
+      <RetailProductSelect value={products} onChange={onProductsChange} products={productCatalog} brands={brands} advertiser={advertiser} />
     </div>
-    <SearchSelectList
-      label="Brands"
-      placeholder="Search brands..."
-      options={brandOptions}
-      value={brands}
-      onChange={onBrandsChange}
-    />
-    <RetailProductSelect value={products} onChange={onProductsChange} products={productCatalog} brands={brands} advertiser={advertiser} />
-  </div>
-);
+  );
+};

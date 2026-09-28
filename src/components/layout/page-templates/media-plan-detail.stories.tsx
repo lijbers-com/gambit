@@ -51,7 +51,7 @@ import { Check, ChevronDown, ChevronRight, Plus, HeartPulse, ListStart, MonitorS
 import type { LucideIcon } from 'lucide-react';
 import { scoreHealth, type HealthIndicator, type HealthScore } from '@/lib/db/health';
 import { useDb, updateMediaPlan, createCampaign, updateCampaign, deleteMediaPlan, deleteCampaign, deleteBooking, deriveMessages, derivePlanHealth, planHealth, campaignHealth, bookingHealth, useInboxState, markRead, markDone, applyPlanLifecycle, setupStepDone, buyingTypeOfCampaign, bookingPrice, deliveryProgress, campaignGuaranteedTotals, isGuaranteed, type BookingGoal, type BookingPriceView, type Campaign, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
-import { AgreedPriceCell, DeliveryProgressBar, GoalCell } from '@/components/ui/guaranteed-booking';
+import { BillableAmountCell, DeliveryProgressBar, GoalCell } from '@/components/ui/guaranteed-booking';
 import { PlanBilling } from '@/components/ui/plan-billing';
 import { InboxPanel } from '@/components/ui/inbox-panel';
 import { InsightsTab } from './insights-tab';
@@ -1019,8 +1019,8 @@ export const MediaPlanDetail: Story = {
           render: (r: Row) => (r._type === 'add' ? null : r.progress ? <DeliveryProgressBar share={r.progress.share} expectedShare={r.progress.expectedShare} /> : <span className="text-muted-foreground">—</span>),
         },
         {
-          key: 'agreedPrice', header: 'Agreed price', width: 160,
-          render: (r: Row) => (r._type === 'add' ? null : r.price ? <AgreedPriceCell view={r.price} /> : <span className="text-muted-foreground">—</span>),
+          key: 'agreedPrice', header: 'Billable amount', width: 160,
+          render: (r: Row) => (r._type === 'add' ? null : r.price ? <BillableAmountCell view={r.price} /> : <span className="text-muted-foreground">—</span>),
         },
       ] as TableColumn<Row>[] : []),
       {

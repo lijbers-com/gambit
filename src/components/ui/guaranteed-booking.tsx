@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Eye, Lock, ReceiptText, Store } from 'lucide-react';
+import { Eye, Lock, MousePointerClick, ReceiptText, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { Button } from './button';
@@ -10,6 +10,8 @@ import { FormSection } from './form-section';
 import { useToast } from './toast';
 import { Table } from './table';
 import { planStatusLabel } from '@/lib/status-vocabulary';
+import { BudgetPacing, type PacingOverride, type PacingShape } from './budget-pacing';
+import { BuyingTypePicker } from './buying-type-picker';
 import {
   BILLING_STATE_LABEL,
   BILLING_STATE_VARIANT,
@@ -36,8 +38,11 @@ import {
   type GoalMetric,
   priceFor,
   amountFor,
+  buyingTypeOf,
   buyingTypeOfCampaign,
-  campaignGuaranteedTotals,
+  productForBooking,
+  updateBooking,
+  updateCampaign,
   type Campaign,
 } from '@/lib/db';
 
@@ -48,7 +53,7 @@ import {
  * overview, so a price reads as agreed in one place and agreed everywhere.
  */
 
-const GOAL_ICON: Record<GoalMetric, React.ComponentType<{ className?: string }>> = { impressions: Eye, stores: Store };
+const GOAL_ICON: Record<GoalMetric, React.ComponentType<{ className?: string }>> = { impressions: Eye, stores: Store, clicks: MousePointerClick };
 
 export const PRICE_STATE_VARIANT: Record<BookingPriceState, 'outline' | 'secondary' | 'info' | 'success'> = {
   'not-priced': 'outline',
@@ -73,39 +78,40 @@ export const GoalCell: React.FC<{ goal?: BookingGoal; className?: string }> = ({
 };
 
 /**
- * Delivered against the goal: the bar fills with what is delivered, the
- * tick marks where it should be by now. Behind the tick is behind.
+ * Delivered against the goal, drawn the way the booking calendar draws fill:
+ * an 8px bar on the muted track in the chart's darkest shade, the figures
+ * beneath. The tick marks where delivery should be by now.
  */
 export const DeliveryProgressBar: React.FC<{ share?: number; expectedShare?: number; className?: string }> = ({ share, expectedShare, className }) => {
   if (share === undefined || expectedShare === undefined) return <span className={cn('text-muted-foreground', className)}>—</span>;
-  const behind = share < expectedShare - 0.05;
   return (
-    <div className={cn('w-full min-w-[160px] max-w-[260px]', className)}>
-      <div className="relative h-1.5 rounded-full bg-muted">
-        <div className={cn('absolute inset-y-0 left-0 rounded-full', behind ? 'bg-warning-500' : 'bg-primary')} style={{ width: `${(Math.min(1, share) * 100).toFixed(1)}%` }} />
+    <div className={cn('w-full min-w-[160px] max-w-[260px]', className)} title={`Delivered ${pct(share)} · expected ${pct(expectedShare)} by now`}>
+      <div className="relative">
+        <div className="flex h-2 w-full overflow-hidden rounded-sm bg-muted">
+          <div style={{ width: `${(Math.min(1, share) * 100).toFixed(1)}%`, backgroundColor: 'hsl(var(--chart-800))' }} />
+        </div>
         <span
-          className="absolute -top-1 h-3.5 w-0.5 -translate-x-1/2 rounded-full bg-foreground"
+          className="absolute -top-0.5 h-3 w-0.5 -translate-x-1/2 bg-foreground"
           style={{ left: `${(Math.min(1, expectedShare) * 100).toFixed(1)}%` }}
           aria-hidden
         />
       </div>
-      <div className="mt-1.5 flex items-center justify-between gap-2 text-xs">
-        <span className="font-semibold tabular-nums">{pct(share)}</span>
+      <div className="mt-1 flex items-center justify-between gap-2 text-xs">
+        <span className="font-medium tabular-nums">{pct(share)}</span>
         <span className="tabular-nums text-muted-foreground">Exp. {pct(expectedShare)}</span>
       </div>
     </div>
   );
 };
 
-/** "€4,500.00 / Invoiced afterwards" — a price and what state it is in. */
-export const AgreedPriceCell: React.FC<{ view: BookingPriceView; className?: string }> = ({ view, className }) => (
-  <span className={cn('flex flex-col leading-tight', className)}>
-    <span className={cn('whitespace-nowrap tabular-nums', view.amount === undefined && 'text-muted-foreground')}>
-      {view.amount === undefined ? '—' : formatEuro(view.amount)}
-    </span>
-    <span className="mt-0.5 whitespace-nowrap text-xs text-muted-foreground">
-      {view.state === 'agreed' ? 'Invoiced afterwards' : PRICE_STATE_LABEL[view.state].label}
-    </span>
+/**
+ * The billable amount on one line: what the invoice will say, excl. VAT.
+ * Until it is agreed it is muted and says what it still is.
+ */
+export const BillableAmountCell: React.FC<{ view: BookingPriceView; className?: string }> = ({ view, className }) => (
+  <span className={cn('whitespace-nowrap tabular-nums', view.state !== 'agreed' && 'text-muted-foreground', className)} title={PRICE_STATE_LABEL[view.state].label}>
+    {view.amount === undefined ? '—' : formatEuro(view.amount)}
+    {view.amount !== undefined && view.state !== 'agreed' && <span className="ml-1 text-xs">· {PRICE_STATE_LABEL[view.state].label.toLowerCase()}</span>}
   </span>
 );
 
@@ -122,7 +128,7 @@ export function guaranteedSummaryItems(db: DbData, booking: Booking | undefined)
   return [
     { label: 'Buying', value: 'Guaranteed' },
     { label: 'Goal', value: booking.goal ? formatGoal(booking.goal) : 'Not set' },
-    { label: view.state === 'agreed' ? 'Agreed price' : 'Price', value: view.amount === undefined ? PRICE_STATE_LABEL[view.state].label : `${formatEuro(view.amount)} · ${PRICE_STATE_LABEL[view.state].label.toLowerCase()}` },
+    { label: 'Billable amount', value: view.amount === undefined ? PRICE_STATE_LABEL[view.state].label : `${formatEuro(view.amount)} · ${PRICE_STATE_LABEL[view.state].label.toLowerCase()}` },
   ];
 }
 
@@ -193,7 +199,7 @@ export const GuaranteedGoalPrice: React.FC<{ booking: Booking | undefined; class
         {/* The price, in its state. */}
         <div className="rounded-lg border p-4">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{locked ? 'Agreed booking price' : view.state === 'quoted' ? 'Quoted booking price' : 'Indicative booking price'}</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Billable amount</span>
             <Badge variant={PRICE_STATE_VARIANT[view.state]} className="gap-1">
               {locked && <Lock className="h-3 w-3" />}
               {PRICE_STATE_LABEL[view.state].label}
@@ -319,42 +325,18 @@ const fmtRange = (a: string, b: string) => {
 };
 
 /**
- * A campaign's bookings with what they cost. On a guaranteed campaign the
- * rate card sits on top — the product, its unit price, the goal summed over
- * the bookings, delivery against it and the agreed total — and every booking
- * shows its goal, delivery and price. An auction campaign shows its bookings
- * with budget and spend.
+ * A campaign's bookings with what they cost: on a guaranteed campaign every
+ * booking's goal, delivery and billable amount; on an auction campaign its
+ * budget and spend. The totals are the metric cards' job, not this table's.
  */
 export const CampaignBookingsPricing: React.FC<{ campaign: Campaign; bookingHref: (bookingId: string) => string; className?: string }> = ({ campaign, bookingHref, className }) => {
   const db = useDb();
   const bookings = db.bookings.filter((b) => b.campaignId === campaign.id);
   const type = buyingTypeOfCampaign(db, campaign);
   const guaranteed = type === 'guaranteed';
-  const totals = guaranteed ? campaignGuaranteedTotals(db, campaign) : undefined;
-  const product = guaranteed && bookings[0] ? (() => {
-    const position = bookings.flatMap((b) => b.positionIds).map((id) => db.positions.find((p) => p.id === id)).find(Boolean);
-    return db.mediaProducts.find((m) => m.id === position?.mediaProductId)
-      ?? db.mediaProducts.find((m) => m.engine === campaign.engine && (m.buyingModels ?? []).includes('guaranteed'));
-  })() : undefined;
-
-  const stat = (label: string, value: React.ReactNode, sub?: React.ReactNode) => (
-    <div className="min-w-0 rounded-lg border p-4">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 text-lg font-semibold tabular-nums">{value}</div>
-      {sub && <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>}
-    </div>
-  );
 
   return (
     <div className={cn('space-y-4', className)}>
-      {guaranteed && (
-        <div className="grid grid-cols-1 gap-row sm:grid-cols-2 xl:grid-cols-4">
-          {stat('Buying', 'Guaranteed', product?.pricingBasis && product.listPrice !== undefined ? `${product.name} · ${formatUnitPrice(product.listPrice, product.pricingBasis)} list` : 'Sold on a goal at an agreed price')}
-          {stat('Goal', totals ? formatGoal(totals.goal) : '—', `over ${bookings.length} booking${bookings.length === 1 ? '' : 's'}`)}
-          {stat('Delivery', totals?.progress ? `${(totals.progress.share * 100).toFixed(1)}%` : '—', totals?.progress ? `expected ${(totals.progress.expectedShare * 100).toFixed(1)}% by now` : 'not delivering yet')}
-          {stat(totals?.price.state === 'agreed' ? 'Agreed price' : 'Price', totals?.price.amount !== undefined ? formatEuro(totals.price.amount) : '—', totals ? `${PRICE_STATE_LABEL[totals.price.state].label} · excl. VAT, invoiced afterwards` : undefined)}
-        </div>
-      )}
       <Table
         columns={[
           { key: 'name', header: 'Name', render: (b) => <span className="font-medium">{b.name}</span> },
@@ -366,7 +348,7 @@ export const CampaignBookingsPricing: React.FC<{ campaign: Campaign; bookingHref
               const p = deliveryProgress(b);
               return <DeliveryProgressBar share={p?.share} expectedShare={p?.expectedShare} />;
             } },
-            { key: 'price', header: 'Agreed price', summary: (rows: Booking[]) => formatEuro(rows.reduce((n, b) => n + (bookingPrice(db, b).amount ?? 0), 0)), render: (b: Booking) => <AgreedPriceCell view={bookingPrice(db, b)} /> },
+            { key: 'price', header: 'Billable amount', summary: (rows: Booking[]) => formatEuro(rows.reduce((n, b) => n + (bookingPrice(db, b).amount ?? 0), 0)), render: (b: Booking) => <BillableAmountCell view={bookingPrice(db, b)} /> },
           ] : [
             { key: 'budget', header: 'Budget', summary: 'sum' as const, render: (b: Booking) => <span className="tabular-nums">{formatEuro(b.budget)}</span> },
             { key: 'spend', header: 'Spend', summary: 'sum' as const, render: (b: Booking) => <span className="tabular-nums">{formatEuro(b.spend)}</span> },
@@ -380,5 +362,95 @@ export const CampaignBookingsPricing: React.FC<{ campaign: Campaign; bookingHref
         emptyState="No bookings on this campaign yet."
       />
     </div>
+  );
+};
+
+/**
+ * An auction booking's buying terms: the most it pays per click, and how
+ * its budget is spread over the flight. The floor is the product's lowest
+ * accepted bid when it prices per click.
+ */
+export const AuctionBidPacing: React.FC<{ booking: Booking; withPacing?: boolean; className?: string }> = ({ booking, withPacing = true, className }) => {
+  const db = useDb();
+  const [bid, setBid] = React.useState(booking.bid !== undefined ? String(booking.bid) : '');
+  React.useEffect(() => { setBid(booking.bid !== undefined ? String(booking.bid) : ''); }, [booking.id, booking.bid]);
+  const [shape, setShape] = React.useState<PacingShape>('even');
+  const [dailyBudget, setDailyBudget] = React.useState('');
+  const [overrides, setOverrides] = React.useState<PacingOverride[]>([]);
+  const product = productForBooking(db, booking);
+  const floor = product?.floorPrice;
+  const commit = () => {
+    const n = parseFloat(bid.replace(',', '.'));
+    const next = Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : undefined;
+    if (next !== booking.bid) updateBooking(booking.id, { bid: next });
+  };
+  return (
+    <FormSection bordered title={withPacing ? 'Bid & pacing' : 'Bid'} className={className}>
+      <div className="space-y-field">
+        <p className="text-sm text-muted-foreground">Auction, like its campaign: the booking bids for every impression and pays per click.</p>
+        <div>
+          <label className="mb-2 block text-sm font-medium">Bid (CPC)*</label>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">€</span>
+            <Input inputMode="decimal" value={bid} onChange={(e) => setBid(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} placeholder="0.60" className="w-32" />
+            <span className="text-sm text-muted-foreground">per click</span>
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            The most this booking pays for a click{floor !== undefined ? ` — at least ${formatEuro(floor)}, the floor` : ''}.
+          </p>
+        </div>
+        {withPacing && <BudgetPacing
+          totalBudget={booking.budget || undefined}
+          startDate={new Date(booking.startDate)}
+          endDate={new Date(booking.endDate)}
+          shape={shape}
+          onShapeChange={setShape}
+          shapes={['account', 'even', 'frontloaded', 'asap']}
+          dailyBudget={dailyBudget}
+          onDailyBudgetChange={setDailyBudget}
+          overrides={overrides}
+          onOverridesChange={setOverrides}
+        />}
+      </div>
+    </FormSection>
+  );
+};
+
+/**
+ * How the booking buys, following its campaign: a guaranteed booking sets
+ * its goal and gets a billable amount; an auction booking sets its CPC and
+ * pacing. Sponsored products carries bids and pacing of its own and passes
+ * `auctionOnPage`; display paces in its budget block and passes `pacingOnPage`.
+ */
+export const BookingBuying: React.FC<{ booking: Booking | undefined; auctionOnPage?: boolean; pacingOnPage?: boolean; className?: string }> = ({ booking, auctionOnPage, pacingOnPage, className }) => {
+  const db = useDb();
+  if (!booking) return null;
+  if (buyingTypeOf(db, booking) === 'guaranteed') return <GuaranteedGoalPrice booking={booking} className={className} />;
+  return auctionOnPage ? null : <AuctionBidPacing booking={booking} withPacing={!pacingOnPage} className={className} />;
+};
+
+/**
+ * The campaign type, stored: the choice every booking under the campaign
+ * follows. Switching it changes the booking page — goal and billable amount
+ * for guaranteed, CPC and pacing for auction.
+ */
+export const CampaignBuyingTypePicker: React.FC<{ campaign: Campaign }> = ({ campaign }) => {
+  const db = useDb();
+  const toast = useToast();
+  const value = buyingTypeOfCampaign(db, campaign);
+  const bookings = db.bookings.filter((b) => b.campaignId === campaign.id);
+  return (
+    <BuyingTypePicker
+      value={value}
+      onChange={(next) => {
+        if (next === value) return;
+        updateCampaign(campaign.id, { buyingType: next });
+        toast({
+          title: next === 'guaranteed' ? 'Campaign is guaranteed' : 'Campaign is auction',
+          description: `${bookings.length ? `Its ${bookings.length} booking${bookings.length === 1 ? '' : 's'} now` : 'Its bookings'} ${next === 'guaranteed' ? 'sell a goal at a billable amount' : 'bid a CPC with pacing'}.`,
+          undo: () => updateCampaign(campaign.id, { buyingType: value }),
+        });
+      }}
+    />
   );
 };

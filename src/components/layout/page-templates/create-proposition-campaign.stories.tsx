@@ -43,6 +43,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
 import { useDb, getDb, createCampaign, createBooking, updateBooking, updateCampaign, updateCreative, buyingTypeOfCampaign, goalMetricFor, type BookingGoal, type EngineId } from '@/lib/db';
 import { GoalPricePreview } from '@/components/ui/guaranteed-booking';
+import { productPriceLine } from '@/components/ui/booking-media-product';
 import { queueToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
@@ -516,6 +517,8 @@ const PropositionWizard = ({
     deliveryBehavior: DeliveryBehaviorValue; objectivesEnabled: boolean; deliveryObjectives: DeliveryObjectivesValue;
     /** Guaranteed only: what the booking promises to deliver. */
     goal?: BookingGoal;
+    /** The retail media product it runs on — its list or floor price. */
+    mediaProductId?: string;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
   // The booking's questions, in order: what it is, when it runs and what it
@@ -526,8 +529,8 @@ const PropositionWizard = ({
   // delivery behaviour and objectives are part of Targeting.
   const hasCreativeStep = propositionType !== 'sponsored-products';
   const bookingSubStepLabels = hasCreativeStep
-    ? ['Setup', 'Run time & budget', 'Placement', 'Targeting', 'Creative']
-    : ['Setup', 'Run time & budget', 'Placement', 'Targeting'];
+    ? ['Setup', 'Run time & budget', 'Retail media product', 'Targeting', 'Creative']
+    : ['Setup', 'Run time & budget', 'Retail media product', 'Targeting'];
   /** The creatives chosen for the booking being built or approved. */
   const [bookingCreativeIds, setBookingCreativeIds] = React.useState<string[]>([]);
   // Booking setup
@@ -609,6 +612,7 @@ const PropositionWizard = ({
       creativeIds: [...bookingCreativeIds],
       deliveryBehavior: { ...deliveryBehavior }, objectivesEnabled, deliveryObjectives: { ...deliveryObjectives },
       goal: goalOf(bookingGoal),
+      mediaProductId: selectedChannelIds[0],
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
@@ -662,15 +666,19 @@ const PropositionWizard = ({
   // The proposition's real inventory, the way it is sold: CHANNELS group ad
   // positions. The placement picker asks channel first, positions second.
   const engineChannels = React.useMemo(() => {
+    // The retail media products this booking can buy: the proposition's,
+    // sold the way the campaign buys (guaranteed at a list price, auction
+    // above a floor price).
     return db.mediaProducts
-      .filter((mp) => mp.engine === propositionType)
+      .filter((mp) => mp.engine === propositionType && mp.status !== 'archived' && (mp.buyingModels ?? ['auction']).includes(sellsGoal ? 'guaranteed' : 'auction'))
       .map((mp) => ({
         id: mp.id,
         name: mp.name,
+        priceLine: productPriceLine(mp, sellsGoal ? 'guaranteed' : 'auction'),
         positions: db.positions.filter((p) => p.mediaProductId === mp.id),
       }))
       .filter((ch) => ch.positions.length > 0);
-  }, [db, propositionType]);
+  }, [db, propositionType, sellsGoal]);
   const enginePositions = React.useMemo(
     () => engineChannels.flatMap((ch) => ch.positions.map((p) => ({ id: p.id, name: p.name, product: ch.name }))),
     [engineChannels],
@@ -887,6 +895,7 @@ const PropositionWizard = ({
       positionIds: b.positionIds,
       creativeStatus: 'missing',
       goal: b.goal,
+      mediaProductId: b.mediaProductId,
     }));
     // The creatives each booking chose — on its own step or on the campaign's
     // creatives step — are linked now that the booking exists.
@@ -2120,12 +2129,12 @@ const PropositionWizard = ({
                       {bookingSubStep === 2 && (
                         <Card>
                           <CardContent className="space-y-6 p-6">
-                            <FormSection title="Create placement">
+                            <FormSection title="Retail media product">
                               <CreatePlacement
                                 mediaProducts={engineChannels.map((ch) => ({
                                   value: ch.id,
                                   label: ch.name,
-                                  description: `${ch.positions.length} ad position${ch.positions.length === 1 ? '' : 's'}`,
+                                  description: `${ch.priceLine} · ${ch.positions.length} ad position${ch.positions.length === 1 ? '' : 's'}`,
                                 }))}
                                 positions={(engineChannels.find((c) => c.id === selectedChannelIds[0])?.positions ?? []).map((p) => ({
                                   value: p.id,
@@ -2141,7 +2150,7 @@ const PropositionWizard = ({
                                 }}
                                 positionsValue={bookingPositionIds}
                                 onPositionsChange={setBookingPositionIds}
-                                productLabel="Find channel"
+                                productLabel="Find retail media product"
                                 {...(isAuction ? {
                                   bids: positionBids,
                                   onBidChange: (id: string, v: string) => setPositionBids((prev) => ({ ...prev, [id]: v })),

@@ -89,7 +89,7 @@ export const CreatePlacement: React.FC<CreatePlacementProps> = ({
     <div className={className ?? 'space-y-4 min-w-0'}>
       <SearchSelectList
         label={productLabel}
-        placeholder="Search channel or media product…"
+        placeholder="Search retail media product…"
         icon={<LayoutDashboard className="w-4 h-4" />}
         options={mediaProducts}
         value={mediaProduct}

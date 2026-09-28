@@ -357,7 +357,7 @@ const PriceBuildUpCard: React.FC<{ product: MediaProduct; position?: Position; c
           </div>
           {build.floorPrice !== undefined && (
             <div className="flex items-center justify-between border-t border-border px-4 py-2 text-xs text-muted-foreground">
-              <span>Auction floor</span><span className="tabular-nums">{formatPrice(build.floorPrice, build.basis)}</span>
+              <span>Auction floor</span><span className="tabular-nums">{formatPrice(build.floorPrice, 'cpc')} CPC</span>
             </div>
           )}
         </div>
@@ -670,7 +670,7 @@ const ProductPage: React.FC = () => {
         <div className="space-y-6">
           {/* The facts: the rate card and where the product stands. */}
           <div className="grid gap-row sm:grid-cols-2 lg:grid-cols-5">
-            <MetricCard label="List price" value={product.listPrice !== undefined ? formatPrice(product.listPrice, basis) : '—'} subMetric={`${BASIS_LABEL[basis]}${product.floorPrice !== undefined ? ` · floor ${formatPrice(product.floorPrice, basis)}` : ''}`} />
+            <MetricCard label="List price" value={product.listPrice !== undefined ? formatPrice(product.listPrice, basis) : '—'} subMetric={`${BASIS_LABEL[basis]}${product.floorPrice !== undefined ? ` · floor ${formatPrice(product.floorPrice, 'cpc')} CPC` : ''}`} />
             <MetricCard label="Buying models" value={(product.buyingModels ?? []).map((m) => m[0].toUpperCase() + m.slice(1)).join(' + ') || '—'} subMetric={`Hold ${product.holdDays ?? 5} days`} />
             <MetricCard label="Positions" value={String(positions.length)} subMetric={placements.length ? `in ${placements.length} placements` : 'directly under the product'} />
             <MetricCard label="Fill rate" value={`${Math.round(avgFill * 100)}%`} badgeValue={avgFill >= 0.8 ? 'High demand' : undefined} badgeVariant="warning" subMetric={`${bookingsOnProduct.length} booking${bookingsOnProduct.length === 1 ? '' : 's'}`} />
@@ -746,7 +746,7 @@ const ProductPage: React.FC = () => {
                         <CardContent className="grid gap-2 text-sm">
                           <div className="flex justify-between"><span className="text-muted-foreground">Basis</span><span>{BASIS_LABEL[basis]}</span></div>
                           <div className="flex justify-between"><span className="text-muted-foreground">List price</span><span className="tabular-nums">{product.listPrice !== undefined ? formatPrice(product.listPrice, basis) : '—'}</span></div>
-                          {product.floorPrice !== undefined && <div className="flex justify-between"><span className="text-muted-foreground">Auction floor</span><span className="tabular-nums">{formatPrice(product.floorPrice, basis)}</span></div>}
+                          {product.floorPrice !== undefined && <div className="flex justify-between"><span className="text-muted-foreground">Auction floor</span><span className="tabular-nums">{formatPrice(product.floorPrice, 'cpc')} CPC</span></div>}
                           <div className="flex justify-between"><span className="text-muted-foreground">Buying models</span><span className="capitalize">{(product.buyingModels ?? []).join(', ') || '—'}</span></div>
                           <div className="flex justify-between"><span className="text-muted-foreground">Price locked for</span><span>{product.holdDays ?? 5} days</span></div>
                           <div className="flex justify-between"><span className="text-muted-foreground">Priced for</span>

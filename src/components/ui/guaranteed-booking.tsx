@@ -12,7 +12,7 @@ import { Table } from './table';
 import { planStatusLabel } from '@/lib/status-vocabulary';
 import { BudgetPacing, type PacingOverride, type PacingShape } from './budget-pacing';
 import { BuyingTypePicker } from './buying-type-picker';
-import { SettingsCard } from './settings-card';
+import { ToggleSection } from './delivery-settings';
 import type { MetricDefinition } from './metric-row';
 import {
   GOAL_LABEL,
@@ -27,6 +27,8 @@ import {
   isGuaranteed,
   quoteBookingPrice,
   setBookingGoal,
+  setBookingBudget,
+  listPriceFor,
   useDb,
   type Booking,
   type BookingGoal,
@@ -34,8 +36,6 @@ import {
   type BookingPriceView,
   type DbData,
   type GoalMetric,
-  type PricingBasis,
-  priceFor,
   amountFor,
   buyingTypeOf,
   buyingTypeOfCampaign,
@@ -247,8 +247,8 @@ export const AuctionBidPacing: React.FC<{ booking: Booking; withPacing?: boolean
 export const BookingBuying: React.FC<{ booking: Booking | undefined; auctionOnPage?: boolean; pacingOnPage?: boolean; className?: string }> = ({ booking, auctionOnPage, pacingOnPage, className }) => {
   const db = useDb();
   if (!booking) return null;
-  // Guaranteed sizing (budget or goal) lives in the budget block now.
-  if (buyingTypeOf(db, booking) === 'guaranteed') return null;
+  // Guaranteed: the goal is a delivery setting of its own.
+  if (buyingTypeOf(db, booking) === 'guaranteed') return <BookingGoalSetting booking={booking} className={className} />;
   return auctionOnPage ? null : <AuctionBidPacing booking={booking} withPacing={false} className={className} />;
 };
 
@@ -278,170 +278,115 @@ export const CampaignBuyingTypePicker: React.FC<{ campaign: Campaign }> = ({ cam
   );
 };
 
-// ── Budget or goal ──────────────────────────────────────────────────────
-
-export type BudgetMode = 'budget' | 'goal';
-
-/** What a total budget buys at a unit price, in whole goal units. */
-export function goalFromBudget(budget: number, unitPrice: number, basis: PricingBasis, metric: GoalMetric): number {
-  if (!unitPrice || budget <= 0) return 0;
-  const raw = basis === 'cpm' ? (budget / unitPrice) * 1000 : budget / unitPrice;
-  return metric === 'impressions' ? Math.floor(raw / 1000) * 1000 : Math.floor(raw);
-}
+// ── Budget and goal ─────────────────────────────────────────────────────
 
 /**
- * Budget or goal — how a guaranteed booking is sized, the way pacing sits
- * in an auction booking's budget: two cards, one total amount. Set a budget
- * and the goal follows from the price; set a goal and the billable amount
- * does. Presentational: the booking page and the wizard each keep the state.
+ * A guaranteed booking's budget, on the booking itself. The budget is its
+ * price: indicative while it can change, quoted while a hold locks it, and
+ * — once the booking is approved — the agreed, billable amount. The state
+ * sits beside the label; what it means and what to do next beneath.
  */
-export const BudgetOrGoal: React.FC<{
-  mode: BudgetMode;
-  onModeChange: (mode: BudgetMode) => void;
-  budget: string;
-  onBudgetChange: (value: string) => void;
-  onBudgetCommit?: () => void;
-  goal: string;
-  onGoalChange: (value: string) => void;
-  onGoalCommit?: () => void;
-  metric: GoalMetric;
-  unitPrice?: number;
-  basis?: PricingBasis;
-  campaignBudget?: string;
-  disabled?: boolean;
-  /** The billable amount's state, under the cards. */
-  footer?: React.ReactNode;
-}> = ({ mode, onModeChange, budget, onBudgetChange, onBudgetCommit, goal, onGoalChange, onGoalCommit, metric, unitPrice, basis, campaignBudget, disabled, footer }) => {
-  const label = GOAL_LABEL[metric];
-  const num = (v: string) => { const n = parseFloat(v.replace(/[^\d.]/g, '')); return Number.isFinite(n) ? n : 0; };
-  const priced = unitPrice !== undefined && !!basis;
-  const derivedGoal = priced ? goalFromBudget(num(budget), unitPrice!, basis!, metric) : 0;
-  const goalValue = Math.round(num(goal));
-  const derivedAmount = priced && goalValue > 0 ? amountFor(basis!, unitPrice!, { metric, amount: goalValue }) : undefined;
-  const priceNote = priced ? ` at ${formatUnitPrice(unitPrice!, basis!)}` : '';
-
-  const field = (value: string, onChange: (v: string) => void, onCommit: (() => void) | undefined, prefix: string | undefined, suffix: string | undefined, placeholder: string, result: React.ReactNode) => (
-    <div className="max-w-md space-y-1.5">
-      <div className="flex items-center gap-2">
-        {prefix && <span className="text-sm text-muted-foreground">{prefix}</span>}
-        <Input inputMode="decimal" value={value} disabled={disabled} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} onBlur={onCommit} onKeyDown={(e) => { if (e.key === 'Enter') onCommit?.(); }} className="w-48" />
-        {suffix && <span className="text-sm text-muted-foreground">{suffix}</span>}
-      </div>
-      <p className="text-xs text-muted-foreground">{result}</p>
-    </div>
-  );
-
+export const GuaranteedBudgetField: React.FC<{ booking: Booking; campaignBudget?: string }> = ({ booking, campaignBudget }) => {
+  const db = useDb();
+  const toast = useToast();
+  const view = bookingPrice(db, booking);
+  const list = listPriceFor(db, booking);
+  const locked = view.state === 'agreed';
+  const [value, setValue] = React.useState(booking.budget ? String(booking.budget) : '');
+  React.useEffect(() => { setValue(booking.budget ? String(booking.budget) : ''); }, [booking.id, booking.budget]);
+  const commit = () => {
+    const n = parseFloat(value.replace(/[^\d.]/g, ''));
+    if (Number.isFinite(n) && n >= 0 && n !== booking.budget) setBookingBudget(booking.id, n);
+  };
+  const checkAvailability = () => {
+    const result = quoteBookingPrice(booking.id);
+    toast(result === 'quoted'
+      ? { title: 'Budget quoted', description: 'Inventory is held and the budget locked as a quote until the hold runs out.' }
+      : { title: 'Nothing to quote yet', description: 'Set a budget first.' });
+  };
   return (
-    <div className="space-y-field">
-      <SettingsCard
-        label="Budget or goal"
-        options={[
-          { value: 'budget', label: 'Set a budget', description: `Spend a total amount — the ${label.many} follow from the price.` },
-          { value: 'goal', label: 'Set a goal', description: `Buy a total number of ${label.many} — the billable amount follows.` },
-        ]}
-        value={mode}
-        onChange={(v) => { if (!disabled) onModeChange(v as BudgetMode); }}
-        pinnedExtra={(opt) => opt.value === 'budget'
-          ? field(budget, onBudgetChange, onBudgetCommit, '€', undefined, 'Total budget',
-              priced ? (derivedGoal > 0 ? `Buys ${compactNumber(derivedGoal)} ${label.many}${priceNote}.` : `Enter a budget to see the ${label.many} it buys${priceNote}.`) : 'Pick a retail media product to price the booking.')
-          : field(goal, onGoalChange, onGoalCommit, undefined, label.many, `Total ${label.many}`,
-              priced ? (derivedAmount !== undefined ? `Billable amount ${formatEuro(derivedAmount)}${priceNote}.` : `Enter a goal to see the billable amount${priceNote}.`) : 'Pick a retail media product to price the booking.')}
-      />
-      {campaignBudget && <p className="text-xs text-muted-foreground">Campaign budget: {campaignBudget}</p>}
-      {footer}
+    <div>
+      <div className="mb-2 flex items-center gap-2">
+        <label className="text-sm font-medium">Booking budget*</label>
+        {view.state !== 'not-priced' && (
+          <Badge variant={PRICE_STATE_VARIANT[view.state]} className="gap-1">{locked && <Lock className="h-3 w-3" />}{PRICE_STATE_LABEL[view.state].label}</Badge>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <Input inputMode="decimal" value={value} disabled={locked} placeholder="Enter budget" onChange={(e) => setValue(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} className="w-full" />
+        {(view.state === 'indicative' || view.state === 'quoted') && (
+          <Button variant="outline" onClick={checkAvailability} className="shrink-0">{view.state === 'quoted' ? 'Check again' : 'Check availability'}</Button>
+        )}
+      </div>
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        {view.state === 'agreed' && view.lockedAt ? `Agreed on ${fmtDate(view.lockedAt)} — the billable amount, excl. VAT, invoiced afterwards.`
+          : view.state === 'quoted' && view.expiresAt ? `Quoted, held until ${fmtDate(view.expiresAt)}. Approval makes it the billable amount.`
+          : view.state === 'indicative' ? 'Indicative: a preview holds no inventory. Check availability to lock it as a quote.'
+          : campaignBudget ? `Campaign budget: ${campaignBudget}` : 'Set a budget to price the booking.'}
+        {booking.goal && view.unitPrice && view.basis ? ` ${formatUnitPrice(view.unitPrice, view.basis)} for ${formatGoal(booking.goal)}` : ''}
+        {list && booking.goal ? ` · list ${formatUnitPrice(list.price, list.basis)}.` : ''}
+      </p>
     </div>
   );
 };
 
 /**
- * Budget or goal on the booking page, written straight to the booking: the
- * goal is always stored (set, or bought by the budget) and the budget always
- * equals what it costs, so the billable amount and the invoice agree. Below
- * the cards, the billable amount in its state — with Check availability to
- * turn it into a quote until approval agrees it.
+ * The delivery goal — a setting of its own, switched on like display's
+ * delivery objectives. On, the booking promises an amount of impressions
+ * (stores, clicks) and is measured against it; off, it delivers what its
+ * budget buys. The list price says what the goal is worth next to the
+ * budget, so a negotiated deal reads as one.
  */
-export const GuaranteedBudgetGoal: React.FC<{ booking: Booking; campaignBudget?: string }> = ({ booking, campaignBudget }) => {
+export const BookingGoalSetting: React.FC<{ booking: Booking; className?: string }> = ({ booking, className }) => {
   const db = useDb();
-  const toast = useToast();
   const campaign = db.campaigns.find((c) => c.id === booking.campaignId);
   const metric = campaign ? goalMetricFor(campaign.engine) : 'impressions';
-  const view = bookingPrice(db, booking);
-  const product = productForBooking(db, booking);
-  const iso = booking.startDate;
-  const live = product ? priceFor(db, product, { from: iso, to: booking.endDate, budget: booking.budget }) : undefined;
-  const unitPrice = view.unitPrice ?? live?.price;
-  const basis = view.basis ?? live?.basis;
-  const locked = view.state === 'agreed';
-
-  const [mode, setMode] = React.useState<BudgetMode>(booking.goal ? 'goal' : 'budget');
-  const [budget, setBudget] = React.useState(booking.budget ? String(booking.budget) : '');
-  const [goal, setGoal] = React.useState(booking.goal?.amount ? String(booking.goal.amount) : '');
+  const label = GOAL_LABEL[metric];
+  const list = listPriceFor(db, booking);
+  const locked = booking.price?.state === 'agreed';
+  const [enabled, setEnabled] = React.useState(!!booking.goal);
+  const [value, setValue] = React.useState(booking.goal?.amount ? booking.goal.amount.toLocaleString('en-US') : '');
   React.useEffect(() => {
-    setBudget(booking.budget ? String(booking.budget) : '');
-    setGoal(booking.goal?.amount ? String(booking.goal.amount) : '');
-  }, [booking.id, booking.budget, booking.goal?.amount]);
-
-  const commitBudget = () => {
-    const b = parseFloat(budget.replace(/[^\d.]/g, ''));
-    if (!Number.isFinite(b) || b <= 0 || !unitPrice || !basis) return;
-    const amount = goalFromBudget(b, unitPrice, basis, metric);
-    if (amount !== booking.goal?.amount) setBookingGoal(booking.id, amount > 0 ? { metric, amount } : undefined);
-    if (b !== booking.budget) updateBooking(booking.id, { budget: b });
+    setEnabled(!!booking.goal);
+    setValue(booking.goal?.amount ? booking.goal.amount.toLocaleString('en-US') : '');
+  }, [booking.id, booking.goal?.amount]);
+  // What the budget buys at the list price — the goal a fresh switch offers.
+  const affordable = list && booking.budget > 0 && list.price > 0
+    ? (list.basis === 'cpm' ? Math.floor(((booking.budget / list.price) * 1000) / 1000) * 1000 : Math.floor(booking.budget / list.price))
+    : undefined;
+  const amount = parseInt(value.replace(/[^\d]/g, ''), 10);
+  const worth = list && Number.isFinite(amount) && amount > 0 ? amountFor(list.basis, list.price, { metric, amount }) : undefined;
+  const commit = () => {
+    if (!Number.isFinite(amount) || amount <= 0) return;
+    if (amount !== booking.goal?.amount) setBookingGoal(booking.id, { metric, amount });
   };
-  const commitGoal = () => {
-    const g = Math.round(parseFloat(goal.replace(/[^\d.]/g, '')));
-    if (!Number.isFinite(g) || g <= 0) return;
-    if (g !== booking.goal?.amount) setBookingGoal(booking.id, { metric, amount: g });
-    if (unitPrice && basis) {
-      const cost = amountFor(basis, unitPrice, { metric, amount: g });
-      if (cost !== booking.budget) updateBooking(booking.id, { budget: cost });
-    }
-  };
-  const checkAvailability = () => {
-    const result = quoteBookingPrice(booking.id);
-    toast(result === 'quoted'
-      ? { title: 'Price quoted', description: 'Inventory is held and the billable amount locked until the hold runs out.' }
-      : { title: 'Nothing to quote yet', description: 'Set a budget or a goal first.' });
-  };
-
-  const footer = (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium">Billable amount</span>
-          <Badge variant={PRICE_STATE_VARIANT[view.state]} className="gap-1">{locked && <Lock className="h-3 w-3" />}{PRICE_STATE_LABEL[view.state].label}</Badge>
+  return (
+    <ToggleSection
+      title="Delivery goal"
+      info={`The ${label.many} this booking promises to deliver. Delivery is measured against it, and a booking that ends short is credited on its invoice.`}
+      offSummary={`No goal — the booking delivers what its budget buys${affordable ? `, about ${compactNumber(affordable)} ${label.many} at the list price` : ''}.`}
+      checked={enabled}
+      onCheckedChange={(on) => {
+        if (locked) return;
+        setEnabled(on);
+        if (!on) setBookingGoal(booking.id, undefined);
+        else if (!booking.goal && affordable) { setValue(affordable.toLocaleString('en-US')); setBookingGoal(booking.id, { metric, amount: affordable }); }
+      }}
+      className={className}
+    >
+      <div className="space-y-1.5">
+        <label className="block text-sm font-medium">Goal*</label>
+        <div className="flex items-center gap-2">
+          <Input inputMode="numeric" value={value} disabled={locked} onChange={(e) => setValue(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} placeholder={metric === 'impressions' ? 'e.g. 500,000' : 'e.g. 30'} className="w-48" />
+          <span className="text-sm text-muted-foreground">{label.many}</span>
         </div>
-        <div className="mt-1 text-lg font-semibold tabular-nums">{view.amount === undefined ? '—' : formatEuro(view.amount)}</div>
         <p className="text-xs text-muted-foreground">
-          {view.state === 'agreed' && view.lockedAt ? `Agreed on ${fmtDate(view.lockedAt)}. Excl. VAT, invoiced afterwards.`
-            : view.state === 'quoted' && view.expiresAt ? `Held until ${fmtDate(view.expiresAt)}. Approval makes it the agreed amount.`
-            : view.state === 'indicative' ? 'A preview holds no inventory. Check availability to lock it.'
-            : 'Set a budget or a goal to price the booking.'}
+          {locked ? 'Part of the agreed deal — it cannot change after approval.'
+            : worth !== undefined && list ? `Worth ${formatEuro(worth)} at the list price of ${formatUnitPrice(list.price, list.basis)}${booking.budget ? ` — the budget is ${formatEuro(booking.budget)}` : ''}.`
+            : 'Pick a retail media product to see what the goal is worth.'}
         </p>
       </div>
-      {(view.state === 'indicative' || view.state === 'quoted') && (
-        <Button variant="outline" size="sm" onClick={checkAvailability}>{view.state === 'quoted' ? 'Check availability again' : 'Check availability'}</Button>
-      )}
-    </div>
-  );
-
-  return (
-    <BudgetOrGoal
-      mode={mode}
-      onModeChange={setMode}
-      budget={budget}
-      onBudgetChange={setBudget}
-      onBudgetCommit={commitBudget}
-      goal={goal}
-      onGoalChange={setGoal}
-      onGoalCommit={commitGoal}
-      metric={metric}
-      unitPrice={unitPrice}
-      basis={basis}
-      campaignBudget={campaignBudget}
-      disabled={locked}
-      footer={footer}
-    />
+    </ToggleSection>
   );
 };
 
@@ -462,7 +407,7 @@ export const BookingBudgetSetting: React.FC<{
   const [shape, setShape] = React.useState<PacingShape>('even');
   const [dailyBudget, setDailyBudget] = React.useState('');
   const [overrides, setOverrides] = React.useState<PacingOverride[]>([]);
-  if (buyingTypeOf(db, booking) === 'guaranteed') return <GuaranteedBudgetGoal booking={booking} campaignBudget={campaignBudget} />;
+  if (buyingTypeOf(db, booking) === 'guaranteed') return <GuaranteedBudgetField booking={booking} campaignBudget={campaignBudget} />;
   if (auction !== undefined) return <>{auction}</>;
   return (
     <BudgetPacing

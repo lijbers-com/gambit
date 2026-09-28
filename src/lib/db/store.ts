@@ -192,13 +192,24 @@ function holdInventory(db: DbData, booking: Booking) {
 
 // ── Guaranteed bookings ────────────────────────────────────────────────
 
-/** Set what a guaranteed booking promises to deliver. A new goal changes
- *  what a quote was for, so an unagreed quote falls back to indicative. */
+/** Set what a guaranteed booking promises to deliver — a delivery setting,
+ *  apart from its price, so it can change without touching a quote. */
 export function setBookingGoal(bookingId: string, goal: BookingGoal | undefined) {
   const db = load();
   const booking = db.bookings.find((b) => b.id === bookingId);
   if (!booking || booking.price?.state === 'agreed') return;
   booking.goal = goal;
+  booking.updatedAt = timestamp();
+  notify();
+}
+
+/** Set a booking's budget. On a guaranteed booking the budget is its price,
+ *  so a new budget releases an unagreed quote; an agreed one cannot change. */
+export function setBookingBudget(bookingId: string, budget: number) {
+  const db = load();
+  const booking = db.bookings.find((b) => b.id === bookingId);
+  if (!booking || booking.price?.state === 'agreed' || booking.budget === budget) return;
+  booking.budget = budget;
   if (booking.price?.state === 'quoted') {
     const hold = booking.price.holdId && db.inventoryHolds.find((h) => h.id === booking.price!.holdId);
     if (hold && hold.status === 'held') hold.status = 'released';
@@ -212,13 +223,13 @@ export function setBookingGoal(bookingId: string, goal: BookingGoal | undefined)
  * "Check availability": hold the booking's inventory for the product's hold
  * days and lock today's price as a quote. A preview holds nothing; this does.
  */
-export function quoteBookingPrice(bookingId: string): 'quoted' | 'no-goal' | 'agreed' {
+export function quoteBookingPrice(bookingId: string): 'quoted' | 'no-budget' | 'agreed' {
   const db = load();
   const booking = db.bookings.find((b) => b.id === bookingId);
-  if (!booking) return 'no-goal';
+  if (!booking) return 'no-budget';
   if (booking.price?.state === 'agreed') return 'agreed';
   const view = bookingPrice(db, { ...booking, price: undefined });
-  if (view.state !== 'indicative') return 'no-goal';
+  if (view.state !== 'indicative') return 'no-budget';
   const product = productForBooking(db, booking);
   const positionId = booking.positionIds[0] ?? db.positions.find((p) => p.mediaProductId === product?.id)?.id;
   const heldAt = new Date();
@@ -229,13 +240,13 @@ export function quoteBookingPrice(bookingId: string): 'quoted' | 'no-goal' | 'ag
     from: booking.startDate,
     to: booking.endDate,
     units: 1,
-    priceLocked: view.unitPrice!,
+    priceLocked: view.unitPrice ?? 0,
     heldAt: heldAt.toISOString(),
     expiresAt: new Date(heldAt.getTime() + (product?.holdDays ?? 5) * 86400000).toISOString(),
     status: 'held',
   } : undefined;
   if (hold) db.inventoryHolds.push(hold);
-  booking.price = { state: 'quoted', basis: view.basis!, unitPrice: view.unitPrice!, amount: view.amount!, lockedAt: heldAt.toISOString(), holdId: hold?.id };
+  booking.price = { state: 'quoted', basis: view.basis ?? product?.pricingBasis ?? 'cpm', unitPrice: view.unitPrice ?? 0, amount: booking.budget, lockedAt: heldAt.toISOString(), holdId: hold?.id };
   booking.updatedAt = timestamp();
   notify();
   return 'quoted';
@@ -533,7 +544,7 @@ function agreeOnApproval(db: DbData, booking: Booking, from: Booking['status'], 
   if (booking.price?.state === 'agreed' || !isGuaranteed(db, booking)) return;
   const view = bookingPrice(db, booking);
   if (view.state !== 'indicative' && view.state !== 'quoted') return;
-  booking.price = { state: 'agreed', basis: view.basis!, unitPrice: view.unitPrice!, amount: view.amount!, lockedAt: stamp, holdId: booking.price?.holdId };
+  booking.price = { state: 'agreed', basis: view.basis ?? 'cpm', unitPrice: view.unitPrice ?? 0, amount: view.amount ?? booking.budget, lockedAt: stamp, holdId: booking.price?.holdId };
   const hold = booking.price.holdId && db.inventoryHolds.find((h) => h.id === booking.price!.holdId);
   if (hold && hold.status === 'held') hold.status = 'confirmed';
 }

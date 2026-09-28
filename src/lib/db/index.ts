@@ -30,6 +30,7 @@ export {
   updatePricingRule,
   deletePricingRule,
   setBookingGoal,
+  setBookingBudget,
   quoteBookingPrice,
   sendToBilling,
   syncBilling,

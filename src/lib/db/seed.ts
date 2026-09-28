@@ -1,6 +1,6 @@
 import { productImages } from '@/lib/product-images';
 import type { Booking, DbData, Invoice } from './types';
-import { amountFor, buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
+import { buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
 
 /**
  * Seed data for the prototype database. Users map 1:1 to the EpicContext
@@ -13,7 +13,7 @@ import { amountFor, buyingTypeOf, goalMetricFor, productForBooking } from './gua
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 37;
+export const SEED_VERSION = 38;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -1235,9 +1235,9 @@ function withGuaranteedTerms(db: DbData): DbData {
     const delivered = live && b.budget > 0 ? Math.round(goal.amount * Math.min(1, b.spend / b.budget)) : undefined;
     const agreedAt = new Date(new Date(b.startDate).getTime() - 7 * 86400000).toISOString();
     const price = live
-      ? { state: 'agreed' as const, basis, unitPrice, amount: amountFor(basis, unitPrice, goal), lockedAt: agreedAt, holdId: hold?.id }
+      ? { state: 'agreed' as const, basis, unitPrice, amount: b.budget, lockedAt: agreedAt, holdId: hold?.id }
       : b.status === 'in-option' && hold
-        ? { state: 'quoted' as const, basis, unitPrice, amount: amountFor(basis, unitPrice, goal), lockedAt: hold.heldAt, holdId: hold.id }
+        ? { state: 'quoted' as const, basis, unitPrice, amount: b.budget, lockedAt: hold.heldAt, holdId: hold.id }
         : undefined;
     return { ...b, goal, delivered, price };
   });

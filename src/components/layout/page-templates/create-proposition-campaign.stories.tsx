@@ -42,7 +42,7 @@ import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
 import { useDb, getDb, createCampaign, createBooking, updateBooking, updateCampaign, updateCreative, buyingTypeOfCampaign, goalMetricFor, priceFor, amountFor, type BookingGoal, type EngineId } from '@/lib/db';
-import { BudgetOrGoal, goalFromBudget, type BudgetMode } from '@/components/ui/guaranteed-booking';
+
 import { productPriceLine } from '@/components/ui/booking-media-product';
 import { queueToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
@@ -455,21 +455,18 @@ const PropositionWizard = ({
     : hasBuyingType ? buyingType === 'guaranteed' : propositionType === 'offline-instore';
   const isAuction = !sellsGoal;
   const [bookingGoal, setBookingGoal] = React.useState('');
-  const [sizeMode, setSizeMode] = React.useState<BudgetMode>('budget');
-  // The price a guaranteed booking is sized at: the proposition's guaranteed
-  // retail media product, with today's pricing rules.
+  // The delivery goal is a setting of its own, switched on like display's
+  // delivery objectives; the budget stays the budget (and becomes the
+  // billable amount once the booking is agreed).
+  const [goalEnabled, setGoalEnabled] = React.useState(false);
   const goalPrice = React.useMemo(() => {
     const product = db.mediaProducts.find((m) => m.engine === propositionType && m.status === 'active' && (m.buyingModels ?? []).includes('guaranteed'));
     return product ? priceFor(db, product) : undefined;
   }, [db, propositionType]);
   const goalOf = (raw: string) => {
-    if (!sellsGoal) return undefined;
-    const metric = goalMetricFor(propositionType as EngineId);
-    // Sized by budget: the goal is what the budget buys at the price.
-    const n = sizeMode === 'budget'
-      ? (goalPrice ? goalFromBudget(parseFloat(bookingBudget) || 0, goalPrice.price, goalPrice.basis, metric) : 0)
-      : parseInt(raw.replace(/[^\d]/g, ''), 10);
-    return Number.isFinite(n) && n > 0 ? { metric, amount: n } : undefined;
+    if (!sellsGoal || !goalEnabled) return undefined;
+    const n = parseInt(raw.replace(/[^\d]/g, ''), 10);
+    return Number.isFinite(n) && n > 0 ? { metric: goalMetricFor(propositionType as EngineId), amount: n } : undefined;
   };
 
   // Step 1: Setup
@@ -615,11 +612,7 @@ const PropositionWizard = ({
     }
     setBookings(prev => [...prev, {
       id: String(Date.now()),
-      name: bookingName,
-      // Sized by goal, the budget is what the goal costs.
-      budget: sellsGoal && sizeMode === 'goal' && goalPrice && goalOf(bookingGoal)
-        ? amountFor(goalPrice.basis, goalPrice.price, goalOf(bookingGoal)!)
-        : parseFloat(bookingBudget) || 0,
+      name: bookingName, budget: parseFloat(bookingBudget) || 0,
       startDate: bookingDateRange?.from, startTime: bookingStartTime,
       endDate: bookingDateRange?.to, endTime: bookingEndTime, activeDays: [...activeDays],
       positionIds: [...bookingPositionIds],
@@ -632,7 +625,7 @@ const PropositionWizard = ({
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
-    setBookingName(''); setBookingBudget(''); setBookingDateRange(undefined); setBookingGoal('');
+    setBookingName(''); setBookingBudget(''); setBookingDateRange(undefined); setBookingGoal(''); setGoalEnabled(false);
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
@@ -2099,21 +2092,7 @@ const PropositionWizard = ({
                               // the same place sponsored products puts it. Only
                               // auction campaigns have a pacing decision to
                               // make — guaranteed buys a fixed delivery.
-                              pacing={!isAuction ? () => (
-                                <BudgetOrGoal
-                                  mode={sizeMode}
-                                  onModeChange={setSizeMode}
-                                  budget={bookingBudget}
-                                  onBudgetChange={setBookingBudget}
-                                  goal={bookingGoal}
-                                  onGoalChange={setBookingGoal}
-                                  metric={goalMetricFor(propositionType as EngineId)}
-                                  unitPrice={goalPrice?.price}
-                                  basis={goalPrice?.basis}
-                                  campaignBudget={budgetAmount.trim() !== '' ? `€${Number(budgetAmount).toLocaleString()}` : undefined}
-                                  footer={<p className="text-xs text-muted-foreground">Excl. VAT, invoiced afterwards. A preview holds no inventory — check availability on the booking to lock the billable amount.</p>}
-                                />
-                              ) : (budgetField) => (
+                              pacing={isAuction ? (budgetField) => (
                                 <BudgetPacing
                                   budgetField={budgetField}
                                   totalBudget={Number(bookingBudget) || undefined}
@@ -2129,8 +2108,34 @@ const PropositionWizard = ({
                                   overrides={pacingOverrides}
                                   onOverridesChange={setPacingOverrides}
                                 />
-                              )}
+                              ) : undefined}
                             />
+                            {sellsGoal && (() => {
+                              const metric = goalMetricFor(propositionType as EngineId);
+                              const n = parseInt(bookingGoal.replace(/[^\d]/g, ''), 10);
+                              const worth = goalPrice && Number.isFinite(n) && n > 0 ? amountFor(goalPrice.basis, goalPrice.price, { metric, amount: n }) : undefined;
+                              return (
+                                <ToggleSection
+                                  title="Delivery goal"
+                                  info="What the booking promises to deliver. Delivery is measured against it, and a booking that ends short is credited on its invoice."
+                                  offSummary="No goal — the booking delivers what its budget buys."
+                                  checked={goalEnabled}
+                                  onCheckedChange={setGoalEnabled}
+                                  bordered={false}
+                                >
+                                  <div className="space-y-1.5">
+                                    <label className="block text-sm font-medium">Goal*</label>
+                                    <div className="flex items-center gap-2">
+                                      <Input inputMode="numeric" value={bookingGoal} onChange={(e) => setBookingGoal(e.target.value)} placeholder={metric === 'impressions' ? 'e.g. 500,000' : 'e.g. 30'} className="w-48" />
+                                      <span className="text-sm text-muted-foreground">{metric}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                      {worth !== undefined && goalPrice ? `Worth €${worth.toLocaleString('en-US', { minimumFractionDigits: 2 })} at the list price${bookingBudget ? ` — the budget is €${Number(bookingBudget).toLocaleString('en-US')}` : ''}.` : 'The list price tells what the goal is worth.'}
+                                    </p>
+                                  </div>
+                                </ToggleSection>
+                              );
+                            })()}
                             <div className="flex justify-end gap-3">
                               <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
                               <Button onClick={() => setBookingSubStep(2)}>Continue</Button>

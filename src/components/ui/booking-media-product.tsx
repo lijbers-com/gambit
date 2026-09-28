@@ -70,7 +70,7 @@ export const BookingMediaProduct: React.FC<{ booking: Booking | undefined; class
               <div className="flex items-center gap-1.5 text-sm font-medium">
                 <Tag className="h-4 w-4 text-muted-foreground" />
                 <span className="tabular-nums">{productPriceLine(m, type)}</span>
-                <span className="font-normal text-muted-foreground">{type === 'guaranteed' ? '· the base of the billable amount' : '· the lowest bid accepted'}</span>
+                <span className="font-normal text-muted-foreground">{type === 'guaranteed' ? '· what the delivery goal is worth per unit' : '· the lowest bid accepted'}</span>
               </div>
             ) : null;
           }}

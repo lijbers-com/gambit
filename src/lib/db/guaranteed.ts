@@ -90,7 +90,7 @@ export function amountFor(basis: PricingBasis, unitPrice: number, goal: BookingG
 
 /** What a price is called in each state, and the line beneath it. */
 export const PRICE_STATE_LABEL: Record<BookingPriceState, { label: string; note: string }> = {
-  'not-priced': { label: 'Not yet priced', note: 'Set a goal to get a price' },
+  'not-priced': { label: 'Not yet priced', note: 'Set a budget to price the booking' },
   indicative: { label: 'Indicative', note: 'Check availability to get a quote' },
   quoted: { label: 'Quoted', note: 'Price held until the quote expires' },
   agreed: { label: 'Agreed', note: 'Invoiced afterwards' },
@@ -108,11 +108,26 @@ export interface BookingPriceView {
   buildUp?: PriceBuildUp;
 }
 
+/** The product's price for this booking today: list price with the pricing
+ *  rules that apply to its dates, budget and fill. */
+export function listPriceFor(db: DbData, booking: Booking, now = new Date()) {
+  const product = productForBooking(db, booking);
+  if (!product) return undefined;
+  const position = booking.positionIds.map((id) => db.positions.find((p) => p.id === id)).find(Boolean);
+  const daysAhead = Math.max(0, Math.round((new Date(booking.startDate).getTime() - now.getTime()) / 86400000));
+  return priceFor(db, product, {
+    from: booking.startDate, to: booking.endDate, daysAhead, budget: booking.budget,
+    fillRate: position ? fillRateFor(db, position, booking.startDate, booking.endDate) : undefined,
+  });
+}
+
 /**
- * Where a guaranteed booking's price stands. A stored agreed price always
- * wins; a stored quote holds while its inventory hold does; anything else
- * is worked out live from the pricing engine — and a quote whose hold has
- * run out falls back to that, because the price it locked is gone.
+ * Where a guaranteed booking's price stands. The price IS the budget: it is
+ * indicative while the budget can still change, quoted while a hold locks
+ * it, and agreed — the billable amount — from approval on. The unit price
+ * is what the budget pays per unit of the goal when there is one, else the
+ * product's list price. A quote whose hold has run out falls back to
+ * indicative, because what it locked is gone.
  */
 export function bookingPrice(db: DbData, booking: Booking, now = new Date()): BookingPriceView {
   const stored = booking.price;
@@ -125,17 +140,17 @@ export function bookingPrice(db: DbData, booking: Booking, now = new Date()): Bo
       return { state: 'quoted', basis: stored.basis, unitPrice: stored.unitPrice, amount: stored.amount, lockedAt: stored.lockedAt, expiresAt: hold?.expiresAt };
     }
   }
-  if (!booking.goal || booking.goal.amount <= 0) return { state: 'not-priced' };
-  const product = productForBooking(db, booking);
-  if (!product) return { state: 'not-priced' };
-  const position = booking.positionIds.map((id) => db.positions.find((p) => p.id === id)).find(Boolean);
-  const daysAhead = Math.max(0, Math.round((new Date(booking.startDate).getTime() - now.getTime()) / 86400000));
-  const buildUp = priceFor(db, product, {
-    from: booking.startDate, to: booking.endDate, daysAhead, budget: booking.budget,
-    fillRate: position ? fillRateFor(db, position, booking.startDate, booking.endDate) : undefined,
-  });
-  if (!buildUp) return { state: 'not-priced' };
-  return { state: 'indicative', basis: buildUp.basis, unitPrice: buildUp.price, amount: amountFor(buildUp.basis, buildUp.price, booking.goal), buildUp };
+  if (!booking.budget || booking.budget <= 0) return { state: 'not-priced' };
+  const buildUp = listPriceFor(db, booking, now);
+  const basis = buildUp?.basis;
+  const unitPrice = basis && booking.goal?.amount ? effectiveUnitPrice(booking.budget, basis, booking.goal) : buildUp?.price;
+  return { state: 'indicative', basis, unitPrice, amount: booking.budget, buildUp };
+}
+
+/** What the budget pays per unit of the goal — the booking's own CPM. */
+export function effectiveUnitPrice(budget: number, basis: PricingBasis, goal: BookingGoal): number {
+  const units = unitsFor(basis, goal);
+  return units > 0 ? Math.round((budget / units) * 100) / 100 : 0;
 }
 
 /** "€4,500.00" — invoices and agreed prices are read to the cent. */

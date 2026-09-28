@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Tag } from 'lucide-react';
 import { FormSection } from './form-section';
 import { CreatePlacement } from './create-placement';
+import { FieldIssue, useAvailabilityIssue } from './guaranteed-booking';
 import {
   buyingTypeOf,
   formatPrice,
@@ -43,6 +44,7 @@ export function productPriceLine(product: MediaProduct, type: 'guaranteed' | 'au
  */
 export const BookingMediaProduct: React.FC<{ booking: Booking | undefined; className?: string }> = ({ booking, className }) => {
   const db = useDb();
+  const issueFor = useAvailabilityIssue(booking);
   if (!booking) return null;
   const campaign = db.campaigns.find((c) => c.id === booking.campaignId);
   if (!campaign) return null;
@@ -75,6 +77,7 @@ export const BookingMediaProduct: React.FC<{ booking: Booking | undefined; class
             ) : null;
           }}
         />
+        <FieldIssue item={issueFor('positions') ?? issueFor('product')} />
         {offered.length === 0 && (
           <p className="text-sm text-muted-foreground">No retail media product is sold {type === 'guaranteed' ? 'guaranteed' : 'at auction'} on this proposition yet. Add one under Media products.</p>
         )}

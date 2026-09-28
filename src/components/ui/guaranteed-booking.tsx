@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Eye, Lock, MousePointerClick, Store } from 'lucide-react';
+import { AlertTriangle, Eye, Lock, MousePointerClick, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 import { Button } from './button';
@@ -127,33 +127,53 @@ const ROWS_FOR: Record<AvailabilityKey, RegExp> = {
   goal: /^goal$/i,
 };
 
-/** The flag an unavailable or limited item wears in the summary. */
-const AvailabilityFlag: React.FC<{ item: AvailabilityCheckItem }> = ({ item }) => (
-  <span className="mt-1 flex flex-col items-start gap-0.5">
-    <Badge variant={item.result === 'fail' ? 'destructive' : 'warning'}>{item.result === 'fail' ? 'Not available' : 'Limited'}</Badge>
-    <span className="text-xs text-muted-foreground">{item.detail}</span>
-  </span>
-);
-
 /**
- * The booking's summary rows with availability on the rows it concerns: a
- * run time that has passed, positions that are overbooked, a goal that no
- * longer fits. Rows that are fine stay as they are; the budget never gets a
- * flag. A problem with no row of its own gets one added.
+ * The booking's summary rows with availability on the rows it concerns: the
+ * row that makes the booking unavailable (a run time that has passed,
+ * overbooked positions, a goal that no longer fits) turns red with a
+ * warning icon; a limited one amber. The reason is told on the form field.
+ * A problem with no row of its own gets one added. The budget never.
  */
 export function withAvailability(db: DbData, booking: Booking | undefined, items: { label: string; value: React.ReactNode }[]) {
   if (!booking) return items;
   const flagged = checkBookingAvailability(db, booking).checks.filter((c) => c.result === 'fail' || c.result === 'warn');
   if (!flagged.length) return items;
   const placed = new Set<AvailabilityKey>();
+  const issueOf = (c: AvailabilityCheckItem) => (c.result === 'fail' ? 'error' as const : 'warning' as const);
   const out = items.map((it) => {
     const hit = flagged.find((c) => ROWS_FOR[c.key].test(it.label.trim()) && !placed.has(c.key));
     if (!hit) return it;
     placed.add(hit.key);
-    return { ...it, value: <span className="flex flex-col">{it.value}<AvailabilityFlag item={hit} /></span> };
+    return { ...it, issue: issueOf(hit) };
   });
-  for (const c of flagged) if (!placed.has(c.key)) out.push({ label: c.label, value: <AvailabilityFlag item={c} /> });
+  for (const c of flagged) if (!placed.has(c.key)) out.push({ label: c.label, value: c.result === 'fail' ? 'Not available' : 'Limited', issue: issueOf(c) });
   return out;
+}
+
+/** The booking's availability as its status: a badge beside the summary
+ *  card's title when something is not available, or limited. */
+export const BookingAvailabilityStatus: React.FC<{ booking: Booking | undefined }> = ({ booking }) => {
+  const db = useDb();
+  if (!booking) return null;
+  const check = checkBookingAvailability(db, booking);
+  if (check.status === 'available' || check.status === 'incomplete') return null;
+  return <Badge variant={check.status === 'unavailable' ? 'destructive' : 'warning'}>{check.status === 'unavailable' ? 'Not available' : 'Limited'}</Badge>;
+};
+
+/** Why a field is not possible, told on the field itself. */
+export const FieldIssue: React.FC<{ item?: AvailabilityCheckItem; className?: string }> = ({ item, className }) =>
+  item ? (
+    <p className={cn('mt-1.5 flex items-start gap-1.5 text-xs', item.result === 'fail' ? 'text-destructive' : 'text-warning-700', className)}>
+      <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
+      <span>{item.detail}</span>
+    </p>
+  ) : null;
+
+/** The availability finding for one part of a booking, when it has one. */
+export function useAvailabilityIssue(booking: Booking | undefined) {
+  const db = useDb();
+  const check = booking ? checkBookingAvailability(db, booking) : undefined;
+  return (key: AvailabilityKey) => check?.checks.find((c) => c.key === key && (c.result === 'fail' || c.result === 'warn'));
 }
 
 /** The summary rows a guaranteed booking adds, read from the store. */
@@ -393,6 +413,7 @@ export const BookingGoalSetting: React.FC<{ booking: Booking; className?: string
   const label = GOAL_LABEL[metric];
   const list = listPriceFor(db, booking);
   const locked = booking.price?.state === 'agreed';
+  const issue = useAvailabilityIssue(booking)('goal');
   const [enabled, setEnabled] = React.useState(!!booking.goal);
   const [value, setValue] = React.useState(booking.goal?.amount ? booking.goal.amount.toLocaleString('en-US') : '');
   React.useEffect(() => {
@@ -434,6 +455,7 @@ export const BookingGoalSetting: React.FC<{ booking: Booking; className?: string
             : worth !== undefined && list ? `Worth ${formatEuro(worth)} at the list price of ${formatUnitPrice(list.price, list.basis)}${booking.budget ? ` — the budget is ${formatEuro(booking.budget)}` : ''}.`
             : 'Pick a retail media product to see what the goal is worth.'}
         </p>
+        <FieldIssue item={issue} />
       </div>
     </ToggleSection>
   );
@@ -539,4 +561,39 @@ export function useCampaignDeliveryMetrics(metrics: MetricDefinition[], campaign
     ? deliveryCard(t.progress.share, t.progress.expectedShare, delivered, t.goal)
     : { key: 'delivery', label: 'Delivery', value: '—', subMetric: t ? `of ${formatGoal(t.goal)} · not started` : 'No delivery goals set' };
   return withDeliveryCard(metrics, card);
+}
+
+/**
+ * Keep a booking form's run time and the stored booking in step: the form
+ * opens on the booking's dates, and a date the user picks is written back —
+ * so the availability check, the summary and the form all speak about the
+ * same run time. Nothing is written until the form has shown the booking's
+ * own dates once, so a page's placeholder dates never overwrite them.
+ */
+export function useBookingDatesSync(
+  booking: Booking | undefined,
+  start: Date | undefined,
+  end: Date | undefined,
+  setStart: (d: Date | undefined) => void,
+  setEnd: (d: Date | undefined) => void,
+) {
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const ready = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!booking) return;
+    ready.current = null;
+    setStart(new Date(booking.startDate + 'T00:00:00'));
+    setEnd(new Date(booking.endDate + 'T00:00:00'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booking?.id]);
+  React.useEffect(() => {
+    if (!booking || !start || !end) return;
+    const s = iso(start); const e = iso(end);
+    if (ready.current !== booking.id) {
+      if (s === booking.startDate && e === booking.endDate) ready.current = booking.id;
+      return;
+    }
+    if (s !== booking.startDate || e !== booking.endDate) updateBooking(booking.id, { startDate: s, endDate: e });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booking?.id, start?.getTime(), end?.getTime()]);
 }

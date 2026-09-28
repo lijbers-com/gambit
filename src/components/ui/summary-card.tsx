@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronDown, WalletCards, Rows3, LayoutList, Image as ImageIcon } from "lucide-react"
+import { AlertTriangle, ArrowRight, Check, ChevronDown, WalletCards, Rows3, LayoutList, Image as ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./button"
 import { SplitButton } from "./split-button"
@@ -31,6 +31,10 @@ export interface SummaryItem {
   /** Optional inline badge (e.g. "Korting op je abonnement") */
   badge?: string
   badgeColor?: string
+  /** This row is what keeps the entity from going ahead: drawn in the
+   *  error (or warning) colour with a warning icon. The why lives on the
+   *  form field, not here. */
+  issue?: "error" | "warning"
 }
 
 /** A section header + items used in the `order` variant */
@@ -114,6 +118,11 @@ export interface SummaryCardProps extends React.HTMLAttributes<HTMLDivElement> {
     label: string
     onClick: () => void
   }
+  /** A status beside the title — e.g. the booking's availability. */
+  status?: React.ReactNode
+  /** On a collapsible context card: where its entity lives, as a button
+   *  shown once the card is opened — "Open campaign". */
+  openLink?: { label: string; href: string }
   /** Small footnote text below actions */
   footer?: string
   /** Nothing to summarise yet — renders a centred icon and this text instead
@@ -133,9 +142,12 @@ function DetailsItems({ items }: { items: SummaryItem[] }) {
   return (
     <>
       {items.map((item, i) => (
-        <div key={i}>
-          <div className="text-[13px] font-medium">{item.label}</div>
-          <div className="text-[13px] text-muted-foreground flex items-center gap-2 flex-wrap">
+        <div key={i} className={cn(item.issue === "error" && "text-destructive", item.issue === "warning" && "text-warning-700")}>
+          <div className="text-[13px] font-medium flex items-center gap-1.5">
+            {item.issue && <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-label={item.issue === "error" ? "Not available" : "Limited"} />}
+            {item.label}
+          </div>
+          <div className={cn("text-[13px] flex items-center gap-2 flex-wrap", !item.issue && "text-muted-foreground")}>
             {item.originalValue && (
               <span className="line-through">{item.originalValue}</span>
             )}
@@ -334,6 +346,8 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
       totals,
       actions,
       headerAction,
+      status,
+      openLink,
       footer,
       empty,
       collapsible,
@@ -387,6 +401,7 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
                 return <EntityIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
               })()}
               <span className="min-w-0 truncate" title={title}>{title}</span>
+              {status && <span className="shrink-0 text-[13px] font-normal tracking-normal">{status}</span>}
             </h2>
             {subtitle && (
               <p className="text-[13px] text-muted-foreground mt-1">{subtitle}</p>
@@ -456,6 +471,16 @@ const SummaryCard = React.forwardRef<HTMLDivElement, SummaryCardProps>(
             {variant === "order" && sections && (
               <OrderContent sections={sections} totals={totals} />
             )}
+          </div>
+        )}
+
+        {/* The door to the entity itself, once a context card is opened. */}
+        {openLink && isCollapsible && expanded && (
+          <div>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={(e) => { e.stopPropagation(); window.location.href = openLink.href }}>
+              {openLink.label}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
           </div>
         )}
 

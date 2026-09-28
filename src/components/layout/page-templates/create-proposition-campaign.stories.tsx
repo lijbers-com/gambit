@@ -2531,6 +2531,7 @@ const PropositionWizard = ({
                     entity="campaign"
                     variant="details"
                     collapsible={bookingSubStep !== null}
+                    openLink={routeCampaign ? { label: 'Open campaign', href: `/campaigns/${routeCampaign.engine}/${routeCampaign.id}` } : undefined}
                     className="bg-page"
                     headerAction={{
                       icon: LinkActionIcon,
@@ -2612,6 +2613,7 @@ const PropositionWizard = ({
                 variant="details"
                 collapsible
                 className="bg-page"
+                openLink={linkedPlan ? { label: 'Open media plan', href: `/campaigns/plan/${linkedPlan.id}` } : undefined}
                 headerAction={{
                   icon: LinkActionIcon,
                   label: linkedPlan ? 'Change linked media plan' : 'Link a media plan',
@@ -3849,6 +3851,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         entity="media-plan"
                         variant="details"
                         collapsible
+                        openLink={linkedPlan ? { label: 'Open media plan', href: `/campaigns/plan/${linkedPlan.id}` } : undefined}
                         headerAction={{
                           icon: LinkActionIcon,
                           label: 'Change linked media plan',

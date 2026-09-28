@@ -33,6 +33,8 @@ export interface BookingBudgetRuntimeProps {
   endTime: string;
   onStartTimeChange: (value: string) => void;
   onEndTimeChange: (value: string) => void;
+  /** Why the run time is not possible — shown under the field. */
+  runtimeIssue?: React.ReactNode;
   /** The campaign's own numbers, shown as context under the fields. */
   campaignBudget?: string;
   campaignRuntime?: string;
@@ -155,6 +157,7 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
   onStartTimeChange,
   onEndTimeChange,
   campaignBudget,
+  runtimeIssue,
   campaignRuntime,
   activeDays,
   onActiveDaysChange,
@@ -185,6 +188,7 @@ export const BookingBudgetRuntime: React.FC<BookingBudgetRuntimeProps> = ({
           presets={futureDateRangePresets}
           className="w-full min-w-0"
         />
+        {runtimeIssue}
       </div>
       <div className="min-w-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">

@@ -38,7 +38,7 @@ import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
-import { BookingBuying, useAvailabilityMarks, useDeliveryMetrics, useGuaranteedSummaryItems, useSubmitBooking, withBudgetSetting } from '@/components/ui/guaranteed-booking';
+import { BookingAvailabilityStatus, BookingBuying, FieldIssue, useAvailabilityIssue, useAvailabilityMarks, useBookingDatesSync, useDeliveryMetrics, useGuaranteedSummaryItems, useSubmitBooking, withBudgetSetting } from '@/components/ui/guaranteed-booking';
 import { BookingMediaProduct } from '@/components/ui/booking-media-product';
 import { buyingTypeOf } from '@/lib/db';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
@@ -346,7 +346,21 @@ const mediaPlanLinkOptions = [
 ];
 
 // Shared component for campaign details sidebar
+/** Where the booking's campaign and media plan live — the doors the opened
+ *  context cards offer. */
+const useParentLinks = () => {
+  const db = useDb();
+  const booking = useRouteBooking();
+  const campaign = booking && db.campaigns.find((c) => c.id === booking.campaignId);
+  const plan = campaign && db.mediaPlans.find((p) => p.id === campaign.mediaPlanId);
+  return {
+    campaign: campaign ? { label: 'Open campaign', href: `/campaigns/${campaign.engine}/${campaign.id}` } : undefined,
+    mediaPlan: plan ? { label: 'Open media plan', href: `/campaigns/plan/${plan.id}` } : undefined,
+  };
+};
+
 const CampaignDetailsSidebar = ({ title = 'Campaign' }: { title?: string } = {}) => {
+  const links = useParentLinks();
   const [linking, setLinking] = React.useState(false);
   const [campaign, setCampaign] = React.useState('camp-ah');
   const linked = campaignLinkOptions.find((c) => c.value === campaign);
@@ -357,6 +371,7 @@ const CampaignDetailsSidebar = ({ title = 'Campaign' }: { title?: string } = {})
         entity="campaign"
         variant="details"
         collapsible
+        openLink={links.campaign}
         headerAction={{
           icon: LinkActionIcon,
           label: 'Change linked campaign',
@@ -386,6 +401,7 @@ const CampaignDetailsSidebar = ({ title = 'Campaign' }: { title?: string } = {})
 
 // Shared component for the parent media plan summary (shown on every booking template)
 const MediaPlanSidebar = () => {
+  const links = useParentLinks();
   const [linking, setLinking] = React.useState(false);
   const [plan, setPlan] = React.useState<string | undefined>('mp-summer');
   const linked = mediaPlanLinkOptions.find((p) => p.value === plan);
@@ -396,6 +412,7 @@ const MediaPlanSidebar = () => {
         entity="media-plan"
         variant="details"
         collapsible
+        openLink={links.mediaPlan}
         headerAction={{
           icon: LinkActionIcon,
           label: 'Change linked media plan',
@@ -565,6 +582,7 @@ export const Display: Story = {
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
+    const availabilityIssue = useAvailabilityIssue(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('display', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -597,6 +615,8 @@ export const Display: Story = {
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = React.useState('00:00');
     const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
+    // The run time is the booking's: shown from it, written back to it.
+    useBookingDatesSync(routeBooking, startDate, endDate, setStartDate, setEndDate);
     const [endTime, setEndTime] = React.useState('23:59');
     const [activeDays, setActiveDays] = React.useState(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const [activeDaysOpen, setActiveDaysOpen] = React.useState(true);
@@ -840,6 +860,7 @@ export const Display: Story = {
                 campaignRuntime="01 Jun, 2024 - 30 Jun, 2024"
                 activeDays={activeDays}
                 onActiveDaysChange={setActiveDays}
+                runtimeIssue={<FieldIssue item={availabilityIssue('runtime')} />}
                 pacing={withBudgetSetting(routeBooking, displayIsAuction ? (budgetField) => (
                 <BudgetPacing
                 budgetField={budgetField}
@@ -1130,6 +1151,7 @@ export const Display: Story = {
                   <>
                 <SummaryCard
                   title="Booking"
+                    status={<BookingAvailabilityStatus booking={routeBooking} />}
                   entity="booking"
                   variant="details"
                   actions={summaryActionsFor(bookingTab, submitBooking)}
@@ -1186,6 +1208,7 @@ export const DigitalInStore: Story = {
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
+    const availabilityIssue = useAvailabilityIssue(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('digital-instore', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -1325,6 +1348,8 @@ export const DigitalInStore: Story = {
     // Default the run time to next week (matches the "Next week" preset)
     const [startDate, setStartDate] = React.useState<Date | undefined>(() => startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }));
     const [endDate, setEndDate] = React.useState<Date | undefined>(() => endOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }));
+    // The run time is the booking's: shown from it, written back to it.
+    useBookingDatesSync(routeBooking, startDate, endDate, setStartDate, setEndDate);
     const dInstoreDateRange = React.useMemo<DateRange | undefined>(
       () => (startDate || endDate ? { from: startDate, to: endDate } : undefined),
       [startDate, endDate],
@@ -1909,7 +1934,8 @@ export const DigitalInStore: Story = {
                         campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
                         activeDays={dInstoreActiveDays}
                         onActiveDaysChange={setDInstoreActiveDays}
-                        pacing={withBudgetSetting(routeBooking)}
+                        runtimeIssue={<FieldIssue item={availabilityIssue('runtime')} />}
+                pacing={withBudgetSetting(routeBooking)}
                       />
 
                       {routeBooking ? (
@@ -2477,6 +2503,7 @@ export const DigitalInStore: Story = {
                       <>
                   <SummaryCard
                     title="Booking"
+                    status={<BookingAvailabilityStatus booking={routeBooking} />}
                     entity="booking"
                     variant="details"
                     actions={summaryActionsFor(bookingTab, submitBooking)}
@@ -2580,6 +2607,7 @@ export const OfflineInStore: Story = {
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
+    const availabilityIssue = useAvailabilityIssue(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('offline-instore', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -2611,6 +2639,8 @@ export const OfflineInStore: Story = {
     // Removed location search state - using Filter component instead
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
+    // The run time is the booking's: shown from it, written back to it.
+    useBookingDatesSync(routeBooking, startDate, endDate, setStartDate, setEndDate);
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [storeAmount, setStoreAmount] = React.useState('');
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
@@ -3199,7 +3229,8 @@ export const OfflineInStore: Story = {
   onEndTimeChange={setBookingEndTime}
   campaignBudget="€10,000"
   campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
-  pacing={withBudgetSetting(routeBooking)}
+  runtimeIssue={<FieldIssue item={availabilityIssue('runtime')} />}
+                pacing={withBudgetSetting(routeBooking)}
 />
 
 <BookingMediaProduct booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
@@ -3830,6 +3861,7 @@ export const OfflineInStore: Story = {
                       <>
                   <SummaryCard
                     title="Booking"
+                    status={<BookingAvailabilityStatus booking={routeBooking} />}
                     entity="booking"
                     variant="details"
                     actions={summaryActionsFor(bookingTab, submitBooking)}
@@ -3924,6 +3956,7 @@ export const SponsoredProducts: Story = {
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
+    const availabilityIssue = useAvailabilityIssue(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('sponsored-products', 'booking'), routeBooking);
     // Bids and pacing belong to auction; a guaranteed booking buys a goal.
     const spDb = useDb();
@@ -3963,6 +3996,8 @@ export const SponsoredProducts: Story = {
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-08-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-08-30'));
+    // The run time is the booking's: shown from it, written back to it.
+    useBookingDatesSync(routeBooking, startDate, endDate, setStartDate, setEndDate);
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [storeAmount, setStoreAmount] = React.useState('');
     // The products already in the booking — the table has something to show.
@@ -4217,7 +4252,8 @@ export const SponsoredProducts: Story = {
                         campaignRuntime="01 Aug, 2024 - 30 Aug, 2024"
                         activeDays={activeDays}
                         onActiveDaysChange={setActiveDays}
-                        pacing={withBudgetSetting(routeBooking, spIsAuction ? (budgetField) => (
+                        runtimeIssue={<FieldIssue item={availabilityIssue('runtime')} />}
+                pacing={withBudgetSetting(routeBooking, spIsAuction ? (budgetField) => (
                           <BudgetPacing
                             budgetField={budgetField}
                             totalBudget={Number(bookingBudget) || undefined}
@@ -4454,6 +4490,7 @@ export const SponsoredProducts: Story = {
                       <>
                   <SummaryCard
                     title="Booking"
+                    status={<BookingAvailabilityStatus booking={routeBooking} />}
                     entity="booking"
                     variant="details"
                     actions={summaryActionsFor(bookingTab, submitBooking)}
@@ -4536,6 +4573,7 @@ export const OffsiteDisplay: Story = {
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
+    const availabilityIssue = useAvailabilityIssue(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('offsite', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -4561,6 +4599,8 @@ export const OffsiteDisplay: Story = {
     const [evaluationId, setEvaluationId] = React.useState('');
     const [startDate, setStartDate] = React.useState<Date | undefined>(new Date('2024-06-01'));
     const [endDate, setEndDate] = React.useState<Date | undefined>(new Date('2024-06-30'));
+    // The run time is the booking's: shown from it, written back to it.
+    useBookingDatesSync(routeBooking, startDate, endDate, setStartDate, setEndDate);
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
     const [selectedRetailProducts, setSelectedRetailProducts] = React.useState<string[]>([]);
     const [retailProductSearch, setRetailProductSearch] = React.useState('');
@@ -4775,7 +4815,8 @@ export const OffsiteDisplay: Story = {
                     campaignRuntime="01 Jun, 2024 - 30 Jun, 2024"
                     activeDays={bookingActiveDays}
                     onActiveDaysChange={setBookingActiveDays}
-                    pacing={withBudgetSetting(routeBooking)}
+                    runtimeIssue={<FieldIssue item={availabilityIssue('runtime')} />}
+                pacing={withBudgetSetting(routeBooking)}
                   />
 
                   {routeBooking ? (
@@ -4980,6 +5021,7 @@ export const OffsiteDisplay: Story = {
                   <>
               <SummaryCard
                 title="Booking"
+                    status={<BookingAvailabilityStatus booking={routeBooking} />}
                 entity="booking"
                 variant="details"
                 actions={summaryActionsFor(bookingTab, submitBooking)}
@@ -5008,6 +5050,7 @@ export const OffsiteDisplay: Story = {
                 entity="campaign"
                 variant="details"
                 collapsible
+                openLink={routeBooking ? { label: 'Open campaign', href: `/campaigns/offsite/${routeBooking.campaignId}` } : undefined}
                 items={[
                   { label: 'Campaign name', value: 'Offsite: Summer Launch' },
                   { label: 'PO Number', value: 'PO-789012' },

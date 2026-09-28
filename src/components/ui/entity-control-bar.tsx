@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils';
 import { LifecycleActions } from './lifecycle-actions';
 import { WorkflowProgress } from './workflow-progress';
 import { Button } from './button';
-import { useDb, deriveMessages, setupStepDone, setupStepDoneForBooking, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
+import { useDb, deriveMessages, setupStepDone, setupStepDoneForBooking, approveBooking, formatEuro, type EngineId, type PlanStatus, type WorkflowStep } from '@/lib/db';
+import { useToast } from './toast';
 
 /** Where each proposition's wizard lives. */
 const ROUTE_SEG: Record<EngineId, string> = {
@@ -52,7 +53,25 @@ export const EntityControlBar: React.FC<EntityControlBarProps> = ({ level, engin
    * At the end of an open setup step: a Start that opens the wizard where
    * that work is done — the same doors the plan's panel and setup cards open.
    */
+  const toast = useToast();
   const stepExtra = (step: WorkflowStep, done: boolean): React.ReactNode => {
+    // The approval step on a booking: approving passes it, moves the
+    // workflow on and — on a guaranteed booking — agrees the budget.
+    if (!done && level === 'booking' && step.kind === 'approval' && !step.setup && entity) {
+      return (
+        <Button
+          size="sm"
+          onClick={() => {
+            const result = approveBooking(entityId);
+            toast(result.ok
+              ? { title: 'Booking approved', description: result.agreed !== undefined ? `The budget of ${formatEuro(result.agreed)} is agreed — the billable amount.` : 'The workflow moves on.' }
+              : { title: 'Not approved', description: result.reason });
+          }}
+        >
+          Approve
+        </Button>
+      );
+    }
     if (done || !step.setup || !entity) return null;
     const key = step.setup;
     const seg = ROUTE_SEG[engine as EngineId] ?? engine;

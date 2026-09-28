@@ -207,7 +207,9 @@ export function readWorkflow(db: DbData, workflow: Workflow, target: WorkflowTar
   const { entity, plan, campaign } = target;
   const order = walkSteps(workflow);
   const stages = order.filter((s) => s.kind === 'stage');
-  const lifecycle = PLAN_STATUS_TO_LIFECYCLE[entity.status];
+  // A booking approved but not yet live stands in its approved stage.
+  const approvedAt = (entity as { approvedAt?: string }).approvedAt;
+  const lifecycle: LifecycleStatus = approvedAt && (entity.status === 'draft' || entity.status === 'in-option') ? 'approved' : PLAN_STATUS_TO_LIFECYCLE[entity.status];
   // The current stage: by the retailer's own name for it, else by position.
   const wanted = STAGE_SYNONYMS[lifecycle];
   let currentIndex = stages.findIndex((s) => wanted.some((w) => s.name.toLowerCase().includes(w)));
@@ -229,12 +231,14 @@ export function readWorkflow(db: DbData, workflow: Workflow, target: WorkflowTar
         : target.level === 'campaign' && campaign ? setupStepDone(db, campaign, step.setup)
         : setupStepDoneForBooking(db, entity, step.setup);
     }
+    // An approval passes when the booking has been approved.
+    if (step.kind === 'approval' && approvedAt) return true;
     // A check that applies rules: in force while every rule on it is active.
     const rules = step.actions.filter((a) => a.type === 'rule' && a.rule);
     if (rules.length) return rules.every((a) => (ruleById(a.rule!)?.status ?? 'Active') === 'Active');
     // What the check watches: its name, and the check cards on it.
     const n = [step.name, ...step.actions.filter((a) => a.type === 'check').map((a) => a.title ?? a.label)].join(' ').toLowerCase();
-    if (/booking approved|approved by/.test(n)) return !['draft', 'in-review', 'changes-requested'].includes(lifecycle);
+    if (/booking approved|approved by/.test(n)) return !!approvedAt || !['draft', 'in-review', 'changes-requested'].includes(lifecycle);
     if (/po number/.test(n)) return !!plan?.poNumber?.trim();
     if (/price agreed/.test(n)) return (entity as { price?: { state: string } }).price?.state === 'agreed' || !['draft', 'in-review', 'changes-requested'].includes(lifecycle);
     if (/creative/.test(n)) return entity.creativeStatus === 'approved';

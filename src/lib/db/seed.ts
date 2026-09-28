@@ -13,7 +13,7 @@ import { buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 38;
+export const SEED_VERSION = 39;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -1239,7 +1239,7 @@ function withGuaranteedTerms(db: DbData): DbData {
       : b.status === 'in-option' && hold
         ? { state: 'quoted' as const, basis, unitPrice, amount: b.budget, lockedAt: hold.heldAt, holdId: hold.id }
         : undefined;
-    return { ...b, goal, delivered, price };
+    return { ...b, goal, delivered, price, approvedAt: live ? agreedAt : undefined };
   });
   const withTerms: DbData = { ...db, bookings };
 

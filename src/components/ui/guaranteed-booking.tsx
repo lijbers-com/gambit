@@ -26,6 +26,10 @@ import {
   goalMetricFor,
   isGuaranteed,
   quoteBookingPrice,
+  submitBooking,
+  checkBookingAvailability,
+  type AvailabilityCheckItem,
+  type AvailabilityKey,
   setBookingGoal,
   setBookingBudget,
   listPriceFor,
@@ -115,10 +119,65 @@ export const BillableAmountCell: React.FC<{ view: BookingPriceView; className?: 
   </span>
 );
 
-/** The same rows, read from the store — for templates without the db at hand. */
+/** Which summary rows an availability item belongs to, by their label. */
+const ROWS_FOR: Record<AvailabilityKey, RegExp> = {
+  product: /^(retail media product|media product|placement)$/i,
+  positions: /^(positions|stores|displays|screens|ad positions|ad spaces)$/i,
+  runtime: /^(runtime|run time|start|end|flight)$/i,
+  goal: /^goal$/i,
+};
+
+/** The flag an unavailable or limited item wears in the summary. */
+const AvailabilityFlag: React.FC<{ item: AvailabilityCheckItem }> = ({ item }) => (
+  <span className="mt-1 flex flex-col items-start gap-0.5">
+    <Badge variant={item.result === 'fail' ? 'destructive' : 'warning'}>{item.result === 'fail' ? 'Not available' : 'Limited'}</Badge>
+    <span className="text-xs text-muted-foreground">{item.detail}</span>
+  </span>
+);
+
+/**
+ * The booking's summary rows with availability on the rows it concerns: a
+ * run time that has passed, positions that are overbooked, a goal that no
+ * longer fits. Rows that are fine stay as they are; the budget never gets a
+ * flag. A problem with no row of its own gets one added.
+ */
+export function withAvailability(db: DbData, booking: Booking | undefined, items: { label: string; value: React.ReactNode }[]) {
+  if (!booking) return items;
+  const flagged = checkBookingAvailability(db, booking).checks.filter((c) => c.result === 'fail' || c.result === 'warn');
+  if (!flagged.length) return items;
+  const placed = new Set<AvailabilityKey>();
+  const out = items.map((it) => {
+    const hit = flagged.find((c) => ROWS_FOR[c.key].test(it.label.trim()) && !placed.has(c.key));
+    if (!hit) return it;
+    placed.add(hit.key);
+    return { ...it, value: <span className="flex flex-col">{it.value}<AvailabilityFlag item={hit} /></span> };
+  });
+  for (const c of flagged) if (!placed.has(c.key)) out.push({ label: c.label, value: <AvailabilityFlag item={c} /> });
+  return out;
+}
+
+/** The summary rows a guaranteed booking adds, read from the store. */
 export function useGuaranteedSummaryItems(booking: Booking | undefined) {
   const db = useDb();
   return guaranteedSummaryItems(db, booking);
+}
+
+/** Mark a summary card's rows with the system's availability verdicts. */
+export function useAvailabilityMarks(booking: Booking | undefined) {
+  const db = useDb();
+  return (items: { label: string; value: React.ReactNode }[]) => withAvailability(db, booking, items);
+}
+
+/** Submit for approval: the system checks availability, then holds. */
+export function useSubmitBooking(booking: Booking | undefined) {
+  const toast = useToast();
+  return () => {
+    if (!booking) return;
+    const result = submitBooking(booking.id);
+    toast(result.ok
+      ? { title: 'Submitted for approval', description: result.held ? 'Available — the inventory is held and the budget locked as a quote until approval.' : 'Available — the booking is in review.' }
+      : { title: 'Not submitted', description: result.reason });
+  };
 }
 
 /** The rows a guaranteed booking adds to its summary card. */
@@ -288,7 +347,6 @@ export const CampaignBuyingTypePicker: React.FC<{ campaign: Campaign }> = ({ cam
  */
 export const GuaranteedBudgetField: React.FC<{ booking: Booking; campaignBudget?: string }> = ({ booking, campaignBudget }) => {
   const db = useDb();
-  const toast = useToast();
   const view = bookingPrice(db, booking);
   const list = listPriceFor(db, booking);
   const locked = view.state === 'agreed';
@@ -297,12 +355,6 @@ export const GuaranteedBudgetField: React.FC<{ booking: Booking; campaignBudget?
   const commit = () => {
     const n = parseFloat(value.replace(/[^\d.]/g, ''));
     if (Number.isFinite(n) && n >= 0 && n !== booking.budget) setBookingBudget(booking.id, n);
-  };
-  const checkAvailability = () => {
-    const result = quoteBookingPrice(booking.id);
-    toast(result === 'quoted'
-      ? { title: 'Budget quoted', description: 'Inventory is held and the budget locked as a quote until the hold runs out.' }
-      : { title: 'Nothing to quote yet', description: 'Set a budget first.' });
   };
   return (
     <div>
@@ -314,14 +366,11 @@ export const GuaranteedBudgetField: React.FC<{ booking: Booking; campaignBudget?
       </div>
       <div className="flex items-center gap-2">
         <Input inputMode="decimal" value={value} disabled={locked} placeholder="Enter budget" onChange={(e) => setValue(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} className="w-full" />
-        {(view.state === 'indicative' || view.state === 'quoted') && (
-          <Button variant="outline" onClick={checkAvailability} className="shrink-0">{view.state === 'quoted' ? 'Check again' : 'Check availability'}</Button>
-        )}
       </div>
       <p className="mt-1.5 text-xs text-muted-foreground">
         {view.state === 'agreed' && view.lockedAt ? `Agreed on ${fmtDate(view.lockedAt)} — the billable amount, excl. VAT, invoiced afterwards.`
           : view.state === 'quoted' && view.expiresAt ? `Quoted, held until ${fmtDate(view.expiresAt)}. Approval makes it the billable amount.`
-          : view.state === 'indicative' ? 'Indicative: a preview holds no inventory. Check availability to lock it as a quote.'
+          : view.state === 'indicative' ? 'Indicative until the booking is submitted — the system then checks availability and holds the inventory.'
           : campaignBudget ? `Campaign budget: ${campaignBudget}` : 'Set a budget to price the booking.'}
         {booking.goal && view.unitPrice && view.basis ? ` ${formatUnitPrice(view.unitPrice, view.basis)} for ${formatGoal(booking.goal)}` : ''}
         {list && booking.goal ? ` · list ${formatUnitPrice(list.price, list.basis)}.` : ''}
@@ -446,11 +495,18 @@ export function withBudgetSetting(
 
 // ── Delivery instead of spend ───────────────────────────────────────────
 
+/** Delivery sits right after Spend — both stay; the metric row's Edit
+ *  metrics lets the user pick which cards to show. */
+function withDeliveryCard(metrics: MetricDefinition[], card: MetricDefinition): MetricDefinition[] {
+  const at = metrics.findIndex((m) => m.key === 'spend');
+  return at < 0 ? [card, ...metrics] : [...metrics.slice(0, at + 1), card, ...metrics.slice(at + 1)];
+}
+
 /** The Delivery card: delivered against the goal, with where it should be. */
 function deliveryCard(share: number, expectedShare: number, delivered: number, goal: BookingGoal): MetricDefinition {
   const behind = share < expectedShare - 0.05;
   return {
-    key: 'spend',
+    key: 'delivery',
     label: 'Delivery',
     value: `${(share * 100).toFixed(1)}%`,
     subMetric: `${compactNumber(delivered)} of ${formatGoal(goal)}`,
@@ -460,9 +516,8 @@ function deliveryCard(share: number, expectedShare: number, delivered: number, g
 }
 
 /**
- * A guaranteed booking is judged on delivery, not spend — its price is
- * fixed — so its Spend card becomes the Delivery card, in the same place.
- * Auction bookings keep their cards as they are.
+ * A guaranteed booking also reports delivery against its goal: a Delivery
+ * card beside Spend. Auction bookings keep their cards as they are.
  */
 export function useDeliveryMetrics(metrics: MetricDefinition[], booking: Booking | undefined): MetricDefinition[] {
   const db = useDb();
@@ -470,8 +525,8 @@ export function useDeliveryMetrics(metrics: MetricDefinition[], booking: Booking
   const p = deliveryProgress(booking);
   const card: MetricDefinition = p
     ? deliveryCard(p.share, p.expectedShare, p.delivered, p.goal)
-    : { key: 'spend', label: 'Delivery', value: '—', subMetric: booking.goal ? `of ${formatGoal(booking.goal)} · not started` : 'No goal set yet' };
-  return metrics.map((m) => (m.key === 'spend' ? card : m));
+    : { key: 'delivery', label: 'Delivery', value: '—', subMetric: booking.goal ? `of ${formatGoal(booking.goal)} · not started` : 'No delivery goal set' };
+  return withDeliveryCard(metrics, card);
 }
 
 /** The same for a campaign: its guaranteed bookings, summed. */
@@ -482,6 +537,6 @@ export function useCampaignDeliveryMetrics(metrics: MetricDefinition[], campaign
   const delivered = db.bookings.filter((b) => b.campaignId === campaign.id).reduce((n, b) => n + (b.delivered ?? 0), 0);
   const card: MetricDefinition = t?.progress
     ? deliveryCard(t.progress.share, t.progress.expectedShare, delivered, t.goal)
-    : { key: 'spend', label: 'Delivery', value: '—', subMetric: t ? `of ${formatGoal(t.goal)} · not started` : 'No goals set yet' };
-  return metrics.map((m) => (m.key === 'spend' ? card : m));
+    : { key: 'delivery', label: 'Delivery', value: '—', subMetric: t ? `of ${formatGoal(t.goal)} · not started` : 'No delivery goals set' };
+  return withDeliveryCard(metrics, card);
 }

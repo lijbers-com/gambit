@@ -32,6 +32,8 @@ export {
   setBookingGoal,
   setBookingBudget,
   quoteBookingPrice,
+  submitBooking,
+  approveBooking,
   sendToBilling,
   syncBilling,
   billingServiceMode,

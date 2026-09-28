@@ -20,7 +20,8 @@ export interface AdvertiserBrandProductsProps {
   onAdvertiserChange: (value: string) => void;
   brands: string[];
   onBrandsChange: (value: string[]) => void;
-  brandOptions: { label: string; value: string }[];
+  /** The brands to offer. Omitted, the chosen organisation's brands. */
+  brandOptions?: { label: string; value: string }[];
   products: React.ComponentProps<typeof RetailProductSelect>['value'];
   onProductsChange: React.ComponentProps<typeof RetailProductSelect>['onChange'];
   /** Optional: a fixed catalogue. Without it the store's catalogue narrows to the chosen brands. */
@@ -58,7 +59,7 @@ export const AdvertiserBrandProducts: React.FC<AdvertiserBrandProductsProps> = (
       <SearchSelectList
         label="Brands"
         placeholder="Search brands…"
-        options={brandOptions}
+        options={brandOptions ?? (selectedOrg ?? { brands: db.advertisers.flatMap((a) => a.brands) }).brands.map((b) => ({ label: b.name, value: b.id }))}
         value={brands}
         onChange={onBrandsChange}
       />

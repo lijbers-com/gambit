@@ -183,6 +183,9 @@ export interface Booking {
   price?: BookingPrice;
   /** Auction only: the most the booking pays per click (CPC), in euros. */
   bid?: number;
+  /** When the booking passed its workflow's approval step. From here its
+   *  budget is agreed — the billable amount — and the workflow moves on. */
+  approvedAt?: string;
   /** The retail media product the booking runs on, as chosen in its form —
    *  the source of its list price (guaranteed) or floor price (auction). */
   mediaProductId?: string;

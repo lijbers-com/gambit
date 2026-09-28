@@ -220,3 +220,93 @@ export function campaignGuaranteedTotals(db: DbData, campaign: Campaign, now = n
     price: { state, amount } as BookingPriceView,
   };
 }
+
+// ── Availability ────────────────────────────────────────────────────────
+
+export type AvailabilityStatus = 'available' | 'limited' | 'unavailable' | 'incomplete';
+
+/** What can be (un)available on a booking. The budget is not among them:
+ *  money is always available. */
+export type AvailabilityKey = 'product' | 'positions' | 'runtime' | 'goal';
+
+export interface AvailabilityCheckItem {
+  key: AvailabilityKey;
+  label: string;
+  result: 'ok' | 'warn' | 'fail' | 'missing';
+  detail: string;
+}
+
+export interface AvailabilityCheck {
+  status: AvailabilityStatus;
+  /** The worst finding, in a line — what submitting would be refused for. */
+  summary: string;
+  checks: AvailabilityCheckItem[];
+  /** Share of the positions' capacity already booked over the run time. */
+  fillRate?: number;
+}
+
+export const AVAILABILITY_LABEL: Record<AvailabilityStatus, string> = {
+  available: 'Available',
+  limited: 'Limited',
+  unavailable: 'Not available',
+  incomplete: 'Incomplete',
+};
+
+/**
+ * The system's availability check over what a booking is set to, item by
+ * item: the retail media product, its positions (booked up or not over the
+ * run time), the run time itself, and — when there is one — whether the
+ * delivery goal fits in what is left. Each item carries its own verdict, so
+ * the booking shows WHICH part is not available. It runs on every change;
+ * submitting is what holds the inventory, and only when nothing fails.
+ */
+export function checkBookingAvailability(db: DbData, booking: Booking, now = new Date()): AvailabilityCheck {
+  const checks: AvailabilityCheckItem[] = [];
+  const product = productForBooking(db, booking);
+
+  checks.push(product
+    ? { key: 'product', label: 'Retail media product', result: 'ok', detail: product.name }
+    : { key: 'product', label: 'Retail media product', result: 'missing', detail: 'Pick a retail media product.' });
+
+  const start = new Date(booking.startDate + 'T00:00:00');
+  const end = new Date(booking.endDate + 'T23:59:59');
+  const past = end < now && (booking.status === 'draft' || booking.status === 'in-option');
+  checks.push(!booking.startDate || !booking.endDate || end < start
+    ? { key: 'runtime', label: 'Run time', result: 'missing', detail: 'Set a start and end date.' }
+    : past
+      ? { key: 'runtime', label: 'Run time', result: 'fail', detail: 'The run time has already passed.' }
+      : { key: 'runtime', label: 'Run time', result: 'ok', detail: 'Available.' });
+
+  const positions = booking.positionIds.map((id) => db.positions.find((p) => p.id === id)).filter((p): p is NonNullable<typeof p> => !!p);
+  let fillRate: number | undefined;
+  if (!positions.length) {
+    checks.push({ key: 'positions', label: 'Positions', result: 'missing', detail: 'Include at least one position.' });
+  } else if (booking.startDate && booking.endDate) {
+    const rates = positions.map((p) => ({ p, fill: fillRateFor(db, p, booking.startDate, booking.endDate) }));
+    fillRate = rates.reduce((n, r) => n + r.fill, 0) / rates.length;
+    const full = rates.filter((r) => r.fill >= 1);
+    checks.push(full.length === rates.length
+      ? { key: 'positions', label: 'Positions', result: 'fail', detail: 'Overbooked — fully booked over this run time.' }
+      : full.length
+        ? { key: 'positions', label: 'Positions', result: 'warn', detail: `${full.length} of ${rates.length} overbooked: ${full.map((r) => r.p.name).join(', ')}.` }
+        : fillRate >= 0.8
+          ? { key: 'positions', label: 'Positions', result: 'warn', detail: `${Math.round(fillRate * 100)}% already booked — little room left.` }
+          : { key: 'positions', label: 'Positions', result: 'ok', detail: `${Math.round(fillRate * 100)}% already booked.` });
+  }
+
+  // The goal fits in the capacity that is left: a goal on a booked-up run
+  // cannot be delivered, one on a nearly full run is at risk.
+  if (booking.goal && isGuaranteed(db, booking) && fillRate !== undefined) {
+    checks.push(fillRate >= 1
+      ? { key: 'goal', label: 'Goal', result: 'fail', detail: `${formatGoal(booking.goal)} cannot be delivered — nothing is left.` }
+      : fillRate >= 0.8
+        ? { key: 'goal', label: 'Goal', result: 'warn', detail: `${formatGoal(booking.goal)} is at risk — only ${Math.round((1 - fillRate) * 100)}% is left.` }
+        : { key: 'goal', label: 'Goal', result: 'ok', detail: 'Fits in what is left.' });
+  }
+
+  const worst = checks.find((c) => c.result === 'missing') ?? checks.find((c) => c.result === 'fail') ?? checks.find((c) => c.result === 'warn');
+  const status: AvailabilityStatus = checks.some((c) => c.result === 'missing') ? 'incomplete'
+    : checks.some((c) => c.result === 'fail') ? 'unavailable'
+    : checks.some((c) => c.result === 'warn') ? 'limited' : 'available';
+  return { status, summary: worst ? worst.detail : 'Everything is available.', checks, fillRate };
+}

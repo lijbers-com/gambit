@@ -38,7 +38,7 @@ import { Checkbox } from '../../ui/checkbox';
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { SummaryCard, type SummaryAction } from '@/components/ui/summary-card';
-import { BookingBuying, useDeliveryMetrics, useGuaranteedSummaryItems, withBudgetSetting } from '@/components/ui/guaranteed-booking';
+import { BookingBuying, useAvailabilityMarks, useDeliveryMetrics, useGuaranteedSummaryItems, useSubmitBooking, withBudgetSetting } from '@/components/ui/guaranteed-booking';
 import { BookingMediaProduct } from '@/components/ui/booking-media-product';
 import { buyingTypeOf } from '@/lib/db';
 import { LinkPickerDialog, LinkActionIcon } from '@/components/ui/link-picker';
@@ -428,22 +428,23 @@ const MediaPlanSidebar = () => {
 // form can be submitted from either column without scrolling back.
 // Save is the everyday action; sending for approval is the same work leaving
 // the user's hands, so it sits behind the arrow of the same button.
-const summaryActionsFor = (tab: string): SummaryAction[] | undefined =>
+const summaryActionsFor = (tab: string, onSubmit?: () => void): SummaryAction[] | undefined =>
   // Overview tabs have nothing to save; the form tabs get Cancel then Save,
-  // the same order as the form's own footer.
+  // the same order as the form's own footer. Submitting runs the system's
+  // availability check and, when it passes, holds the inventory.
   READ_ONLY_TABS.includes(tab)
     ? undefined
     : [
         { label: 'Cancel', variant: 'outline' },
-        { label: 'Save', menu: [{ label: 'Submit for approval' }] },
+        { label: 'Save', menu: [{ label: 'Submit for approval', onClick: onSubmit }] },
       ];
 
 // The same actions at the foot of the form card. One list above, one row here,
 // so the two can never drift apart.
-const FormActions = ({ className }: { className?: string }) => (
+const FormActions = ({ className, onSubmit }: { className?: string; onSubmit?: () => void }) => (
   <div className={cn('flex gap-2', className)}>
     <Button variant="outline">Cancel</Button>
-    <SplitButton label="Save" menu={[{ label: 'Submit for approval' }]} />
+    <SplitButton label="Save" menu={[{ label: 'Submit for approval', onClick: onSubmit }]} />
   </div>
 );
 
@@ -562,6 +563,8 @@ export const Display: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const submitBooking = useSubmitBooking(routeBooking);
+    const markAvailability = useAvailabilityMarks(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('display', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -571,6 +574,8 @@ export const Display: Story = {
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const [bookingAdvertiser, setBookingAdvertiser] = React.useState('coca-cola');
+    const [dspBrands, setDspBrands] = React.useState<string[]>([]);
+    const [dspProducts, setDspProducts] = React.useState<string[]>([]);
     const [bookingPositions, setBookingPositions] = React.useState<string[]>([]);
     // Two creatives come attached, matching the summary card on the right.
     const [selectedCreatives, setSelectedCreatives] = React.useState<any[]>(mockCreatives.slice(0, 2));
@@ -725,7 +730,8 @@ export const Display: Story = {
           />
           <div className="mb-section">
             <MetricRow
-              metrics={bookingMetrics}
+              key={bookingMetrics.map((m) => m.key).join()}
+            metrics={bookingMetrics}
               maxVisible={5}
               defaultVariant="default"
               removable={false}
@@ -801,6 +807,16 @@ export const Display: Story = {
                       <label className="block text-sm font-medium">Booking ID</label>
                       <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                     </div>
+                    {/* Who it is for and what it sells — the same block
+                        every booking sets up here. */}
+                    <AdvertiserBrandProducts
+                      advertiser={bookingAdvertiser}
+                      onAdvertiserChange={setBookingAdvertiser}
+                      brands={dspBrands}
+                      onBrandsChange={setDspBrands}
+                      products={dspProducts}
+                      onProductsChange={setDspProducts}
+                    />
 
                   </div>
                 )}
@@ -1098,7 +1114,7 @@ export const Display: Story = {
                 </div>
               </div>
 
-              {!READ_ONLY_TABS.includes(bookingTab) && <FormActions />}
+              {!READ_ONLY_TABS.includes(bookingTab) && <FormActions onSubmit={submitBooking} />}
               </div>
               {/* end form card */}
               </div>
@@ -1116,9 +1132,9 @@ export const Display: Story = {
                   title="Booking"
                   entity="booking"
                   variant="details"
-                  actions={summaryActionsFor(bookingTab)}
+                  actions={summaryActionsFor(bookingTab, submitBooking)}
                   className="bg-card"
-                  items={[
+                  items={markAvailability([
                     ...guaranteedItems,
                     ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                     ...((startDate) ? [{ label: 'Start', value: `${format(startDate, 'dd/MM/yyyy')} ${startTime}` }] : []),
@@ -1131,7 +1147,7 @@ export const Display: Story = {
                       ? [{ label: 'Pacing', value: pacingShape.charAt(0).toUpperCase() + pacingShape.slice(1) }]
                       : []),
                     ...bookingCreatives.items,
-                  ]}
+                  ])}
                 />
                   {bookingCreatives.dialog}
                   </>
@@ -1168,6 +1184,8 @@ export const DigitalInStore: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const submitBooking = useSubmitBooking(routeBooking);
+    const markAvailability = useAvailabilityMarks(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('digital-instore', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -1802,6 +1820,7 @@ export const DigitalInStore: Story = {
         />
         <div className="mb-section">
           <MetricRow
+            key={bookingMetrics.map((m) => m.key).join()}
             metrics={bookingMetrics}
             maxVisible={5}
             defaultVariant="default"
@@ -2460,9 +2479,9 @@ export const DigitalInStore: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
-                    actions={summaryActionsFor(bookingTab)}
+                    actions={summaryActionsFor(bookingTab, submitBooking)}
                     className="bg-card"
-                    items={[
+                    items={markAvailability([
                       ...guaranteedItems,
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                       ...(selectedBrands.length > 0 ? [{ label: 'Brands', value: `${selectedBrands.length} selected` }] : []),
@@ -2495,7 +2514,7 @@ export const DigitalInStore: Story = {
                       ...(selectedAudiences.length > 0 ? [{ label: 'Audiences', value: `${selectedAudiences.length} selected` }] : []),
                       ...(selectedCreatives.length > 0 ? [{ label: 'Creatives', value: `${selectedCreatives.length} linked` }] : []),
                       ...bookingCreatives.items,
-                    ]}
+                    ])}
                   />
 
                   {/* Creatives section - hidden for now, can be brought back later
@@ -2559,6 +2578,8 @@ export const OfflineInStore: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const submitBooking = useSubmitBooking(routeBooking);
+    const markAvailability = useAvailabilityMarks(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('offline-instore', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -2568,6 +2589,7 @@ export const OfflineInStore: Story = {
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const [bookingAdvertiser, setBookingAdvertiser] = React.useState('coca-cola');
+    const [oisBrands, setOisBrands] = React.useState<string[]>([]);
     const [bookingPositions, setBookingPositions] = React.useState<string[]>([]);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
@@ -3087,6 +3109,7 @@ export const OfflineInStore: Story = {
         />
         <div className="mb-section">
           <MetricRow
+            key={bookingMetrics.map((m) => m.key).join()}
             metrics={bookingMetrics}
             maxVisible={5}
             defaultVariant="default"
@@ -3147,6 +3170,18 @@ export const OfflineInStore: Story = {
                             <label className="block text-sm font-medium mb-2">Booking ID</label>
                             <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                           </div>
+                          {/* Who it is for and what it sells — the same block
+                              digital in-store sets up here. The store list in
+                              the Targeting tab pre-filters to stores that have
+                              these products in stock. */}
+                          <AdvertiserBrandProducts
+                            advertiser={bookingAdvertiser}
+                            onAdvertiserChange={setBookingAdvertiser}
+                            brands={oisBrands}
+                            onBrandsChange={setOisBrands}
+                            products={selectedRetailProducts}
+                            onProductsChange={setSelectedRetailProducts}
+                          />
                         </div>
                       </FormSection>
 
@@ -3171,18 +3206,6 @@ export const OfflineInStore: Story = {
 
 <BookingBuying booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
 
-<FormSection bordered title="Retail products" className={cn(bookingTab !== 'details' && "hidden")}>
-                        <div className="space-y-2 min-w-0">
-                          <p className="text-sm text-muted-foreground">
-                            Select the retail product(s) this booking advertises. The store list in the Targeting tab pre-filters to stores that have these in stock.
-                          </p>
-                          <RetailProductSelect
-                            value={selectedRetailProducts}
-                            onChange={setSelectedRetailProducts}
-                            advertiser={bookingAdvertiser}
-                          />
-                        </div>
-                      </FormSection>
 
                       <FormSection bordered title="Preparation" className={cn(bookingTab !== 'details' && "hidden")}>
                         <div className="space-y-field">
@@ -3809,9 +3832,9 @@ export const OfflineInStore: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
-                    actions={summaryActionsFor(bookingTab)}
+                    actions={summaryActionsFor(bookingTab, submitBooking)}
                     className="bg-card"
-                    items={[
+                    items={markAvailability([
                       ...guaranteedItems,
                       { label: 'Preparation', value: briefingStatus === 'not-set' ? 'Not set' : briefingStatus === 'send' ? 'Briefing send' : briefingStatus === 'approved' ? 'Briefing approved' : 'Briefing rejected' },
                       { label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` },
@@ -3827,7 +3850,7 @@ export const OfflineInStore: Story = {
                       { label: 'Creatives', value: creativeStatus === 'not-set' ? 'Not set' : creativeStatus === 'received' ? 'Creative received' : 'Creative not approved' },
                       { label: 'Printer', value: printerStatus === 'not-set' ? 'Not set' : printerStatus === 'instruction-send' ? 'Instruction send' : printerStatus === 'delivered' ? 'Delivered' : 'Installed' },
                       ...bookingCreatives.items,
-                    ]}
+                    ])}
                   />
 
                   {/* Creatives section - hidden for now, can be brought back later
@@ -3899,6 +3922,8 @@ export const SponsoredProducts: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const submitBooking = useSubmitBooking(routeBooking);
+    const markAvailability = useAvailabilityMarks(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('sponsored-products', 'booking'), routeBooking);
     // Bids and pacing belong to auction; a guaranteed booking buys a goal.
     const spDb = useDb();
@@ -4107,6 +4132,7 @@ export const SponsoredProducts: Story = {
         />
         <div className="mb-section">
           <MetricRow
+            key={bookingMetrics.map((m) => m.key).join()}
             metrics={bookingMetrics}
             maxVisible={5}
             defaultVariant="default"
@@ -4430,9 +4456,9 @@ export const SponsoredProducts: Story = {
                     title="Booking"
                     entity="booking"
                     variant="details"
-                    actions={summaryActionsFor(bookingTab)}
+                    actions={summaryActionsFor(bookingTab, submitBooking)}
                     className="bg-card"
-                    items={[
+                    items={markAvailability([
                       ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                       ...((startDate || endDate) ? [{ label: 'Runtime', value: `${startDate ? format(startDate, 'dd/MM/yyyy') : '?'} - ${endDate ? format(endDate, 'dd/MM/yyyy') : '?'}` }] : []),
                       ...(bookingBudget ? [{ label: 'Total budget', value: `€${bookingBudget}` }] : []),
@@ -4444,7 +4470,7 @@ export const SponsoredProducts: Story = {
                       ...(keywords.length > 0 ? [{ label: 'Keywords', value: `${keywords.length} keywords` }] : []),
                       ...(selectedCategories.length > 0 ? [{ label: 'Categories', value: `${selectedCategories.length} selected` }] : []),
                       ...(selectedLocalBrands.length > 0 ? [{ label: 'Local brands', value: `${selectedLocalBrands.length} selected` }] : []),
-                    ]}
+                    ])}
                   />
 
                   {/* Creatives section - hidden for now, can be brought back later
@@ -4508,6 +4534,8 @@ export const OffsiteDisplay: Story = {
     const bookingUnread = useUnreadCount('booking', undefined, ['recommendation']);
     const routeBooking = useRouteBooking();
     const guaranteedItems = useGuaranteedSummaryItems(routeBooking);
+    const submitBooking = useSubmitBooking(routeBooking);
+    const markAvailability = useAvailabilityMarks(routeBooking);
     const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('offsite', 'booking'), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
@@ -4517,6 +4545,7 @@ export const OffsiteDisplay: Story = {
     const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
     const [bookingActiveDays, setBookingActiveDays] = React.useState<string[]>(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     const [bookingAdvertiser, setBookingAdvertiser] = React.useState('coca-cola');
+    const [offBrands, setOffBrands] = React.useState<string[]>([]);
     const [bookingPositions, setBookingPositions] = React.useState<string[]>([]);
     const bookingLogData = [
       { id: 'BLOG-001', timestamp: '12/10/2024 14:30', user: 'Jane Doe', action: 'Booking Created', field: 'Booking', oldValue: '-', newValue: 'LI-001' },
@@ -4719,6 +4748,14 @@ export const OffsiteDisplay: Story = {
                         <label className="block text-sm font-medium mb-2">Booking ID</label>
                         <Input value={routeBooking?.id ?? routeEntityId ?? ''} readOnly disabled className="w-full" />
                       </div>
+                      <AdvertiserBrandProducts
+                        advertiser={bookingAdvertiser}
+                        onAdvertiserChange={setBookingAdvertiser}
+                        brands={offBrands}
+                        onBrandsChange={setOffBrands}
+                        products={selectedRetailProducts}
+                        onProductsChange={setSelectedRetailProducts}
+                      />
                     </div>
                   </FormSection>
 
@@ -4760,15 +4797,6 @@ export const OffsiteDisplay: Story = {
                   <BookingBuying booking={routeBooking} className={cn(bookingTab !== 'details' && 'hidden')} />
 
 
-                  <FormSection bordered title="Retail products" className={cn(bookingTab !== 'targeting' && "hidden")}>
-                    <RetailProductSelect
-                      value={selectedRetailProducts}
-                      onChange={setSelectedRetailProducts}
-                      advertiser={bookingAdvertiser}
-                      label={null}
-                      showCount
-                    />
-                  </FormSection>
 
                   <FormSection bordered title="Targeting" className={cn(bookingTab !== 'targeting' && "hidden")}>
                     <div className="space-y-field">
@@ -4954,9 +4982,9 @@ export const OffsiteDisplay: Story = {
                 title="Booking"
                 entity="booking"
                 variant="details"
-                actions={summaryActionsFor(bookingTab)}
+                actions={summaryActionsFor(bookingTab, submitBooking)}
                 className="bg-card"
-                items={[
+                items={markAvailability([
                   ...guaranteedItems,
                   ...(bookingName ? [{ label: 'Name', value: bookingName }] : []),
                   ...(mediaProductLabel ? [{ label: 'Media product', value: mediaProductLabel }] : []),
@@ -4968,7 +4996,7 @@ export const OffsiteDisplay: Story = {
                   ...(selectedDevices.length > 0 ? [{ label: 'Devices', value: selectedDevices.join(', ') }] : []),
                   ...(selectedGeos.length > 0 ? [{ label: 'Geo', value: `${selectedGeos.length} selected` }] : []),
                   ...bookingCreatives.items,
-                ]}
+                ])}
               />
                   {bookingCreatives.dialog}
                   </>

@@ -1,5 +1,5 @@
 import type { Booking, BookingGoal, Campaign, Creative, CreativeApprovalStatus, DbData, FaqEntry, Invoice, InventoryHold, MediaPlan, MediaProduct, Placement, Position, PricingRule, TermEntry, ReleaseNote, Workflow } from './types';
-import { bookingPrice, isGuaranteed, productForBooking } from './guaranteed';
+import { bookingPrice, checkBookingAvailability, isGuaranteed, productForBooking } from './guaranteed';
 import { billableLines } from './billing';
 import { billingService, type InvoiceRecord } from '@/lib/billing-service';
 import { fillRateFor, priceFor } from './pricing';
@@ -250,6 +250,29 @@ export function quoteBookingPrice(bookingId: string): 'quoted' | 'no-budget' | '
   booking.updatedAt = timestamp();
   notify();
   return 'quoted';
+}
+
+/**
+ * Submit a booking for approval. The system checks availability over all
+ * its settings first; only a booking that passes goes into review, and a
+ * guaranteed one has its inventory held and its budget locked as a quote
+ * on the way — the hold is part of submitting, not a separate step.
+ */
+export function submitBooking(bookingId: string): { ok: true; held: boolean } | { ok: false; reason: string } {
+  const db = load();
+  const booking = db.bookings.find((b) => b.id === bookingId);
+  if (!booking) return { ok: false, reason: 'Booking not found.' };
+  const check = checkBookingAvailability(db, booking);
+  if (check.status === 'incomplete' || check.status === 'unavailable') return { ok: false, reason: check.summary };
+  let held = false;
+  if (isGuaranteed(db, booking) && booking.price?.state !== 'agreed') held = quoteBookingPrice(bookingId) === 'quoted';
+  const current = load().bookings.find((b) => b.id === bookingId)!;
+  if (current.status === 'draft') {
+    current.status = 'in-option';
+    current.updatedAt = timestamp();
+    notify();
+  }
+  return { ok: true, held };
 }
 
 // ── Billing ────────────────────────────────────────────────────────────
@@ -534,19 +557,38 @@ export function moveFaq(id: string, direction: 'up' | 'down') {
 // ── Lifecycle (play / pause / stop) ────────────────────────────────────
 
 /**
- * Approving a guaranteed booking agrees its price. The first time it leaves
- * draft or review for running, whatever the price then stands at — the
- * quote if one holds, else today's indicative price — is frozen as agreed,
- * and its inventory hold is confirmed. From here the price never moves.
+ * Approval: the booking passes its workflow's approval step. A guaranteed
+ * booking's budget is agreed there — frozen as the billable amount — and
+ * its inventory hold confirmed; from here neither moves.
  */
-function agreeOnApproval(db: DbData, booking: Booking, from: Booking['status'], to: Booking['status'], stamp: string) {
-  if (to !== 'running' || (from !== 'draft' && from !== 'in-option')) return;
+function approve(db: DbData, booking: Booking, stamp: string) {
+  if (!booking.approvedAt) booking.approvedAt = stamp;
   if (booking.price?.state === 'agreed' || !isGuaranteed(db, booking)) return;
   const view = bookingPrice(db, booking);
   if (view.state !== 'indicative' && view.state !== 'quoted') return;
   booking.price = { state: 'agreed', basis: view.basis ?? 'cpm', unitPrice: view.unitPrice ?? 0, amount: view.amount ?? booking.budget, lockedAt: stamp, holdId: booking.price?.holdId };
   const hold = booking.price.holdId && db.inventoryHolds.find((h) => h.id === booking.price!.holdId);
   if (hold && hold.status === 'held') hold.status = 'confirmed';
+}
+
+/** Approve a booking in review: the workflow's approval step passes and a
+ *  guaranteed booking's budget becomes its agreed, billable amount. */
+export function approveBooking(bookingId: string): { ok: true; agreed?: number } | { ok: false; reason: string } {
+  const db = load();
+  const booking = db.bookings.find((b) => b.id === bookingId);
+  if (!booking) return { ok: false, reason: 'Booking not found.' };
+  if (booking.approvedAt) return { ok: false, reason: 'Already approved.' };
+  approve(db, booking, timestamp());
+  if (booking.status === 'draft') booking.status = 'in-option';
+  booking.updatedAt = timestamp();
+  notify();
+  return { ok: true, agreed: booking.price?.state === 'agreed' ? booking.price.amount : undefined };
+}
+
+/** Launching a booking that was never approved approves it on the way. */
+function agreeOnApproval(db: DbData, booking: Booking, from: Booking['status'], to: Booking['status'], stamp: string) {
+  if (to !== 'running' || (from !== 'draft' && from !== 'in-option')) return;
+  approve(db, booking, stamp);
 }
 
 /** Move a booking to its next status, agreeing its price when approved. */

@@ -1197,6 +1197,7 @@ export const DigitalInstoreRunning: Story = {
     // campaign). See getPropositionMetrics().
     const ForecastSection = () => (
       <MetricRow
+        key={campaignMetrics.map((x) => x.key).join()}
         metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"
@@ -1682,6 +1683,7 @@ export const OfflineInstoreRunning: Story = {
     // /campaigns/offline-instore, values scoped to this campaign.
     const ForecastSection = () => (
       <MetricRow
+        key={campaignMetrics.map((x) => x.key).join()}
         metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"
@@ -2217,6 +2219,7 @@ export const DisplayRunning: Story = {
 
     const ForecastSection = () => (
       <MetricRow
+        key={campaignMetrics.map((x) => x.key).join()}
         metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"
@@ -4513,6 +4516,7 @@ export const SponsoredProductsRunning: Story = {
 
     const ForecastSection = () => (
       <MetricRow
+        key={campaignMetrics.map((x) => x.key).join()}
         metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"
@@ -4943,6 +4947,7 @@ export const OffsiteRunning: Story = {
     // /campaigns/offsite, values scoped to this campaign.
     const ForecastSection = () => (
       <MetricRow
+        key={campaignMetrics.map((x) => x.key).join()}
         metrics={campaignMetrics}
         maxVisible={5}
         defaultVariant="default"

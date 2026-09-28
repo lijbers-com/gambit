@@ -32,7 +32,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { stripPropositionSuffix } from '@/lib/proposition-colors';
 import { TargetSelect, countTargets } from '@/components/ui/target-select';
 import { onlineTargetGroups } from '@/lib/target-groups';
-import { CreatePlacement } from '@/components/ui/create-placement';
 import { BuyingTypePicker } from '@/components/ui/buying-type-picker';
 import { BudgetPacing, type PacingShape, type PacingOverride } from '@/components/ui/budget-pacing';
 import { BidRow, suggestedBid } from '@/components/ui/bid-row';
@@ -41,9 +40,11 @@ import { DeliveryBehaviorFields, DeliveryObjectivesFields, ToggleRow, ToggleSect
 import { BookingBudgetRuntime } from '@/components/ui/booking-budget-runtime';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { productImages } from '@/lib/product-images';
-import { useDb, getDb, createCampaign, createBooking, updateBooking, updateCampaign, updateCreative, buyingTypeOfCampaign, goalMetricFor, priceFor, amountFor, type BookingGoal, type EngineId } from '@/lib/db';
+import { useDb, getDb, createCampaign, createBooking, updateBooking, updateCampaign, updateCreative, buyingTypeOfCampaign, goalMetricFor, priceFor, type BookingGoal, type EngineId } from '@/lib/db';
 
-import { productPriceLine } from '@/components/ui/booking-media-product';
+import { RetailMediaProductPicker, productPriceLine } from '@/components/ui/booking-media-product';
+import { BidField, DeliveryGoalFields, GuaranteedBudgetInput } from '@/components/ui/guaranteed-booking';
+import { AdvertiserBrandProducts } from '@/components/ui/advertiser-brand-products';
 import { queueToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
@@ -459,10 +460,11 @@ const PropositionWizard = ({
   // delivery objectives; the budget stays the budget (and becomes the
   // billable amount once the booking is agreed).
   const [goalEnabled, setGoalEnabled] = React.useState(false);
-  const goalPrice = React.useMemo(() => {
-    const product = db.mediaProducts.find((m) => m.engine === propositionType && m.status === 'active' && (m.buyingModels ?? []).includes('guaranteed'));
-    return product ? priceFor(db, product) : undefined;
-  }, [db, propositionType]);
+  const bidOf = (raw: string) => {
+    if (sellsGoal) return undefined;
+    const n = parseFloat(raw.replace(',', '.'));
+    return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : undefined;
+  };
   const goalOf = (raw: string) => {
     if (!sellsGoal || !goalEnabled) return undefined;
     const n = parseInt(raw.replace(/[^\d]/g, ''), 10);
@@ -528,6 +530,8 @@ const PropositionWizard = ({
     goal?: BookingGoal;
     /** The retail media product it runs on — its list or floor price. */
     mediaProductId?: string;
+    /** Auction: its bid (CPC). */
+    bid?: number;
   }[]>([]);
   const [bookingSubStep, setBookingSubStep] = React.useState<number | null>(null);
   // The booking's questions, in order: what it is, when it runs and what it
@@ -544,6 +548,13 @@ const PropositionWizard = ({
   const [bookingCreativeIds, setBookingCreativeIds] = React.useState<string[]>([]);
   // Booking setup
   const [bookingName, setBookingName] = React.useState('');
+  // Who the booking is for and what it sells — the booking form's Booking
+  // details, starting from the campaign's answers.
+  const [bkAdvertiser, setBkAdvertiser] = React.useState('');
+  const [bkBrands, setBkBrands] = React.useState<string[]>([]);
+  const [bkProducts, setBkProducts] = React.useState<string[]>([]);
+  // Auction: the booking's bid (CPC), as the booking form asks it.
+  const [bookingBid, setBookingBid] = React.useState('');
   const [bookingDateRange, setBookingDateRange] = React.useState<DateRange | undefined>(undefined);
   const [bookingStartTime, setBookingStartTime] = React.useState('00:00');
   const [bookingEndTime, setBookingEndTime] = React.useState('23:59');
@@ -554,6 +565,13 @@ const PropositionWizard = ({
    *  single-select: one media product per booking, everything in it included,
    *  trimmed in the modal). */
   const [selectedChannelIds, setSelectedChannelIds] = React.useState<string[]>([]);
+  // The chosen retail media product's price — the list price a goal is
+  // worth, or the floor a bid must clear.
+  const chosenProduct = db.mediaProducts.find((m) => m.id === selectedChannelIds[0]);
+  const goalPrice = React.useMemo(() => {
+    const product = chosenProduct ?? db.mediaProducts.find((m) => m.engine === propositionType && m.status === 'active' && (m.buyingModels ?? []).includes('guaranteed'));
+    return product ? priceFor(db, product) : undefined;
+  }, [db, propositionType, chosenProduct]);
   /** Weekday scheduling exists for the propositions that can switch by day. */
   const canScheduleDays = ['display', 'digital-instore', 'offsite'].includes(propositionType);
   // The booking's placement — real positions from the proposition's inventory,
@@ -604,6 +622,8 @@ const PropositionWizard = ({
         endDate: toIso(bookingDateRange?.to) ?? routeBooking.endDate,
         positionIds: bookingPositionIds.length > 0 ? bookingPositionIds : routeBooking.positionIds,
         ...(goalOf(bookingGoal) ? { goal: goalOf(bookingGoal) } : {}),
+        ...(selectedChannelIds[0] ? { mediaProductId: selectedChannelIds[0] } : {}),
+        ...(bidOf(bookingBid) !== undefined ? { bid: bidOf(bookingBid) } : {}),
       });
       linkCreatives(routeBooking.id, bookingCreativeIds);
       queueToast({ title: 'Booking approved', description: bookingName || routeBooking.name });
@@ -622,10 +642,11 @@ const PropositionWizard = ({
       deliveryBehavior: { ...deliveryBehavior }, objectivesEnabled, deliveryObjectives: { ...deliveryObjectives },
       goal: goalOf(bookingGoal),
       mediaProductId: selectedChannelIds[0],
+      bid: bidOf(bookingBid),
     }]);
     // Reset form for next booking
     setBookingSubStep(null);
-    setBookingName(''); setBookingBudget(''); setBookingDateRange(undefined); setBookingGoal(''); setGoalEnabled(false);
+    setBookingName(''); setBookingBudget(''); setBookingDateRange(undefined); setBookingGoal(''); setGoalEnabled(false); setBookingBid('');
     setBookingStartTime('00:00'); setBookingEndTime('23:59');
     setActiveDays(['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su']);
     setBookingPositionIds([]); setPositionBids({}); setSelectedChannelIds([]);
@@ -905,6 +926,7 @@ const PropositionWizard = ({
       creativeStatus: 'missing',
       goal: b.goal,
       mediaProductId: b.mediaProductId,
+      bid: b.bid,
     }));
     // The creatives each booking chose — on its own step or on the campaign's
     // creatives step — are linked now that the booking exists.
@@ -2053,13 +2075,22 @@ const PropositionWizard = ({
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-lg">Setup</CardTitle>
-                            <CardDescription>Name the booking</CardDescription>
+                            <CardDescription>Name the booking, and who it is for</CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-6">
                             <div className="space-y-2">
                               <Label>Booking name <span className="text-foreground">*</span></Label>
                               <Input value={bookingName} onChange={(e) => setBookingName(e.target.value)} placeholder="Enter booking name" />
                             </div>
+                            {/* The booking form's Booking details, in the same order. */}
+                            <AdvertiserBrandProducts
+                              advertiser={bkAdvertiser || selectedAdvertiser}
+                              onAdvertiserChange={setBkAdvertiser}
+                              brands={bkBrands}
+                              onBrandsChange={setBkBrands}
+                              products={bkProducts.length ? bkProducts : (routeCampaign?.retailProductIds ?? selectedRetailProducts)}
+                              onProductsChange={setBkProducts}
+                            />
                             <div className="flex justify-end gap-3 mt-4">
                               <Button variant="outline" onClick={() => setBookingSubStep(null)}>Back</Button>
                               <Button onClick={() => setBookingSubStep(1)}>Continue</Button>
@@ -2108,34 +2139,15 @@ const PropositionWizard = ({
                                   overrides={pacingOverrides}
                                   onOverridesChange={setPacingOverrides}
                                 />
-                              ) : undefined}
+                              ) : () => (
+                                <GuaranteedBudgetInput
+                                  value={bookingBudget}
+                                  onChange={setBookingBudget}
+                                  state={parseFloat(bookingBudget) > 0 ? 'indicative' : 'not-priced'}
+                                  campaignBudget={budgetAmount.trim() !== '' ? `€${Number(budgetAmount).toLocaleString()}` : undefined}
+                                />
+                              )}
                             />
-                            {sellsGoal && (() => {
-                              const metric = goalMetricFor(propositionType as EngineId);
-                              const n = parseInt(bookingGoal.replace(/[^\d]/g, ''), 10);
-                              const worth = goalPrice && Number.isFinite(n) && n > 0 ? amountFor(goalPrice.basis, goalPrice.price, { metric, amount: n }) : undefined;
-                              return (
-                                <ToggleSection
-                                  title="Delivery goal"
-                                  info="What the booking promises to deliver. Delivery is measured against it, and a booking that ends short is credited on its invoice."
-                                  offSummary="No goal — the booking delivers what its budget buys."
-                                  checked={goalEnabled}
-                                  onCheckedChange={setGoalEnabled}
-                                  bordered={false}
-                                >
-                                  <div className="space-y-1.5">
-                                    <label className="block text-sm font-medium">Goal*</label>
-                                    <div className="flex items-center gap-2">
-                                      <Input inputMode="numeric" value={bookingGoal} onChange={(e) => setBookingGoal(e.target.value)} placeholder={metric === 'impressions' ? 'e.g. 500,000' : 'e.g. 30'} className="w-48" />
-                                      <span className="text-sm text-muted-foreground">{metric}</span>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                      {worth !== undefined && goalPrice ? `Worth €${worth.toLocaleString('en-US', { minimumFractionDigits: 2 })} at the list price${bookingBudget ? ` — the budget is €${Number(bookingBudget).toLocaleString('en-US')}` : ''}.` : 'The list price tells what the goal is worth.'}
-                                    </p>
-                                  </div>
-                                </ToggleSection>
-                              );
-                            })()}
                             <div className="flex justify-end gap-3">
                               <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
                               <Button onClick={() => setBookingSubStep(2)}>Continue</Button>
@@ -2151,35 +2163,37 @@ const PropositionWizard = ({
                       {bookingSubStep === 2 && (
                         <Card>
                           <CardContent className="space-y-6 p-6">
-                            <FormSection title="Retail media product">
-                              <CreatePlacement
-                                mediaProducts={engineChannels.map((ch) => ({
-                                  value: ch.id,
-                                  label: ch.name,
-                                  description: `${ch.priceLine} · ${ch.positions.length} ad position${ch.positions.length === 1 ? '' : 's'}`,
-                                }))}
-                                positions={(engineChannels.find((c) => c.id === selectedChannelIds[0])?.positions ?? []).map((p) => ({
-                                  value: p.id,
-                                  label: p.name,
-                                  format: p.format,
-                                  description: `${p.dailyCapacity}/day`,
-                                }))}
-                                mediaProduct={selectedChannelIds}
-                                onMediaProductChange={(v) => {
-                                  setSelectedChannelIds(v);
-                                  setBookingPositionIds([]);
-                                  setPositionBids({});
+                            {/* The booking form's own blocks, bound to this draft. */}
+                            <RetailMediaProductPicker
+                              engine={propositionType as EngineId}
+                              type={sellsGoal ? 'guaranteed' : 'auction'}
+                              productId={selectedChannelIds[0]}
+                              onProductChange={(id, positionIds) => { setSelectedChannelIds(id ? [id] : []); setBookingPositionIds(positionIds); }}
+                              positionIds={bookingPositionIds}
+                              onPositionsChange={setBookingPositionIds}
+                              bordered={false}
+                            />
+                            {sellsGoal ? (
+                              <DeliveryGoalFields
+                                enabled={goalEnabled}
+                                onEnabledChange={(on) => {
+                                  setGoalEnabled(on);
+                                  const b = parseFloat(bookingBudget) || 0;
+                                  if (on && !bookingGoal && goalPrice && b > 0 && goalPrice.price > 0) {
+                                    const buys = goalPrice.basis === 'cpm' ? Math.floor(((b / goalPrice.price) * 1000) / 1000) * 1000 : Math.floor(b / goalPrice.price);
+                                    if (buys > 0) setBookingGoal(buys.toLocaleString('en-US'));
+                                  }
                                 }}
-                                positionsValue={bookingPositionIds}
-                                onPositionsChange={setBookingPositionIds}
-                                productLabel="Find retail media product"
-                                {...(isAuction ? {
-                                  bids: positionBids,
-                                  onBidChange: (id: string, v: string) => setPositionBids((prev) => ({ ...prev, [id]: v })),
-                                  suggestedBid,
-                                } : {})}
+                                value={bookingGoal}
+                                onChange={setBookingGoal}
+                                metric={goalMetricFor(propositionType as EngineId)}
+                                list={goalPrice ? { price: goalPrice.price, basis: goalPrice.basis } : undefined}
+                                budget={parseFloat(bookingBudget) || undefined}
+                                bordered={false}
                               />
-                            </FormSection>
+                            ) : (
+                              <BidField value={bookingBid} onChange={setBookingBid} floor={chosenProduct?.floorPrice} bordered={false} />
+                            )}
                             <div className="flex justify-end gap-3">
                               <Button variant="outline" onClick={() => setBookingSubStep(1)}>Back</Button>
                               <Button onClick={() => setBookingSubStep(3)}>Continue</Button>
@@ -2916,6 +2930,16 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
   // placements step; guaranteed campaigns show none. Booking mode inherits
   // the answer from the existing campaign.
   const [spBuyingType, setSpBuyingType] = React.useState<'auction' | 'guaranteed'>('auction');
+  // The booking form's blocks, bound to this draft: a guaranteed booking
+  // sells clicks at a price (retail media product + delivery goal); an
+  // auction booking bids per keyword and paces its budget.
+  const spGuaranteed = routeCampaign ? buyingTypeOfCampaign(spDb, routeCampaign) === 'guaranteed' : spBuyingType === 'guaranteed';
+  const [spProductId, setSpProductId] = React.useState<string | undefined>(undefined);
+  const [spPositionIds, setSpPositionIds] = React.useState<string[]>([]);
+  const [spGoalEnabled, setSpGoalEnabled] = React.useState(false);
+  const [spGoal, setSpGoal] = React.useState('');
+  const [spStartTime, setSpStartTime] = React.useState('00:00');
+  const [spEndTime, setSpEndTime] = React.useState('23:59');
   const spIsAuction = (routeCampaign?.buyingType ?? spBuyingType) !== 'guaranteed';
   const [selectedAdvertiser, setSelectedAdvertiser] = React.useState(resolvedAdvertiserValue);
   const [selectedMediaPlanV2, setSelectedMediaPlanV2] = React.useState(resolvedMediaPlanValue);
@@ -3214,6 +3238,10 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
       // SP "placements" are its products, keywords, categories and locations.
       positionIds: [...selectedProducts, ...keywords, ...selectedCategories, ...spaLocations],
       creativeStatus: 'approved',
+      mediaProductId: spProductId,
+      goal: spGuaranteed && spGoalEnabled && parseInt(spGoal.replace(/[^\d]/g, ''), 10) > 0
+        ? { metric: 'clicks', amount: parseInt(spGoal.replace(/[^\d]/g, ''), 10) }
+        : undefined,
     });
     queueToast(
       routeCampaign
@@ -3507,50 +3535,38 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
               {currentStepId === 'booking' && bookingSubStep === 1 && (
                 <Card>
                   <CardContent className="space-y-6 p-6">
-                  <FormSection title="Run time & budget">
-                    <div className="space-y-field">
-                      {/* One field, both ends picked in one calendar — a run
-                          time is a span, not two independent dates. */}
-                      <div className="space-y-1.5">
-                        <Label>Run time <span className="text-foreground">*</span></Label>
-                        <DateRangePicker
-                          dateRange={bookingStartDate ? { from: bookingStartDate, to: bookingEndDate } : undefined}
-                          onDateRangeChange={(range) => {
-                            setBookingStartDate(range?.from);
-                            setBookingEndDate(range?.to);
-                          }}
-                          placeholder="Select start and end date"
-                          showPresets
-                          showWeekNumbers
-                          events={retailMoments}
-                          presets={futureDateRangePresets}
-                        />
-                      </div>
+                  {/* The booking form's own Run time & budget block. */}
+                  <BookingBudgetRuntime
+                    bordered={false}
+                    budget={totalBudget}
+                    onBudgetChange={setTotalBudget}
+                    startDate={bookingStartDate}
+                    endDate={bookingEndDate}
+                    onStartDateChange={setBookingStartDate}
+                    onEndDateChange={setBookingEndDate}
+                    startTime={spStartTime}
+                    endTime={spEndTime}
+                    onStartTimeChange={setSpStartTime}
+                    onEndTimeChange={setSpEndTime}
+                    budgetExtra={
+                      <ToggleRow
+                        label="Email budget notifications"
+                        hint="Tells you when a booking caps out early or ends the flight with budget unspent."
+                        checked={sendBudgetNotification}
+                        onCheckedChange={setSendBudgetNotification}
+                      />
+                    }
+                    pacing={spGuaranteed ? () => (
+                      <GuaranteedBudgetInput
+                        value={totalBudget}
+                        onChange={setTotalBudget}
+                        state={parseFloat(totalBudget) > 0 ? 'indicative' : 'not-priced'}
+                      />
+                    ) : (budgetField) => (
                       <BudgetPacing
-                        // Sponsored products: auto even pacing or a hand-set
-                        // cap — no frontloaded for now.
+                        // Sponsored products: auto even pacing or a hand-set cap.
                         shapes={['even']}
-                        budgetField={
-                          <div className="space-y-1.5">
-                            <Label htmlFor="bk-total">Total budget <span className="text-foreground">*</span></Label>
-                            <Input
-                              id="bk-total"
-                              type="number"
-                              placeholder="10.00"
-                              value={totalBudget}
-                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTotalBudget(e.target.value)}
-                            />
-                            {/* The notification is a budget setting, so it
-                                sits right under the budget — a switch row,
-                                like every other switch on a booking form. */}
-                            <ToggleRow
-                              label="Email budget notifications"
-                              hint="Tells you when a booking caps out early or ends the flight with budget unspent."
-                              checked={sendBudgetNotification}
-                              onCheckedChange={setSendBudgetNotification}
-                            />
-                          </div>
-                        }
+                        budgetField={budgetField}
                         totalBudget={Number(totalBudget) || undefined}
                         startDate={bookingStartDate}
                         endDate={bookingEndDate}
@@ -3561,11 +3577,33 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
                         overrides={pacingOverrides}
                         onOverridesChange={setPacingOverrides}
                       />
-                      {/* No CPC field here — on auction campaigns each
-                          selected placement carries its own bid, on the next
-                          step's cards. */}
-                    </div>
-                  </FormSection>
+                    )}
+                  />
+                  <RetailMediaProductPicker
+                    engine="sponsored-products"
+                    type={spGuaranteed ? 'guaranteed' : 'auction'}
+                    productId={spProductId}
+                    onProductChange={(id, positionIds) => { setSpProductId(id); setSpPositionIds(positionIds); }}
+                    positionIds={spPositionIds}
+                    onPositionsChange={setSpPositionIds}
+                    bordered={false}
+                  />
+                  {spGuaranteed && (() => {
+                    const product = spDb.mediaProducts.find((m) => m.id === spProductId);
+                    const list = product ? priceFor(spDb, product) : undefined;
+                    return (
+                      <DeliveryGoalFields
+                        enabled={spGoalEnabled}
+                        onEnabledChange={setSpGoalEnabled}
+                        value={spGoal}
+                        onChange={setSpGoal}
+                        metric="clicks"
+                        list={list ? { price: list.price, basis: list.basis } : undefined}
+                        budget={parseFloat(totalBudget) || undefined}
+                        bordered={false}
+                      />
+                    );
+                  })()}
                   <div className="flex justify-end gap-3">
                     <Button variant="outline" onClick={() => setBookingSubStep(0)}>Back</Button>
                     <Button disabled={!isBookingComplete} onClick={() => setBookingSubStep(2)}>Continue</Button>

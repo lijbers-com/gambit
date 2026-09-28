@@ -40,6 +40,7 @@ import {
   type BookingPriceView,
   type DbData,
   type GoalMetric,
+  type PricingBasis,
   amountFor,
   buyingTypeOf,
   buyingTypeOfCampaign,
@@ -267,54 +268,46 @@ export const CampaignBookingsPricing: React.FC<{ campaign: Campaign; bookingHref
 };
 
 /**
- * An auction booking's buying terms: the most it pays per click, and how
- * its budget is spread over the flight. The floor is the product's lowest
- * accepted bid when it prices per click.
+ * An auction booking's bid: the most it pays per click, at least the retail
+ * media product's floor. Presentational — the booking page and the wizard
+ * each bind it. (Pacing lives in the budget block.)
  */
-export const AuctionBidPacing: React.FC<{ booking: Booking; withPacing?: boolean; className?: string }> = ({ booking, withPacing = true, className }) => {
-  const db = useDb();
-  const [bid, setBid] = React.useState(booking.bid !== undefined ? String(booking.bid) : '');
-  React.useEffect(() => { setBid(booking.bid !== undefined ? String(booking.bid) : ''); }, [booking.id, booking.bid]);
-  const [shape, setShape] = React.useState<PacingShape>('even');
-  const [dailyBudget, setDailyBudget] = React.useState('');
-  const [overrides, setOverrides] = React.useState<PacingOverride[]>([]);
-  const product = productForBooking(db, booking);
-  const floor = product?.floorPrice;
-  const commit = () => {
-    const n = parseFloat(bid.replace(',', '.'));
-    const next = Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : undefined;
-    if (next !== booking.bid) updateBooking(booking.id, { bid: next });
-  };
+export const BidField: React.FC<{ value: string; onChange: (value: string) => void; onCommit?: () => void; floor?: number; bordered?: boolean; className?: string }> = ({ value, onChange, onCommit, floor, bordered = true, className }) => {
+  const n = parseFloat(value.replace(',', '.'));
+  const under = floor !== undefined && Number.isFinite(n) && n > 0 && n < floor;
   return (
-    <FormSection bordered title={withPacing ? 'Bid & pacing' : 'Bid'} className={className}>
+    <FormSection bordered={bordered} title="Bid" className={className}>
       <div className="space-y-field">
         <p className="text-sm text-muted-foreground">Auction, like its campaign: the booking bids for every impression and pays per click.</p>
         <div>
           <label className="mb-2 block text-sm font-medium">Bid (CPC)*</label>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">€</span>
-            <Input inputMode="decimal" value={bid} onChange={(e) => setBid(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} placeholder="0.60" className="w-32" />
+            <Input inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} onBlur={onCommit} onKeyDown={(e) => { if (e.key === 'Enter') onCommit?.(); }} placeholder={floor !== undefined ? floor.toFixed(2) : '0.60'} className="w-32" />
             <span className="text-sm text-muted-foreground">per click</span>
           </div>
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            The most this booking pays for a click{floor !== undefined ? ` — at least ${formatEuro(floor)}, the floor` : ''}.
-          </p>
+          {under ? (
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-destructive"><AlertTriangle className="h-3.5 w-3.5" />Under the floor of {formatEuro(floor!)} — this product does not accept it.</p>
+          ) : (
+            <p className="mt-1.5 text-xs text-muted-foreground">The most this booking pays for a click{floor !== undefined ? ` — at least ${formatEuro(floor)}, the floor` : ''}.</p>
+          )}
         </div>
-        {withPacing && <BudgetPacing
-          totalBudget={booking.budget || undefined}
-          startDate={new Date(booking.startDate)}
-          endDate={new Date(booking.endDate)}
-          shape={shape}
-          onShapeChange={setShape}
-          shapes={['account', 'even', 'frontloaded', 'asap']}
-          dailyBudget={dailyBudget}
-          onDailyBudgetChange={setDailyBudget}
-          overrides={overrides}
-          onOverridesChange={setOverrides}
-        />}
       </div>
     </FormSection>
   );
+};
+
+/** The bid on the booking page, bound to the booking. */
+export const AuctionBidPacing: React.FC<{ booking: Booking; withPacing?: boolean; className?: string }> = ({ booking, className }) => {
+  const db = useDb();
+  const [bid, setBid] = React.useState(booking.bid !== undefined ? String(booking.bid) : '');
+  React.useEffect(() => { setBid(booking.bid !== undefined ? String(booking.bid) : ''); }, [booking.id, booking.bid]);
+  const commit = () => {
+    const n = parseFloat(bid.replace(',', '.'));
+    const next = Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : undefined;
+    if (next !== booking.bid) updateBooking(booking.id, { bid: next });
+  };
+  return <BidField value={bid} onChange={setBid} onCommit={commit} floor={productForBooking(db, booking)?.floorPrice} className={className} />;
 };
 
 /**
@@ -360,42 +353,69 @@ export const CampaignBuyingTypePicker: React.FC<{ campaign: Campaign }> = ({ cam
 // ── Budget and goal ─────────────────────────────────────────────────────
 
 /**
- * A guaranteed booking's budget, on the booking itself. The budget is its
- * price: indicative while it can change, quoted while a hold locks it, and
- * — once the booking is approved — the agreed, billable amount. The state
- * sits beside the label; what it means and what to do next beneath.
+ * The guaranteed budget field, as the booking form and the booking wizard
+ * both draw it: the budget with its price state beside the label and what
+ * that state means beneath. Presentational — the page binds it to the
+ * stored booking, the wizard to its draft.
  */
+export const GuaranteedBudgetInput: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  onCommit?: () => void;
+  state: BookingPriceState;
+  lockedAt?: string;
+  expiresAt?: string;
+  /** "€9.01 CPM for 333k impressions · list €9 CPM." */
+  unitLine?: string;
+  campaignBudget?: string;
+}> = ({ value, onChange, onCommit, state, lockedAt, expiresAt, unitLine, campaignBudget }) => {
+  const locked = state === 'agreed';
+  return (
+    <div>
+      <div className="mb-2 flex items-center gap-2">
+        <label className="text-sm font-medium">Booking budget*</label>
+        {state !== 'not-priced' && (
+          <Badge variant={PRICE_STATE_VARIANT[state]} className="gap-1">{locked && <Lock className="h-3 w-3" />}{PRICE_STATE_LABEL[state].label}</Badge>
+        )}
+      </div>
+      <Input inputMode="decimal" value={value} disabled={locked} placeholder="Enter budget" onChange={(e) => onChange(e.target.value)} onBlur={onCommit} onKeyDown={(e) => { if (e.key === 'Enter') onCommit?.(); }} className="w-full" />
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        {state === 'agreed' && lockedAt ? `Agreed on ${fmtDate(lockedAt)} — the billable amount, excl. VAT, invoiced afterwards.`
+          : state === 'quoted' && expiresAt ? `Quoted, held until ${fmtDate(expiresAt)}. Approval makes it the billable amount.`
+          : state === 'indicative' ? 'Indicative until the booking is submitted — the system then checks availability and holds the inventory.'
+          : campaignBudget ? `Campaign budget: ${campaignBudget}` : 'Set a budget to price the booking.'}
+        {unitLine ? ` ${unitLine}` : ''}
+      </p>
+    </div>
+  );
+};
+
+/** The guaranteed budget field on the booking page, bound to the booking. */
 export const GuaranteedBudgetField: React.FC<{ booking: Booking; campaignBudget?: string }> = ({ booking, campaignBudget }) => {
   const db = useDb();
   const view = bookingPrice(db, booking);
   const list = listPriceFor(db, booking);
-  const locked = view.state === 'agreed';
   const [value, setValue] = React.useState(booking.budget ? String(booking.budget) : '');
   React.useEffect(() => { setValue(booking.budget ? String(booking.budget) : ''); }, [booking.id, booking.budget]);
   const commit = () => {
     const n = parseFloat(value.replace(/[^\d.]/g, ''));
     if (Number.isFinite(n) && n >= 0 && n !== booking.budget) setBookingBudget(booking.id, n);
   };
+  const unitLine = [
+    booking.goal && view.unitPrice && view.basis ? `${formatUnitPrice(view.unitPrice, view.basis)} for ${formatGoal(booking.goal)}` : '',
+    list && booking.goal ? `· list ${formatUnitPrice(list.price, list.basis)}.` : '',
+  ].filter(Boolean).join(' ');
   return (
-    <div>
-      <div className="mb-2 flex items-center gap-2">
-        <label className="text-sm font-medium">Booking budget*</label>
-        {view.state !== 'not-priced' && (
-          <Badge variant={PRICE_STATE_VARIANT[view.state]} className="gap-1">{locked && <Lock className="h-3 w-3" />}{PRICE_STATE_LABEL[view.state].label}</Badge>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <Input inputMode="decimal" value={value} disabled={locked} placeholder="Enter budget" onChange={(e) => setValue(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} className="w-full" />
-      </div>
-      <p className="mt-1.5 text-xs text-muted-foreground">
-        {view.state === 'agreed' && view.lockedAt ? `Agreed on ${fmtDate(view.lockedAt)} — the billable amount, excl. VAT, invoiced afterwards.`
-          : view.state === 'quoted' && view.expiresAt ? `Quoted, held until ${fmtDate(view.expiresAt)}. Approval makes it the billable amount.`
-          : view.state === 'indicative' ? 'Indicative until the booking is submitted — the system then checks availability and holds the inventory.'
-          : campaignBudget ? `Campaign budget: ${campaignBudget}` : 'Set a budget to price the booking.'}
-        {booking.goal && view.unitPrice && view.basis ? ` ${formatUnitPrice(view.unitPrice, view.basis)} for ${formatGoal(booking.goal)}` : ''}
-        {list && booking.goal ? ` · list ${formatUnitPrice(list.price, list.basis)}.` : ''}
-      </p>
-    </div>
+    <GuaranteedBudgetInput
+      value={value}
+      onChange={setValue}
+      onCommit={commit}
+      state={view.state}
+      lockedAt={view.lockedAt}
+      expiresAt={view.expiresAt}
+      unitLine={unitLine || undefined}
+      campaignBudget={campaignBudget}
+    />
   );
 };
 
@@ -404,15 +424,62 @@ export const GuaranteedBudgetField: React.FC<{ booking: Booking; campaignBudget?
  * delivery objectives. On, the booking promises an amount of impressions
  * (stores, clicks) and is measured against it; off, it delivers what its
  * budget buys. The list price says what the goal is worth next to the
- * budget, so a negotiated deal reads as one.
+ * budget, so a negotiated deal reads as one. Presentational: the booking
+ * page and the wizard each bind it.
  */
+export const DeliveryGoalFields: React.FC<{
+  enabled: boolean;
+  onEnabledChange: (on: boolean) => void;
+  value: string;
+  onChange: (value: string) => void;
+  onCommit?: () => void;
+  metric: GoalMetric;
+  list?: { price: number; basis: PricingBasis };
+  budget?: number;
+  locked?: boolean;
+  issue?: AvailabilityCheckItem;
+  bordered?: boolean;
+  className?: string;
+}> = ({ enabled, onEnabledChange, value, onChange, onCommit, metric, list, budget, locked, issue, bordered = true, className }) => {
+  const label = GOAL_LABEL[metric];
+  const affordable = list && budget && budget > 0 && list.price > 0
+    ? (list.basis === 'cpm' ? Math.floor(((budget / list.price) * 1000) / 1000) * 1000 : Math.floor(budget / list.price))
+    : undefined;
+  const amount = parseInt(value.replace(/[^\d]/g, ''), 10);
+  const worth = list && Number.isFinite(amount) && amount > 0 ? amountFor(list.basis, list.price, { metric, amount }) : undefined;
+  return (
+    <ToggleSection
+      title="Delivery goal"
+      info={`The ${label.many} this booking promises to deliver. Delivery is measured against it, and a booking that ends short is credited on its invoice.`}
+      offSummary={`No goal — the booking delivers what its budget buys${affordable ? `, about ${compactNumber(affordable)} ${label.many} at the list price` : ''}.`}
+      checked={enabled}
+      onCheckedChange={(on) => { if (!locked) onEnabledChange(on); }}
+      bordered={bordered}
+      className={className}
+    >
+      <div className="space-y-1.5">
+        <label className="block text-sm font-medium">Goal*</label>
+        <div className="flex items-center gap-2">
+          <Input inputMode="numeric" value={value} disabled={locked} onChange={(e) => onChange(e.target.value)} onBlur={onCommit} onKeyDown={(e) => { if (e.key === 'Enter') onCommit?.(); }} placeholder={metric === 'impressions' ? 'e.g. 500,000' : 'e.g. 30'} className="w-48" />
+          <span className="text-sm text-muted-foreground">{label.many}</span>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {locked ? 'Part of the agreed deal — it cannot change after approval.'
+            : worth !== undefined && list ? `Worth ${formatEuro(worth)} at the list price of ${formatUnitPrice(list.price, list.basis)}${budget ? ` — the budget is ${formatEuro(budget)}` : ''}.`
+            : list ? `At the list price of ${formatUnitPrice(list.price, list.basis)}.` : 'Pick a retail media product to see what the goal is worth.'}
+        </p>
+        <FieldIssue item={issue} />
+      </div>
+    </ToggleSection>
+  );
+};
+
+/** The delivery goal on the booking page, bound to the booking. */
 export const BookingGoalSetting: React.FC<{ booking: Booking; className?: string }> = ({ booking, className }) => {
   const db = useDb();
   const campaign = db.campaigns.find((c) => c.id === booking.campaignId);
   const metric = campaign ? goalMetricFor(campaign.engine) : 'impressions';
-  const label = GOAL_LABEL[metric];
   const list = listPriceFor(db, booking);
-  const locked = booking.price?.state === 'agreed';
   const issue = useAvailabilityIssue(booking)('goal');
   const [enabled, setEnabled] = React.useState(!!booking.goal);
   const [value, setValue] = React.useState(booking.goal?.amount ? booking.goal.amount.toLocaleString('en-US') : '');
@@ -420,44 +487,31 @@ export const BookingGoalSetting: React.FC<{ booking: Booking; className?: string
     setEnabled(!!booking.goal);
     setValue(booking.goal?.amount ? booking.goal.amount.toLocaleString('en-US') : '');
   }, [booking.id, booking.goal?.amount]);
-  // What the budget buys at the list price — the goal a fresh switch offers.
-  const affordable = list && booking.budget > 0 && list.price > 0
-    ? (list.basis === 'cpm' ? Math.floor(((booking.budget / list.price) * 1000) / 1000) * 1000 : Math.floor(booking.budget / list.price))
-    : undefined;
-  const amount = parseInt(value.replace(/[^\d]/g, ''), 10);
-  const worth = list && Number.isFinite(amount) && amount > 0 ? amountFor(list.basis, list.price, { metric, amount }) : undefined;
   const commit = () => {
-    if (!Number.isFinite(amount) || amount <= 0) return;
-    if (amount !== booking.goal?.amount) setBookingGoal(booking.id, { metric, amount });
+    const n = parseInt(value.replace(/[^\d]/g, ''), 10);
+    if (Number.isFinite(n) && n > 0 && n !== booking.goal?.amount) setBookingGoal(booking.id, { metric, amount: n });
   };
   return (
-    <ToggleSection
-      title="Delivery goal"
-      info={`The ${label.many} this booking promises to deliver. Delivery is measured against it, and a booking that ends short is credited on its invoice.`}
-      offSummary={`No goal — the booking delivers what its budget buys${affordable ? `, about ${compactNumber(affordable)} ${label.many} at the list price` : ''}.`}
-      checked={enabled}
-      onCheckedChange={(on) => {
-        if (locked) return;
+    <DeliveryGoalFields
+      enabled={enabled}
+      onEnabledChange={(on) => {
         setEnabled(on);
-        if (!on) setBookingGoal(booking.id, undefined);
-        else if (!booking.goal && affordable) { setValue(affordable.toLocaleString('en-US')); setBookingGoal(booking.id, { metric, amount: affordable }); }
+        if (!on) { setBookingGoal(booking.id, undefined); return; }
+        if (!booking.goal && list && booking.budget > 0 && list.price > 0) {
+          const buys = list.basis === 'cpm' ? Math.floor(((booking.budget / list.price) * 1000) / 1000) * 1000 : Math.floor(booking.budget / list.price);
+          if (buys > 0) { setValue(buys.toLocaleString('en-US')); setBookingGoal(booking.id, { metric, amount: buys }); }
+        }
       }}
+      value={value}
+      onChange={setValue}
+      onCommit={commit}
+      metric={metric}
+      list={list ? { price: list.price, basis: list.basis } : undefined}
+      budget={booking.budget}
+      locked={booking.price?.state === 'agreed'}
+      issue={issue}
       className={className}
-    >
-      <div className="space-y-1.5">
-        <label className="block text-sm font-medium">Goal*</label>
-        <div className="flex items-center gap-2">
-          <Input inputMode="numeric" value={value} disabled={locked} onChange={(e) => setValue(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} placeholder={metric === 'impressions' ? 'e.g. 500,000' : 'e.g. 30'} className="w-48" />
-          <span className="text-sm text-muted-foreground">{label.many}</span>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {locked ? 'Part of the agreed deal — it cannot change after approval.'
-            : worth !== undefined && list ? `Worth ${formatEuro(worth)} at the list price of ${formatUnitPrice(list.price, list.basis)}${booking.budget ? ` — the budget is ${formatEuro(booking.budget)}` : ''}.`
-            : 'Pick a retail media product to see what the goal is worth.'}
-        </p>
-        <FieldIssue item={issue} />
-      </div>
-    </ToggleSection>
+    />
   );
 };
 

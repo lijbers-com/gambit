@@ -670,6 +670,19 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // A card without a plan in the database keeps showing it.
     const cardPlanStatus = internalCampaignId ? db.mediaPlans.find((p) => p.id === internalCampaignId)?.status : undefined;
     const showsSpend = cardPlanStatus ? cardPlanStatus === 'running' || cardPlanStatus === 'paused' : true;
+    // The same figures the bar draws, stated as text in the detail row —
+    // the bar stays a plain strip; the numbers belong beside "Run time",
+    // not riding on top of the segments.
+    const collapsedSpent = collapsedBudgetData.reduce((s, d) => s + Math.min(d.spent, d.budget), 0);
+    const collapsedOpenBudget = Math.max(planTotalBudget - collapsedTotalBudget, 0);
+    const fmtEuro = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n).toLocaleString()}`);
+    const budgetLine = !hasBudget
+      ? 'No budget set'
+      : [
+          showsSpend ? `${fmtEuro(collapsedSpent)} spent` : undefined,
+          `${fmtEuro(collapsedTotalBudget)} allocated`,
+          collapsedOpenBudget > 0 ? `${fmtEuro(collapsedOpenBudget)} open` : undefined,
+        ].filter(Boolean).join(' · ');
 
     // Recommendations shown in the media-plan card. Extracted so both the
     // saved-plan layout and the guided-create sidebar render the same list.
@@ -739,9 +752,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // cards show it above the bar; collapsed cards show it below the bar.
     const detailsRow = (
       <div className="flex flex-nowrap items-center gap-x-5 text-sm overflow-hidden">
-        {/* No budget item: collapsed cards carry the figures on the bar
-            itself, and the open card states them on the "Media plan" row of
-            the detail bar. */}
+        <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Budget:</span>
+          <span className="font-medium text-foreground">{budgetLine}</span>
+        </span>
         <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground">Run time:</span>
@@ -1026,7 +1041,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
             hasBudget && collapsedBudgetData.length > 0 ? (
               isCollapsed ? (
                 <div className="pt-1">
-                  <BudgetStackedMini budgetData={collapsedBudgetData} total={planTotalBudget} labelled showSpend={showsSpend} />
+                  <BudgetStackedMini budgetData={collapsedBudgetData} total={planTotalBudget} showSpend={showsSpend} />
                 </div>
               ) : (
                 <div className="pt-1" onClick={(e) => e.stopPropagation()}>
@@ -1037,7 +1052,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
               // A plan with no budget still gets the empty track, so every card
               // in a list is the same height whatever state it is in.
               <div className="pt-1">
-                <BudgetStackedMini budgetData={[]} labelled emptyLabel="No budget set" />
+                <BudgetStackedMini budgetData={[]} />
               </div>
             )
           )}

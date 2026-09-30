@@ -25,6 +25,7 @@ import { DateRangePicker, futureDateRangePresets } from '@/components/ui/date-pi
 import { retailMoments } from '@/lib/retail-moments';
 import { planForecast, fmtForecastRange } from '@/lib/forecast';
 import { funnelKpis, kpiEstimates, stageForGoal, stageEstimateKpis } from '@/lib/funnel';
+import { objectiveId, findObjective } from '@/components/ui/objective-kpi-select';
 import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
 import { propositionColor } from '@/lib/proposition-colors';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
@@ -135,12 +136,15 @@ const goals = [
 
 // Objectives per goal, following the funnel → objective framework. The chosen
 // objective drives the KPIs the plan is judged on. Purchase and Loyalty are
-// Conversion-stage goals.
+// Conversion-stage goals. The objective names are the catalog's own
+// (src/components/ui/objective-kpi-select.tsx) — the same names a media
+// plan's objective is stored and read back by, so a plan created here reads
+// identically on its own detail page.
 const goalObjectives: Record<string, { stage: string; objectives: string[] }> = {
-  awareness: { stage: 'Awareness', objectives: ['Brand awareness', 'Product awareness', 'Brand associations'] },
-  consideration: { stage: 'Consideration', objectives: ['Brand/product consideration', 'Brand associations', 'New customers', 'Brand preference', 'Purchase intent'] },
-  purchase: { stage: 'Conversion', objectives: ['Sales', 'Promotion support'] },
-  loyalty: { stage: 'Conversion', objectives: ['Sales', 'Promotion support'] },
+  awareness: { stage: 'Awareness', objectives: ['Grow brand awareness', 'Grow product awareness', 'Strengthen brand associations'] },
+  consideration: { stage: 'Consideration', objectives: ['Grow brand consideration', 'Strengthen brand associations', 'Attract new customers', 'Grow brand preference', 'Grow purchase intent'] },
+  purchase: { stage: 'Conversion', objectives: ['Generate sales without promotion', 'Support a promotion'] },
+  loyalty: { stage: 'Conversion', objectives: ['Generate sales without promotion', 'Support a promotion'] },
 };
 
 // Demo estimates for the headline KPIs we surface in the metric row as the
@@ -205,6 +209,17 @@ const kpiPoolFor = (goalId: string, objective: string | null): string[] => {
   return brand.length > 0 ? brand : (goalKpis[goalId] ?? []);
 };
 
+/**
+ * The composite id a chosen (goal, objective) resolves to in the objective
+ * catalog — what a media plan's `objective` field is stored as, so a plan
+ * made here and read back on its own detail page always agree on what its
+ * objective is.
+ */
+const canonicalObjectiveId = (goalId: string | null, objective: string | null): string | undefined => {
+  const stage = goalId ? goalObjectives[goalId]?.stage : undefined;
+  return stage && objective ? objectiveId(stage, objective) : undefined;
+};
+
 // Brand-lift "studies" a user can commission per objective. The available
 // studies follow the funnel → brand KPI framework — they are the brand KPIs of
 // the selected objective's stage (funnelKpis[stage].brand). A study is included
@@ -219,12 +234,12 @@ const kpiPoolFor = (goalId: string, objective: string | null): string[] => {
  * brand-lift KPI — their sales and media KPIs are tracked automatically.
  */
 const objectiveBrandKpis: Record<string, string[]> = {
-  'Brand awareness': ['Top-of-mind awareness', 'Unaided brand/product awareness', 'Aided brand/product awareness', 'Ad recall'],
-  'Product awareness': ['Top-of-mind awareness', 'Unaided brand/product awareness', 'Aided brand/product awareness', 'Ad recall'],
-  'Brand associations': ['Brand associations & values', 'Category entry points'],
-  'Brand/product consideration': ['Brand/product consideration'],
-  'Brand preference': ['Brand preference'],
-  'Purchase intent': ['Purchase intent'],
+  'Grow brand awareness': ['Top-of-mind awareness', 'Unaided brand/product awareness', 'Aided brand/product awareness', 'Ad recall'],
+  'Grow product awareness': ['Top-of-mind awareness', 'Unaided brand/product awareness', 'Aided brand/product awareness', 'Ad recall'],
+  'Strengthen brand associations': ['Brand associations & values', 'Category entry points'],
+  'Grow brand consideration': ['Brand/product consideration'],
+  'Grow brand preference': ['Brand preference'],
+  'Grow purchase intent': ['Purchase intent'],
 };
 
 const studyPricing: Record<string, { fee: number; freeThreshold: number }> = {
@@ -760,7 +775,7 @@ export const GoalSelection: Story = {
             status: 'draft',
             autoBudget,
             goal: selectedGoal ?? undefined,
-            objective: selectedObjective ?? undefined,
+            objective: canonicalObjectiveId(selectedGoal, selectedObjective),
             kpis: selectedKpis,
             budget,
             startDate: iso(start),
@@ -777,7 +792,7 @@ export const GoalSelection: Story = {
         status: 'draft',
         autoBudget,
         goal: selectedGoal ?? undefined,
-        objective: selectedObjective ?? undefined,
+        objective: canonicalObjectiveId(selectedGoal, selectedObjective),
         kpis: selectedKpis,
         budget,
         startDate: iso(start),
@@ -885,7 +900,7 @@ export const GoalSelection: Story = {
         brandIds,
         autoBudget,
         goal: selectedGoal ?? undefined,
-        objective: selectedObjective ?? undefined,
+        objective: canonicalObjectiveId(selectedGoal, selectedObjective),
         kpis: selectedKpis,
         budget: parseFloat(budgetAmount) || 0,
         startDate: iso(start),
@@ -926,7 +941,7 @@ export const GoalSelection: Story = {
         setDateRange({ from: new Date(plan.startDate), to: new Date(plan.endDate) });
       }
       if (plan.goal) setSelectedGoal(plan.goal);
-      if (plan.objective) setSelectedObjective(plan.objective);
+      if (plan.objective) setSelectedObjective(findObjective(plan.objective)?.objective.name ?? plan.objective);
       if (plan.kpis.length) setSelectedKpis(plan.kpis);
       setCurrentStep(plan.wizardStep ?? 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps

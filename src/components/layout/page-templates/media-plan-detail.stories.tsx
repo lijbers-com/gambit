@@ -72,7 +72,8 @@ import {
   RightDrawerDescription,
   RightDrawerBody,
 } from '@/components/ui/right-drawer';
-import { describeObjective, describeKpi, goalLabel, objectiveLabel, kpiLabel } from '@/lib/objective-kpi-copy';
+import { describeObjective, describeKpi, goalLabel, objectiveLabel } from '@/lib/objective-kpi-copy';
+import { findObjective } from '@/components/ui/objective-kpi-select';
 import { propositionColor, propositionLabel } from '@/lib/proposition-colors';
 
 const meta: Meta<typeof AppLayout> = {
@@ -98,18 +99,6 @@ const goals = [
   { id: 'purchase', kpis: ['Incremental ROAS', 'Conversion rate', 'Sales lift'], icon: <ShoppingCart size={24} />, title: 'Purchase', description: 'Drive sales and conversions on your website, in your app or in physical stores' },
   { id: 'loyalty', kpis: ['Repeat purchases', 'Incremental ROAS', 'Sales lift'], icon: <Heart size={24} />, title: 'Loyalty', description: 'Strengthen existing customer relationships and drive repeat purchases' },
 ];
-// Each option carries a one-liner so the selected card explains what the
-// objective/KPI stands for (shared copy: src/lib/objective-kpi-copy.ts).
-const objectiveOptions = ['merkbekendheid', 'productbekendheid', 'merk-associaties'].map((id) => ({
-  label: objectiveLabel(id),
-  value: id,
-  description: describeObjective(id),
-}));
-const kpiFilterOptions = ['toma', 'spontaan', 'adrecall', 'cep'].map((id) => ({
-  label: kpiLabel(id),
-  value: id,
-  description: describeKpi(id),
-}));
 const statusOptions = [
   { label: 'Draft', value: 'draft' },
   { label: 'In review', value: 'in-option' },
@@ -512,9 +501,15 @@ export const MediaPlanDetail: Story = {
     });
 
     // The stored ids are keys, not copy — always render them through the
-    // vocabulary so the table reads "Awareness / Brand awareness".
+    // vocabulary so the table reads "Awareness / Grow brand awareness". A
+    // plan's objective is the catalog's own composite id (funnel__name);
+    // legacy plans that still carry the old short Dutch-framework id fall
+    // back to the copy dictionary so nothing renders a raw key.
+    const objectiveDisplayName = plan?.objective
+      ? (findObjective(plan.objective)?.objective.name ?? objectiveLabel(plan.objective))
+      : undefined;
     const objectiveKpiLabel =
-      [plan?.goal && goalLabel(plan.goal), plan?.objective && objectiveLabel(plan.objective)]
+      [plan?.goal && goalLabel(plan.goal), objectiveDisplayName]
         .filter(Boolean)
         .join(' / ') || '—';
 
@@ -1279,6 +1274,13 @@ export const MediaPlanDetail: Story = {
                             }
                             const stage = stageForGoal[g.id];
                             const k = stage ? funnelKpis[stage] : undefined;
+                            // The objective is the catalog's own composite id
+                            // (funnel__name) — resolving it here gives the
+                            // objective's own KPI list, so the multiselect
+                            // always offers exactly what that objective is
+                            // judged on, not a fixed Awareness-only stub.
+                            const resolvedObjective = findObjective(objective);
+                            const objectiveName = resolvedObjective?.objective.name ?? objective;
                             return (
                               <GoalSelect
                                 goals={[{
@@ -1296,13 +1298,13 @@ export const MediaPlanDetail: Story = {
                                   <>
                                     <ReadOnlyField
                                       label="Objective"
-                                      value={objectiveOptions.find((o) => o.value === objective)?.label}
-                                      hint={objective ? describeObjective(objective) : 'Set when the media plan was created'}
+                                      value={resolvedObjective?.objective.name}
+                                      hint={objective ? describeObjective(objectiveName) : 'Set when the media plan was created'}
                                     />
                                     <SearchSelectList
                                       label="KPIs"
                                       placeholder="Search KPIs…"
-                                      options={kpiFilterOptions}
+                                      options={(resolvedObjective?.objective.kpis ?? []).map((name) => ({ value: name, label: name, description: describeKpi(name) }))}
                                       value={kpis}
                                       onChange={(vals) => { setKpis(vals); setKpiStudies((s) => s.filter((v) => vals.includes(v))); }}
                                       renderSelectedExtra={(opt) => (

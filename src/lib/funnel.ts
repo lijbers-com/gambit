@@ -16,12 +16,12 @@ export const funnelKpis: Record<string, { brand: string[]; media: string[]; sale
   Consideration: {
     brand: ['Brand/product consideration', 'Brand associations & values', 'Brand preference', 'Purchase intent'],
     media: ['Reach', 'Unique reach', 'Frequency', 'Average time on page', 'Scroll depth', 'Video completion rate', 'Click-through rate', 'CPM', 'Share of voice (category)', 'Post engagement rate', 'Conversion rate'],
-    sales: ['Sales lift', 'Trial (new to product)', 'New to brand', 'New to category', 'Purchase frequency', 'Recipe saved to favourites (Allerhande only)'],
+    sales: ['Sales lift', 'New to brand', 'New to category', 'Purchase frequency'],
   },
   Conversion: {
     brand: [],
     media: ['Reach', 'Unique reach', 'Frequency', 'Average time on page', 'Scroll depth', 'Video completion rate', 'Click-through rate', 'CPM', 'Share of voice (category)', 'Post engagement rate', 'Conversion rate'],
-    sales: ['Sales lift', 'Incremental ROAS', 'Sales online', 'Sales offline', 'New to brand', 'New to category', 'Sales driver: existing customers', 'Sales per customer', 'CLV', 'Redemption (loyalty product only)', 'Basket size (SIS only)', 'Share of basket (SIS only)', 'Trial (new to product)', 'Repeat', 'Purchase frequency', 'Win-back customers'],
+    sales: ['Sales lift', 'Incremental ROAS', 'Sales online', 'Sales offline', 'New to brand', 'New to category'],
   },
 };
 

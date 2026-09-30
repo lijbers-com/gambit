@@ -21,7 +21,6 @@ export interface GoalSelectOption {
   icon: React.ReactNode;
   title: string;
   description: string;
-  brandKpis: string[];
   mediaKpis: string[];
   salesKpis: string[];
 }
@@ -39,12 +38,14 @@ const Column: React.FC<{ title: string; empty?: string; children: React.ReactNod
       <span className="text-xs font-semibold text-foreground">{title}</span>
       {count !== undefined && count > 0 && <span className="text-xs text-muted-foreground/70">{count}</span>}
     </div>
-    <div className="space-y-1">{children}</div>
+    <div className="grid grid-cols-2 gap-x-4 gap-y-1">{children}</div>
   </div>
 );
 
+/** Two columns rather than one long list — a 10-KPI family is 5 rows tall
+ *  instead of 10, which is what keeps the open card from towering. */
 const KpiList: React.FC<{ items: string[]; empty: string }> = ({ items, empty }) => {
-  if (items.length === 0) return <p className="text-xs italic text-muted-foreground/70">{empty}</p>;
+  if (items.length === 0) return <p className="col-span-2 text-xs italic text-muted-foreground/70">{empty}</p>;
   return (
     <>
       {items.map((k) => (
@@ -88,10 +89,7 @@ export const GoalSelect: React.FC<{
               <>
                 {/* What the goal is judged on — the whole framework, in the
                     three families it is written in. */}
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <Column title="Brand KPIs" count={goal.brandKpis.length}>
-                    <KpiList items={goal.brandKpis} empty="None at this stage" />
-                  </Column>
+                <div className="grid gap-4 sm:grid-cols-2">
                   <Column title="Media KPIs" count={goal.mediaKpis.length}>
                     <KpiList items={goal.mediaKpis} empty="None at this stage" />
                   </Column>

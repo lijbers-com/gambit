@@ -1288,7 +1288,6 @@ export const MediaPlanDetail: Story = {
                                   icon: g.icon,
                                   title: g.title,
                                   description: g.description,
-                                  brandKpis: k?.brand ?? [],
                                   mediaKpis: k?.media ?? [],
                                   salesKpis: k?.sales ?? [],
                                 }]}

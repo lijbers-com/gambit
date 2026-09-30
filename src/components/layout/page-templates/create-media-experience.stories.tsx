@@ -1170,7 +1170,6 @@ export const GoalSelection: Story = {
                               icon: goal.icon,
                               title: goal.title,
                               description: goal.description,
-                              brandKpis: k?.brand ?? [],
                               mediaKpis: k?.media ?? [],
                               salesKpis: k?.sales ?? [],
                             };

@@ -205,10 +205,10 @@ const StatefulDateRange: React.FC = () => {
 };
 
 const goalOptions = [
-  { id: 'awareness', icon: <Eye />, title: 'Awareness', description: 'Reach a broad audience and make them aware of your brand, product or service', brandKpis: ['Top-of-mind awareness', 'Ad recall'], mediaKpis: ['Reach', 'Frequency', 'CPM'], salesKpis: [] },
-  { id: 'consideration', icon: <Brain />, title: 'Consideration', description: 'Encourage people to think about your brand and seek out more information', brandKpis: ['Brand preference', 'Purchase intent'], mediaKpis: ['CTR', 'Video completion rate'], salesKpis: ['Trial (new to product)'] },
-  { id: 'purchase', icon: <ShoppingCart />, title: 'Purchase', description: 'Drive sales and conversions on your website, in your app or in physical stores', brandKpis: [], mediaKpis: ['Conversion rate', 'CTR'], salesKpis: ['Incremental ROAS', 'Sales lift', 'New to brand'] },
-  { id: 'loyalty', icon: <Heart />, title: 'Loyalty', description: 'Strengthen existing customer relationships and drive repeat purchases', brandKpis: [], mediaKpis: ['Frequency'], salesKpis: ['Repeat', 'Purchase frequency', 'CLV'] },
+  { id: 'awareness', icon: <Eye />, title: 'Awareness', description: 'Reach a broad audience and make them aware of your brand, product or service', mediaKpis: ['Reach', 'Frequency', 'CPM'], salesKpis: [] },
+  { id: 'consideration', icon: <Brain />, title: 'Consideration', description: 'Encourage people to think about your brand and seek out more information', mediaKpis: ['CTR', 'Video completion rate'], salesKpis: ['Trial (new to product)'] },
+  { id: 'purchase', icon: <ShoppingCart />, title: 'Purchase', description: 'Drive sales and conversions on your website, in your app or in physical stores', mediaKpis: ['Conversion rate', 'CTR'], salesKpis: ['Incremental ROAS', 'Sales lift', 'New to brand'] },
+  { id: 'loyalty', icon: <Heart />, title: 'Loyalty', description: 'Strengthen existing customer relationships and drive repeat purchases', mediaKpis: ['Frequency'], salesKpis: ['Repeat', 'Purchase frequency', 'CLV'] },
 ];
 
 const StatefulGoalSelect: React.FC = () => {

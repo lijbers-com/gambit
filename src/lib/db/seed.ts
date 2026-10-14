@@ -1,6 +1,6 @@
 import { productImages } from '@/lib/product-images';
 import type { Booking, DbData, Invoice } from './types';
-import { buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
+import { bookingListPrice, buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
 import { prototypeNow } from '../clock';
 
 /**
@@ -14,7 +14,7 @@ import { prototypeNow } from '../clock';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 42;
+export const SEED_VERSION = 43;
 
 const now = prototypeNow().toISOString();
 
@@ -279,37 +279,37 @@ const baseSeed: DbData = {
     // Holiday Sale (live; one creative awaiting approval)
     { id: 'B-005', campaignId: 'C-004', name: 'Homepage Takeover',          status: 'running',   budget: 2500, spend: 2100, startDate: '2026-06-01', endDate: '2026-07-15', positionIds: ['pos-dsp-home-top'], creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-006', campaignId: 'C-004', name: 'Category Banner — Drinks',   status: 'running',   budget: 2500, spend: 1700, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-dsp-cat-top'],  creativeStatus: 'approved',  createdAt: now, updatedAt: now },
-    { id: 'B-007', campaignId: 'C-005', name: 'Keywords — cola zero',       status: 'running',   budget: 2000, spend: 1900, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-sp-search'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
-    { id: 'B-008', campaignId: 'C-005', name: 'Keywords — beer & bbq',      status: 'running',   budget: 2000, spend: 1700, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-sp-search'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
+    { id: 'B-007', campaignId: 'C-005', name: 'Keywords — cola zero',       status: 'running',   budget: 2000, spend: 1900, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
+    { id: 'B-008', campaignId: 'C-005', name: 'Keywords — beer & bbq',      status: 'running',   budget: 2000, spend: 1700, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-009', campaignId: 'C-006', name: 'Entrance Screens',           status: 'in-option', budget: 3000, spend: 1200, startDate: '2026-06-08', endDate: '2026-08-15', positionIds: ['pos-dis-entrance'], creativeStatus: 'submitted', createdAt: now, updatedAt: now },
     { id: 'B-010', campaignId: 'C-007', name: 'Open Web Display',           status: 'in-option', budget: 3000, spend: 600,  startDate: '2026-06-08', endDate: '2026-08-15', positionIds: ['pos-off-web-standard'],  creativeStatus: 'missing',   createdAt: now, updatedAt: now },
     // Summer Launch (live; one placement missing)
     { id: 'B-011', campaignId: 'C-008', name: 'Homepage Takeover',          status: 'running',   budget: 3000, spend: 1400, startDate: '2026-07-01', endDate: '2026-07-31', positionIds: ['pos-dsp-home-top'], creativeStatus: 'approved',  createdAt: now, updatedAt: now },
-    { id: 'B-012', campaignId: 'C-008', name: 'PDP Banner',                 status: 'in-option', budget: 2000, spend: 700,  startDate: '2026-07-01', endDate: '2026-08-31', positionIds: [],                   creativeStatus: 'approved',  createdAt: now, updatedAt: now },
-    { id: 'B-013', campaignId: 'C-009', name: 'Social Retargeting',         status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-08-31', positionIds: ['pos-off-soc-meta'],   creativeStatus: 'approved',  createdAt: now, updatedAt: now },
+    { id: 'B-012', campaignId: 'C-008', name: 'Bonus Highlight',            status: 'in-option', budget: 2000, spend: 700,  startDate: '2026-07-01', endDate: '2026-08-31', positionIds: [],                   creativeStatus: 'approved',  createdAt: now, updatedAt: now },
+    { id: 'B-013', campaignId: 'C-009', name: 'Demand Gen — Retargeting',   status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-08-31', positionIds: ['pos-off-dg-image', 'pos-off-dg-video'],   creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     // Back to School (in option; creative work outstanding)
-    { id: 'B-014', campaignId: 'C-010', name: 'Keywords — school lunch',    status: 'in-option', budget: 7000, spend: 0, startDate: '2026-08-10', endDate: '2026-09-10', positionIds: ['pos-sp-search'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-014', campaignId: 'C-010', name: 'Keywords — school lunch',    status: 'in-option', budget: 7000, spend: 0, startDate: '2026-08-10', endDate: '2026-09-10', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-015', campaignId: 'C-011', name: 'Wobblers — Snacks',    status: 'draft',     budget: 5000, spend: 0, startDate: '2026-08-17', endDate: '2026-09-10', positionIds: ['pos-ois-shelf'], creativeStatus: 'missing',  createdAt: now, updatedAt: now },
     // Coffee Moments (live loyalty)
-    { id: 'B-016', campaignId: 'C-012', name: 'Keywords — coffee & pads',   status: 'running',   budget: 4000, spend: 1400, startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-sp-search'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
-    { id: 'B-017', campaignId: 'C-013', name: 'Aisle Screens — Coffee',     status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
+    { id: 'B-016', campaignId: 'C-012', name: 'Keywords — coffee & pads',   status: 'running',   budget: 4000, spend: 1400, startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
+    { id: 'B-017', campaignId: 'C-013', name: 'Take-over — Coffee',         status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-018', campaignId: 'C-014', name: 'Vloerstickers — Coffee',    status: 'in-option', budget: 3000, spend: 0,    startDate: '2026-08-01', endDate: '2026-09-30', positionIds: ['pos-ois-floor'],    creativeStatus: 'submitted', createdAt: now, updatedAt: now },
     // Ice Cream Summer (paused)
     { id: 'B-019', campaignId: 'C-015', name: 'Homepage Takeover',          status: 'paused',    budget: 5000, spend: 2600, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-dsp-home-mid'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-020', campaignId: 'C-016', name: 'Wobblers — Ice cream', status: 'paused',    budget: 4000, spend: 1800, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-ois-shelf'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     // Bookings for the campaigns above, spread across the year for the same
     // reason: a date range should visibly change what the table holds.
-    { id: 'B-021', campaignId: 'C-021', name: 'Search — New Year',           status: 'completed', budget: 3000, spend: 2980, startDate: '2026-01-12', endDate: '2026-02-15', positionIds: ['pos-sp-search'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-021', campaignId: 'C-021', name: 'Search — New Year',           status: 'completed', budget: 3000, spend: 2980, startDate: '2026-01-12', endDate: '2026-02-15', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-022', campaignId: 'C-022', name: 'Entrance Screens — January',  status: 'completed', budget: 2500, spend: 2500, startDate: '2026-01-05', endDate: '2026-01-31', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-023', campaignId: 'C-023', name: 'Open Web — Coffee',           status: 'completed', budget: 2400, spend: 2350, startDate: '2026-02-01', endDate: '2026-03-15', positionIds: ['pos-off-web-standard'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
-    { id: 'B-024', campaignId: 'C-023', name: 'Social — Coffee moments',     status: 'completed', budget: 1800, spend: 1750, startDate: '2026-02-10', endDate: '2026-03-15', positionIds: ['pos-off-soc-meta'],  creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-024', campaignId: 'C-023', name: 'Demand Gen — Coffee moments', status: 'completed', budget: 1800, spend: 1750, startDate: '2026-02-10', endDate: '2026-03-15', positionIds: ['pos-off-dg-image', 'pos-off-dg-video'],  creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-025', campaignId: 'C-024', name: 'Vloerstickers — Spring',     status: 'running',   budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', positionIds: ['pos-ois-floor'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     // Two bookings pacing far apart on purpose: the aisle screens sit on
     // budget they cannot use while the entrance screens are nearly capped —
     // the shape the booking-rebalance recommendation exists to catch.
-    { id: 'B-026', campaignId: 'C-025', name: 'Aisle Screens — Summer',      status: 'running',   budget: 3000, spend: 880,  startDate: '2026-05-04', endDate: '2026-06-30', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-026', campaignId: 'C-025', name: 'Take-over — Summer',         status: 'running',   budget: 3000, spend: 880,  startDate: '2026-05-04', endDate: '2026-06-30', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-031', campaignId: 'C-025', name: 'Entrance Screens — Summer',   status: 'running',   budget: 1500, spend: 1370, startDate: '2026-05-04', endDate: '2026-06-30', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
-    { id: 'B-027', campaignId: 'C-026', name: 'Search — Ice cream',          status: 'paused',    budget: 3200, spend: 2100, startDate: '2026-05-18', endDate: '2026-07-31', positionIds: ['pos-sp-search'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-027', campaignId: 'C-026', name: 'Search — Ice cream',          status: 'paused',    budget: 3200, spend: 2100, startDate: '2026-05-18', endDate: '2026-07-31', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-028', campaignId: 'C-027', name: 'Open Web — Back to school',   status: 'in-option', budget: 5400, spend: 0,    startDate: '2026-09-01', endDate: '2026-09-30', positionIds: ['pos-off-web-standard'], creativeStatus: 'submitted', createdAt: now, updatedAt: now },
     { id: 'B-029', campaignId: 'C-028', name: 'Wobblers — September',  status: 'in-option', budget: 4100, spend: 0,    startDate: '2026-08-24', endDate: '2026-09-20', positionIds: ['pos-ois-shelf'],    creativeStatus: 'missing',   createdAt: now, updatedAt: now },
     { id: 'B-030', campaignId: 'C-030', name: 'Open Web — Winter',           status: 'draft',     budget: 3500, spend: 0,    startDate: '2026-10-05', endDate: '2026-11-15', positionIds: [],                   creativeStatus: 'missing',   createdAt: now, updatedAt: now },
@@ -357,92 +357,115 @@ const baseSeed: DbData = {
     { key: 'frequency',   label: 'Frequency',   engine: 'offsite', scopes: ['overview', 'campaign', 'booking'], format: 'ratio',    description: 'Average impressions per user.' },
   ],
 
-  // ── Channels & positions ─────────────────────────────────────────────
-  // Channel (media product/platform) → positions, per engine. Offsite follows
-  // the activation-arm diagram: channels with executing partners; for Social
-  // Media the positions ARE the platforms (Meta, TikTok, Pinterest, YouTube).
+  // ── Media products → placements → positions ──────────────────────────
+  // One hierarchy for every proposition, filled from Albert Heijn Retail
+  // Media Services' public offering (rate card 2026 wk45, specification
+  // pages, ZSP and SP guides):
+  //   media product — a line on the rate card: what is sold and priced
+  //   placement     — where it runs: a page, a store area, a partner
+  //   position      — the smallest bookable slot, with its capacity; it
+  //                   carries its own price where AH prices it apart
+  // Store counts are demo values where AH does not publish them.
   mediaProducts: [
-    // Display (onsite)
-    { id: 'mprod-dsp-home', engine: 'display', name: 'Homepage',        description: 'Banners on the storefront homepage.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 14, floorPrice: 0.45, holdDays: 5, constraints: ['Minimum run time 7 days', 'Max 2 advertisers per day on the hero', 'Billboard, leaderboard, halfpage or native formats'], owner: 'Yield Manager' },
-    { id: 'mprod-dsp-cat',  engine: 'display', name: 'Category pages',  description: 'Banners on category listing pages.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 11, floorPrice: 0.4, holdDays: 5, constraints: ['Minimum run time 7 days', 'Category must match the advertised products'], owner: 'Yield Manager' },
-    { id: 'mprod-dsp-pdp',  engine: 'display', name: 'Product pages',   description: 'Banners on product detail pages.', status: 'active', buyingModels: ['auction'], pricingBasis: 'cpm', listPrice: 12, floorPrice: 0.5, holdDays: 3, constraints: ['Products must be listed on the page category'], owner: 'Yield Manager' },
-    // Sponsored products
-    { id: 'mprod-sp-search', engine: 'sponsored-products', name: 'Search results', description: 'Sponsored product slots in search.', status: 'active', buyingModels: ['auction', 'guaranteed'], pricingBasis: 'cpc', listPrice: 0.6, floorPrice: 0.35, holdDays: 3, constraints: ['Products must be in stock', 'Keywords reviewed within 2 days'], owner: 'Yield Manager' },
-    // Digital in-store
-    { id: 'mprod-dis-instore', engine: 'digital-instore', name: 'In-store screens', description: 'Digital screens in physical stores.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 9, floorPrice: 0.3, holdDays: 7, constraints: ['Minimum run time 14 days', 'Creatives due X-4', 'Store list generated by Edge', 'Sold on impressions: a goal at a CPM'], owner: 'Media Proposition Developer' },
-    // Offline in-store
-    { id: 'mprod-ois-print',   engine: 'offline-instore', name: 'Printed materials', description: 'Wobblers, VSBs, vloerstickers and the other printed formats in store.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'per-store', listPrice: 32, holdDays: 10, constraints: ['Minimum run time 14 days', 'Print files due X-8', 'Installed by Hamilton Bright'], owner: 'Media Proposition Developer' },
-    // Offsite — channel terminology per the activation-arm diagram
-    { id: 'mprod-off-display',    engine: 'offsite', name: 'Display',                    description: 'Programmatic display on the open web.', partner: 'Epsilon', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 6, floorPrice: 0.35, holdDays: 5, constraints: ['Audience data shared only with the partner'], owner: 'Yield Manager' },
-    { id: 'mprod-off-olv',        engine: 'offsite', name: 'Online Video (OLV)',         description: 'In-stream and out-stream online video.', partner: 'Epsilon', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 18, holdDays: 5, constraints: ['15s or 6s video', 'Minimum €5,000'], owner: 'Yield Manager' },
-    { id: 'mprod-off-ctv',        engine: 'offsite', name: 'Connected TV (CTV)',         description: 'Streaming TV inventory on connected devices.', partner: 'Epsilon', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 32, holdDays: 7, constraints: ['20s spot', 'Minimum €10,000'], owner: 'Yield Manager' },
-    { id: 'mprod-off-contextual', engine: 'offsite', name: 'Contextual Commerce Media',  description: 'Recipe and contextual commerce placements.', partner: 'Chicory', status: 'active', buyingModels: ['auction'], pricingBasis: 'cpm', listPrice: 9, floorPrice: 0.4, holdDays: 3, constraints: ['Recipe or article context only'], owner: 'Yield Manager' },
-    { id: 'mprod-off-social',     engine: 'offsite', name: 'Social Media',               description: 'Paid social — the positions are the platforms.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'flat', listPrice: 2500, holdDays: 5, constraints: ['Platform creative specs apply'], owner: 'Media Proposition Developer' },
-    { id: 'mprod-off-dooh',       engine: 'offsite', name: 'Digital Out Of Home',        description: 'Digital screens out of home.', partner: 'Vistar', status: 'draft', buyingModels: ['guaranteed'], pricingBasis: 'per-day', listPrice: 1150, holdDays: 7, constraints: ['Minimum run time 7 days'], owner: 'Media Proposition Developer' },
+    // Display — ah.nl, the AH app, Allerhande and the newsletter. List price
+    // is the ZSP guaranteed CPM, floor the ZSP auction floor; managed is +€3.
+    { id: 'mprod-dsp-home', engine: 'display', name: 'Homepage', description: 'Banners on the ah.nl and AH app homepage.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 18, floorPrice: 16, holdDays: 5, constraints: ['Managed €21 · ZSP guaranteed €18 · ZSP auction from €16 CPM (web)', 'Native banner: packshot 756×552 or cover 1140×552', 'A video banner costs the banner’s CPM (MP4 max 4 MB, no sound, ends on an endcard)', 'Guaranteed line items are approved within 2 working days'], owner: 'Yield Manager' },
+    { id: 'mprod-dsp-bonus', engine: 'display', name: 'Bonus', description: 'Banners on the weekly Bonus offers on ah.nl and in the app.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 16, floorPrice: 14, holdDays: 5, constraints: ['Week index 1.1 in weeks 35–39 and 1.4 in weeks 40–52', 'No promotional claims outside the Bonus mechanic'], owner: 'Yield Manager' },
+    { id: 'mprod-dsp-allerhande', engine: 'display', name: 'Allerhande', description: 'Recipe banners and video on Allerhande, web and app.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 20.5, floorPrice: 18.5, holdDays: 5, constraints: ['Recipe banners on the web are sold managed only', 'Pre-roll 6 s or up to 15 s'], owner: 'Yield Manager' },
+    { id: 'mprod-dsp-cat', engine: 'display', name: 'Category pages', description: 'The promobox on ah.nl category pages.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 24, holdDays: 5, constraints: ['Sold managed only', 'Category must match the advertised products'], owner: 'Yield Manager' },
+    { id: 'mprod-dsp-newsletter', engine: 'display', name: 'Newsletter', description: 'A banner in the AH newsletter.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 7, holdDays: 5, constraints: ['One banner per send'], owner: 'Yield Manager' },
+    // Sponsored products — bought per keyword or category in an auction;
+    // the position is the auction's outcome, reported, not bought.
+    { id: 'mprod-sp-search', engine: 'sponsored-products', name: 'Sponsored Products', description: 'Sponsored product listings in search results and on category pages, ah.nl and the AH app.', status: 'active', buyingModels: ['auction', 'guaranteed'], pricingBasis: 'cpc', listPrice: 0.6, floorPrice: 0.2, holdDays: 3, constraints: ['Second price: the next bid + €0.01', 'Pay per click or per add-to-cart', 'Floor price per product category, from €0.20', 'Only keywords the product is found on organically; never competitor brand names', 'Campaigns pause, they are never deleted; out of stock stops the product', 'Invoiced every 4 weeks'], owner: 'Yield Manager' },
+    // Digital in-store — screen groups sold in S/M/L packages by number of
+    // stores: the package is the store target.
+    { id: 'mprod-dis-instore', engine: 'digital-instore', name: 'In-store screens', description: 'Video screens in AH stores, sold per screen group in S/M/L packages by number of stores.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 13, floorPrice: 6.5, holdDays: 7, constraints: ['MP4, 25 fps, max 50 MB, no sound', 'No AH house-style colours; promotions only in the AH promotion block, confirmed by the AH category', 'Packages S/M/L set the number of stores', 'Creatives due X-4'], owner: 'Media Proposition Developer' },
+    // Offline in-store — POS materials by shelf type. AH sells combinations
+    // (VSB + wobbler €17 CPM plus €12 per store); here a store-week.
+    { id: 'mprod-ois-print', engine: 'offline-instore', name: 'In-store POS', description: 'Printed POS materials — wobblers, VSBs, floor and cooler-door stickers — placed by shelf type.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'per-store', listPrice: 32, holdDays: 10, constraints: ['Rate card: base CPM × reach + €12 start fee per store, × week index', 'Packages: S = 3 wobblers per zone · M = max 2 materials, max 1 M per zone · L = 3+ materials, max 1 L per zone · Multiclient = one of each per zone except wobbler and VSB', 'NASA number required — links the material to the article and its shelf', 'No promotional messages; run time printed in Arial 6pt; NIX18 for alcohol', 'Standard run time 2 weeks, hung and removed by field service', 'AH has priority on fresh categories'], owner: 'Media Proposition Developer' },
+    // Offsite — DPG Media and Marktplaats display, YouTube and Demand Gen via DV360.
+    { id: 'mprod-off-display', engine: 'offsite', name: 'Open web display', description: 'Display on DPG Media and Marktplaats.', partner: 'DPG Media · Marktplaats', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 9, holdDays: 5, constraints: ['AH logo required', 'Landing page within the AH environment', 'IAB standard 300×250, 728×90, 160×600 · High impact 970×250, 300×600'], owner: 'Yield Manager' },
+    { id: 'mprod-off-youtube', engine: 'offsite', name: 'YouTube', description: 'YouTube video bought through DV360.', partner: 'Google (DV360)', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 15, holdDays: 5, constraints: ['AH logo required', 'Landing page within the AH environment'], owner: 'Yield Manager' },
+    { id: 'mprod-off-demandgen', engine: 'offsite', name: 'Demand Gen', description: 'Image, carousel and video ads in Google’s feeds, through DV360.', partner: 'Google (DV360)', status: 'active', buyingModels: ['auction'], pricingBasis: 'cpc', listPrice: 2, floorPrice: 2, holdDays: 5, constraints: ['"Verkrijgbaar bij" with the AH logo', 'Landing page within the AH environment'], owner: 'Yield Manager' },
   ],
-  // ── Placements ────────────────────────────────────────────────────────
-  // Display and offsite group positions into placements; the other
-  // propositions put positions straight under the product.
   placements: [
-    { id: 'plc-dsp-home-atf',   mediaProductId: 'mprod-dsp-home', name: 'Above the fold',   description: 'What a shopper sees before scrolling.' },
-    { id: 'plc-dsp-home-feed',  mediaProductId: 'mprod-dsp-home', name: 'In the feed',      description: 'Between the storefront rows.' },
-    { id: 'plc-dsp-cat-top',    mediaProductId: 'mprod-dsp-cat',  name: 'Category header',  description: 'Above the listing.' },
-    { id: 'plc-dsp-cat-list',   mediaProductId: 'mprod-dsp-cat',  name: 'In the listing',   description: 'Between and beside products.' },
-    { id: 'plc-dsp-pdp-page',   mediaProductId: 'mprod-dsp-pdp',  name: 'On the page',      description: 'Around the product detail.' },
-    { id: 'plc-dsp-pdp-basket', mediaProductId: 'mprod-dsp-pdp',  name: 'At the basket',    description: 'When the product goes in.' },
-    { id: 'plc-off-web-std',    mediaProductId: 'mprod-off-display', name: 'Standard',      description: 'IAB standard sizes.' },
-    { id: 'plc-off-web-hi',     mediaProductId: 'mprod-off-display', name: 'High impact',   description: 'Skins and takeovers.' },
+    { id: 'plc-dsp-home-web',   mediaProductId: 'mprod-dsp-home',       name: 'ah.nl homepage',         description: 'The storefront homepage on the web.' },
+    { id: 'plc-dsp-home-app',   mediaProductId: 'mprod-dsp-home',       name: 'AH app homepage',        description: 'The first screen of the app.' },
+    { id: 'plc-dsp-bonus-web',  mediaProductId: 'mprod-dsp-bonus',      name: 'ah.nl Bonus page',       description: 'The weekly offers on the web.' },
+    { id: 'plc-dsp-bonus-app',  mediaProductId: 'mprod-dsp-bonus',      name: 'AH app Bonus',           description: 'The weekly offers in the app.' },
+    { id: 'plc-dsp-ah-web',     mediaProductId: 'mprod-dsp-allerhande', name: 'Allerhande recipes',     description: 'Recipe pages on the web.' },
+    { id: 'plc-dsp-ah-app',     mediaProductId: 'mprod-dsp-allerhande', name: 'Allerhande Koken (app)', description: 'Cooking in the app.' },
+    { id: 'plc-dsp-ah-video',   mediaProductId: 'mprod-dsp-allerhande', name: 'Allerhande video',       description: 'Before recipe videos.' },
+    { id: 'plc-dsp-cat-page',   mediaProductId: 'mprod-dsp-cat',        name: 'Category page',          description: 'Above the products of a category.' },
+    { id: 'plc-dsp-newsletter', mediaProductId: 'mprod-dsp-newsletter', name: 'AH newsletter',          description: 'The weekly e-mail.' },
+    { id: 'plc-sp-search',      mediaProductId: 'mprod-sp-search',      name: 'Search results',         description: 'Sponsored listings on positions 1, 2 and 6.' },
+    { id: 'plc-sp-category',    mediaProductId: 'mprod-sp-search',      name: 'Category pages',         description: 'Sponsored listings on category pages.' },
+    { id: 'plc-dis-front',      mediaProductId: 'mprod-dis-instore',    name: 'Store front',            description: 'Screens in the shop window (pui).' },
+    { id: 'plc-dis-entrance',   mediaProductId: 'mprod-dis-instore',    name: 'Entrance',               description: 'Screens where shoppers walk in.' },
+    { id: 'plc-dis-floor',      mediaProductId: 'mprod-dis-instore',    name: 'Shop floor',             description: 'Screens along the route.' },
+    { id: 'plc-dis-checkout',   mediaProductId: 'mprod-dis-instore',    name: 'Checkout',               description: 'Screens at the tills.' },
+    { id: 'plc-dis-handheld',   mediaProductId: 'mprod-dis-instore',    name: 'Handheld',               description: 'The self-scan handscanners.' },
+    { id: 'plc-ois-ambient',    mediaProductId: 'mprod-ois-print',      name: 'Ambient aisles',         description: 'Houdbaar — the dry-goods shelves.' },
+    { id: 'plc-ois-chilled',    mediaProductId: 'mprod-ois-print',      name: 'Chilled',                description: 'Koel — the cooler doors.' },
+    { id: 'plc-ois-frozen',     mediaProductId: 'mprod-ois-print',      name: 'Frozen',                 description: 'Diepvries — the freezer doors.' },
+    { id: 'plc-ois-produce',    mediaProductId: 'mprod-ois-print',      name: 'Produce & cheese',       description: 'AGF & kaas — no VSB here.' },
+    { id: 'plc-ois-second',     mediaProductId: 'mprod-ois-print',      name: 'Second placing',         description: 'Bonus end caps and bancarella. AH closes these for its own promotions first; custom work.' },
+    { id: 'plc-off-dpg',        mediaProductId: 'mprod-off-display',    name: 'DPG Media',              description: 'News and lifestyle sites of DPG Media.' },
+    { id: 'plc-off-marktplaats',mediaProductId: 'mprod-off-display',    name: 'Marktplaats',            description: 'The Marktplaats site and app.' },
+    { id: 'plc-off-youtube',    mediaProductId: 'mprod-off-youtube',    name: 'YouTube',                description: 'In-stream on YouTube.' },
+    { id: 'plc-off-google',     mediaProductId: 'mprod-off-demandgen',  name: 'Google feeds',           description: 'Discover, Gmail and YouTube feeds.' },
   ],
 
   positions: [
-    // Display onsite — a channel holds every slot on that page type.
-    { id: 'pos-dsp-home-top',    mediaProductId: 'mprod-dsp-home', placementId: 'plc-dsp-home-atf',  name: 'Homepage top banner',       format: 'Billboard 970x250', dailyCapacity: 4, floorPrice: 15.6, listPrice: 2340 },
-    { id: 'pos-dsp-home-mid',    mediaProductId: 'mprod-dsp-home', placementId: 'plc-dsp-home-feed',  name: 'Homepage mid banner',       format: 'Leaderboard 728x90', dailyCapacity: 6, floorPrice: 14.4, listPrice: 2510 },
-    { id: 'pos-dsp-home-rail',   mediaProductId: 'mprod-dsp-home', placementId: 'plc-dsp-home-atf',  name: 'Homepage side rail',        format: 'Halfpage 300x600', dailyCapacity: 8, floorPrice: 17.2, listPrice: 2480 },
-    { id: 'pos-dsp-home-native', mediaProductId: 'mprod-dsp-home', placementId: 'plc-dsp-home-feed',  name: 'Homepage native row',       format: 'Native card', dailyCapacity: 10, floorPrice: 13.0, listPrice: 2050 },
-    { id: 'pos-dsp-home-hero',   mediaProductId: 'mprod-dsp-home', placementId: 'plc-dsp-home-atf',  name: 'Homepage hero takeover',    format: 'Takeover', dailyCapacity: 1, floorPrice: 20.4, listPrice: 2460 },
-    { id: 'pos-dsp-cat-top',     mediaProductId: 'mprod-dsp-cat', placementId: 'plc-dsp-cat-top',   name: 'Category top banner',       format: 'Billboard 970x250', dailyCapacity: 8, floorPrice: 16.2, listPrice: 2080 },
-    { id: 'pos-dsp-cat-inline',  mediaProductId: 'mprod-dsp-cat', placementId: 'plc-dsp-cat-list',   name: 'Category inline banner',    format: 'Leaderboard 728x90', dailyCapacity: 12, floorPrice: 11.8, listPrice: 2170 },
-    { id: 'pos-dsp-cat-rail',    mediaProductId: 'mprod-dsp-cat', placementId: 'plc-dsp-cat-list',   name: 'Category side rail',        format: 'Halfpage 300x600', dailyCapacity: 10, floorPrice: 15.0, listPrice: 2250 },
-    { id: 'pos-dsp-cat-footer',  mediaProductId: 'mprod-dsp-cat', placementId: 'plc-dsp-cat-list',   name: 'Category footer banner',    format: 'Leaderboard 728x90', dailyCapacity: 14, floorPrice: 9.6, listPrice: 1890 },
-    { id: 'pos-dsp-pdp',         mediaProductId: 'mprod-dsp-pdp', placementId: 'plc-dsp-pdp-page',   name: 'PDP banner',                format: 'Leaderboard 728x90', dailyCapacity: 12, floorPrice: 15.8, listPrice: 2070 },
-    { id: 'pos-dsp-pdp-related', mediaProductId: 'mprod-dsp-pdp', placementId: 'plc-dsp-pdp-page',   name: 'PDP related products',      format: 'Native card', dailyCapacity: 18, floorPrice: 12.2, listPrice: 1830 },
-    { id: 'pos-dsp-pdp-gallery', mediaProductId: 'mprod-dsp-pdp', placementId: 'plc-dsp-pdp-page',   name: 'PDP gallery slot',          format: 'Rich media', dailyCapacity: 6, floorPrice: 16.4, listPrice: 2360 },
-    { id: 'pos-dsp-pdp-basket',  mediaProductId: 'mprod-dsp-pdp', placementId: 'plc-dsp-pdp-basket',   name: 'Add-to-basket overlay',     format: 'Overlay 300x250', dailyCapacity: 9, floorPrice: 14.6, listPrice: 2190 },
+    // Display
+    { id: 'pos-dsp-home-top',        mediaProductId: 'mprod-dsp-home',       placementId: 'plc-dsp-home-web',   name: 'Homepage banner',              format: 'Native banner 1140×552', dailyCapacity: 4 },
+    { id: 'pos-dsp-home-mid',        mediaProductId: 'mprod-dsp-home',       placementId: 'plc-dsp-home-app',   name: 'App homepage banner',          format: 'Native banner 756×552', dailyCapacity: 6, listPrice: 23, floorPrice: 21 },
+    { id: 'pos-dsp-home-rail',       mediaProductId: 'mprod-dsp-home',       placementId: 'plc-dsp-home-app',   name: 'App homepage banner — targeted', format: 'Native banner 756×552 · AH Audiences', dailyCapacity: 4, listPrice: 24, floorPrice: 22 },
+    { id: 'pos-dsp-bonus-regular',   mediaProductId: 'mprod-dsp-bonus',      placementId: 'plc-dsp-bonus-web',  name: 'Bonus banner',                 format: 'Native banner 1140×552', dailyCapacity: 8 },
+    { id: 'pos-dsp-bonus-booster',   mediaProductId: 'mprod-dsp-bonus',      placementId: 'plc-dsp-bonus-web',  name: 'Bonus Booster',                format: 'Native banner 1140×552', dailyCapacity: 2, listPrice: 25.5, floorPrice: 23.5 },
+    { id: 'pos-dsp-bonus-highlight', mediaProductId: 'mprod-dsp-bonus',      placementId: 'plc-dsp-bonus-web',  name: 'Bonus Highlight',              format: 'Native banner 1140×552', dailyCapacity: 4, listPrice: 20, floorPrice: 18 },
+    { id: 'pos-dsp-bonus-app',       mediaProductId: 'mprod-dsp-bonus',      placementId: 'plc-dsp-bonus-app',  name: 'App Bonus banner',             format: 'Native banner 756×552', dailyCapacity: 8, listPrice: 27.5, floorPrice: 25.5 },
+    { id: 'pos-dsp-ah-recipes',      mediaProductId: 'mprod-dsp-allerhande', placementId: 'plc-dsp-ah-web',     name: 'Recipe banner',                format: 'Native banner 1140×552', dailyCapacity: 8, listPrice: 18.5 },
+    { id: 'pos-dsp-ah-app',          mediaProductId: 'mprod-dsp-allerhande', placementId: 'plc-dsp-ah-app',     name: 'Allerhande Koken banner',      format: 'Native banner 756×552', dailyCapacity: 6 },
+    { id: 'pos-dsp-ah-preroll6',     mediaProductId: 'mprod-dsp-allerhande', placementId: 'plc-dsp-ah-video',   name: 'Pre-roll 6 s',                 format: 'Video 6 s', dailyCapacity: 4, listPrice: 24.5 },
+    { id: 'pos-dsp-ah-preroll15',    mediaProductId: 'mprod-dsp-allerhande', placementId: 'plc-dsp-ah-video',   name: 'Pre-roll up to 15 s',          format: 'Video max 15 s', dailyCapacity: 3, listPrice: 35.5 },
+    { id: 'pos-dsp-cat-top',         mediaProductId: 'mprod-dsp-cat',        placementId: 'plc-dsp-cat-page',   name: 'Category promobox',            format: 'Promobox', dailyCapacity: 8 },
+    { id: 'pos-dsp-newsletter',      mediaProductId: 'mprod-dsp-newsletter', placementId: 'plc-dsp-newsletter', name: 'Newsletter banner',            format: 'Banner 600×200', dailyCapacity: 2 },
     // Sponsored products
-    { id: 'pos-sp-search',       mediaProductId: 'mprod-sp-search', name: 'Search results slot',       format: 'Product listing', dailyCapacity: 40, floorPrice: 2, listPrice: 1050 },
-    { id: 'pos-sp-search-top',   mediaProductId: 'mprod-sp-search', name: 'Search top-of-page',        format: 'Product listing', dailyCapacity: 12, floorPrice: 15.8, listPrice: 2070 },
-    { id: 'pos-sp-search-rail',  mediaProductId: 'mprod-sp-search', name: 'Search side rail',          format: 'Product listing', dailyCapacity: 20, floorPrice: 7.0, listPrice: 1650 },
-    { id: 'pos-sp-autocomplete', mediaProductId: 'mprod-sp-search', name: 'Autocomplete suggestion',   format: 'Text + thumbnail', dailyCapacity: 25, floorPrice: 9.0, listPrice: 1550 },
-    // Digital in-store
-    { id: 'pos-dis-entrance',    mediaProductId: 'mprod-dis-instore', name: 'Entrance screens',        format: 'Full screen 1080p', dailyCapacity: 6, floorPrice: 20.4, listPrice: 2560, stores: 450 },
-    { id: 'pos-dis-aisle',       mediaProductId: 'mprod-dis-instore', name: 'Aisle screens',           format: 'Full screen 1080p', dailyCapacity: 10, floorPrice: 16.0, listPrice: 2250, stores: 320 },
-    { id: 'pos-dis-checkout',    mediaProductId: 'mprod-dis-instore', name: 'Checkout screens',        format: 'Portrait 1080x1920', dailyCapacity: 12, floorPrice: 11.8, listPrice: 2320, stores: 600 },
-    { id: 'pos-dis-freezer',     mediaProductId: 'mprod-dis-instore', name: 'Freezer door screens',    format: 'Portrait 1080x1920', dailyCapacity: 8, floorPrice: 14.2, listPrice: 2080, stores: 260 },
-    { id: 'pos-dis-shelfedge',   mediaProductId: 'mprod-dis-instore', name: 'Shelf-edge displays',     format: 'Strip 1920x158', dailyCapacity: 20, floorPrice: 10.0, listPrice: 1900, stores: 180 },
-    // Offline in-store
-    { id: 'pos-ois-shelf',       mediaProductId: 'mprod-ois-print', name: 'Wobbler',                   format: 'Shelf-edge card A6', dailyCapacity: 1, floorPrice: 11.0, listPrice: 1650, stores: 640 },
-    { id: 'pos-ois-floor',       mediaProductId: 'mprod-ois-print', name: 'Vloersticker',              format: 'Floor decal 60x60 cm', dailyCapacity: 1, floorPrice: 10.0, listPrice: 2100, stores: 420 },
-    { id: 'pos-ois-endcap',      mediaProductId: 'mprod-ois-print', name: 'VSB',                       format: 'Floor-standing board A1', dailyCapacity: 1, floorPrice: 17.0, listPrice: 2100, stores: 380 },
-    { id: 'pos-ois-trolley',     mediaProductId: 'mprod-ois-print', name: 'Koeldeursticker',           format: 'Cooler-door sticker A4', dailyCapacity: 1, floorPrice: 6.0, listPrice: 1500, stores: 520 },
-    { id: 'pos-ois-coolerflag',  mediaProductId: 'mprod-ois-print', name: 'Koeldeurvlag',              format: 'Cooler-door flag A5', dailyCapacity: 1, floorPrice: 6.0, listPrice: 1400, stores: 520 },
-    { id: 'pos-ois-window',      mediaProductId: 'mprod-ois-print', name: 'Makelaarsbord',             format: 'Board A0', dailyCapacity: 1, floorPrice: 17.2, listPrice: 2080, stores: 260 },
-    // Offsite positions per channel
-    { id: 'pos-off-web-standard', mediaProductId: 'mprod-off-display', placementId: 'plc-off-web-std',    name: 'Open web display',      format: 'MPU 300x250', dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
-    { id: 'pos-off-web-hpa',      mediaProductId: 'mprod-off-display', placementId: 'plc-off-web-hi',    name: 'High-impact takeover',  format: 'Skin + billboard', dailyCapacity: 15, floorPrice: 11.0, listPrice: 1800 },
-    { id: 'pos-off-web-native',   mediaProductId: 'mprod-off-display', placementId: 'plc-off-web-std',    name: 'Native in-feed',        format: 'Native card', dailyCapacity: 80, floorPrice: 2, listPrice: 150 },
-    { id: 'pos-off-olv-instream', mediaProductId: 'mprod-off-olv',        name: 'In-stream video',       format: 'Pre-roll 15s', dailyCapacity: 60, floorPrice: 2, listPrice: 250 },
-    { id: 'pos-off-olv-outstream',mediaProductId: 'mprod-off-olv',        name: 'Out-stream video',      format: 'In-article 6s', dailyCapacity: 45, floorPrice: 2, listPrice: 900 },
-    { id: 'pos-off-ctv-spot',     mediaProductId: 'mprod-off-ctv',        name: 'CTV spot',              format: 'Spot 20s', dailyCapacity: 30, floorPrice: 3.0, listPrice: 1350 },
-    { id: 'pos-off-ctv-pause',    mediaProductId: 'mprod-off-ctv',        name: 'Pause ad',              format: 'Static overlay', dailyCapacity: 20, floorPrice: 9.0, listPrice: 2000 },
-    { id: 'pos-off-ctx-recipe',   mediaProductId: 'mprod-off-contextual', name: 'Recipe placements',     format: 'Native card', dailyCapacity: 50, floorPrice: 2, listPrice: 700 },
-    { id: 'pos-off-ctx-article',  mediaProductId: 'mprod-off-contextual', name: 'Article placements',    format: 'In-article MPU', dailyCapacity: 40, floorPrice: 2, listPrice: 900 },
-    // Social Media: positions are the platforms
-    { id: 'pos-off-soc-meta',      mediaProductId: 'mprod-off-social', name: 'Meta',            dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
-    { id: 'pos-off-soc-tiktok',    mediaProductId: 'mprod-off-social', name: 'TikTok',          dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
-    { id: 'pos-off-soc-pinterest', mediaProductId: 'mprod-off-social', name: 'Pinterest',       dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
-    { id: 'pos-off-soc-youtube',   mediaProductId: 'mprod-off-social', name: 'YouTube (DV360)', dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
-    { id: 'pos-off-dooh-screens',  mediaProductId: 'mprod-off-dooh',   name: 'DOOH screens',    dailyCapacity: 40, floorPrice: 2, listPrice: 1150 },
+    { id: 'pos-sp-search-top',       mediaProductId: 'mprod-sp-search',      placementId: 'plc-sp-search',      name: 'Position 1',                   format: 'Product listing', dailyCapacity: 14 },
+    { id: 'pos-sp-search',           mediaProductId: 'mprod-sp-search',      placementId: 'plc-sp-search',      name: 'Position 2',                   format: 'Product listing', dailyCapacity: 14 },
+    { id: 'pos-sp-search-rail',      mediaProductId: 'mprod-sp-search',      placementId: 'plc-sp-search',      name: 'Position 6',                   format: 'Product listing', dailyCapacity: 12 },
+    { id: 'pos-sp-category',         mediaProductId: 'mprod-sp-search',      placementId: 'plc-sp-category',    name: 'Category listing',             format: 'Product listing', dailyCapacity: 12 },
+    // Digital in-store — dailyCapacity is slots per loop (6 s in a 36 s loop = 6)
+    { id: 'pos-dis-pui',             mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-front',      name: 'Shop-window screens',          format: '1080×1920 · 6 s in a 36 s loop', dailyCapacity: 6, stores: 600, listPrice: 5, floorPrice: 3.5 },
+    { id: 'pos-dis-entrance',        mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-entrance',   name: 'Entrance screens',             format: '1080×1920 · 6 s in a 36 s loop', dailyCapacity: 6, stores: 700, floorPrice: 12 },
+    { id: 'pos-dis-aisle',           mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-floor',      name: 'In-store take-over',           format: '1920×1080 + 3840×1080 · 10 s · 3 screens per store', dailyCapacity: 10, stores: 750, listPrice: 5.5, floorPrice: 5 },
+    { id: 'pos-dis-bonusstraat',     mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-floor',      name: 'Bonus street screens',         format: '1920×1080 · 10 s · promotion required', dailyCapacity: 8, stores: 130, listPrice: 10.5 },
+    { id: 'pos-dis-wine',            mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-floor',      name: 'Wine screens',                 format: '1920×540 · 5 or 10 s · NIX18', dailyCapacity: 6, stores: 150, listPrice: 18.75 },
+    { id: 'pos-dis-checkout',        mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-checkout',   name: 'Checkout screens',             format: 'Portrait + landscape · 10 s', dailyCapacity: 12, stores: 600, listPrice: 6, floorPrice: 5 },
+    { id: 'pos-dis-handscanner',     mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-handheld',   name: 'Handscanners',                 format: '480×788 JPG/PNG', dailyCapacity: 4, stores: 655, listPrice: 12 },
+    // Offline in-store — the format at a shelf type
+    { id: 'pos-ois-shelf',           mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-ambient',    name: 'Wobbler',                      format: '150×164 mm incl. stem', dailyCapacity: 1, stores: 640 },
+    { id: 'pos-ois-endcap',          mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-ambient',    name: 'VSB',                          format: '168×490 mm (XL 168×1150 mm)', dailyCapacity: 1, stores: 380 },
+    { id: 'pos-ois-flyer',           mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-ambient',    name: 'Flyer box',                    format: '156×195×40 mm', dailyCapacity: 1, stores: 300 },
+    { id: 'pos-ois-floor',           mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-ambient',    name: 'Vloersticker',                 format: '840×330 mm', dailyCapacity: 1, stores: 420 },
+    { id: 'pos-ois-trolley',         mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-chilled',    name: 'Koeldeursticker',              format: '450×50 mm', dailyCapacity: 1, stores: 520 },
+    { id: 'pos-ois-coolerflag',      mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-chilled',    name: 'Koeldeurvlag',                 format: '203×490 mm (XL 203×790 mm)', dailyCapacity: 1, stores: 520 },
+    { id: 'pos-ois-coolerframe',     mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-chilled',    name: 'Koeldeurframe',                format: '682×1770 mm · 4 stickers', dailyCapacity: 1, stores: 240 },
+    { id: 'pos-ois-freezerframe',    mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-frozen',     name: 'Vriesdeurframe',               format: '682×1720 mm · 4 stickers', dailyCapacity: 1, stores: 220 },
+    { id: 'pos-ois-window',          mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-produce',    name: 'Makelaarsbord',                format: '200×200 mm', dailyCapacity: 1, stores: 260 },
+    { id: 'pos-ois-bonuskop',        mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-second',     name: 'Bonuskop',                     format: '573×1443 mm per part', dailyCapacity: 1, stores: 180 },
+    { id: 'pos-ois-bancarella',      mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-second',     name: 'Bancarella sticker',           format: '900×165 mm', dailyCapacity: 1, stores: 200 },
+    // Offsite
+    { id: 'pos-off-web-standard',    mediaProductId: 'mprod-off-display',    placementId: 'plc-off-dpg',        name: 'IAB standard · DPG',           format: '300×250, 728×90, 160×600', dailyCapacity: 100 },
+    { id: 'pos-off-web-hpa',         mediaProductId: 'mprod-off-display',    placementId: 'plc-off-dpg',        name: 'High impact · DPG',            format: '970×250, 300×600', dailyCapacity: 15, listPrice: 12 },
+    { id: 'pos-off-web-native',      mediaProductId: 'mprod-off-display',    placementId: 'plc-off-marktplaats',name: 'IAB standard · Marktplaats',   format: '300×250, 728×90, 160×600', dailyCapacity: 80 },
+    { id: 'pos-off-mp-high',         mediaProductId: 'mprod-off-display',    placementId: 'plc-off-marktplaats',name: 'High impact · Marktplaats',    format: '970×250, 300×600', dailyCapacity: 12, listPrice: 12 },
+    { id: 'pos-off-yt-reach',        mediaProductId: 'mprod-off-youtube',    placementId: 'plc-off-youtube',    name: 'Efficient reach',              format: 'Skippable + bumper', dailyCapacity: 60 },
+    { id: 'pos-off-yt-nonskip',      mediaProductId: 'mprod-off-youtube',    placementId: 'plc-off-youtube',    name: 'Non-skippable',                format: 'Video 7–15 s', dailyCapacity: 45, listPrice: 20 },
+    { id: 'pos-off-dg-image',        mediaProductId: 'mprod-off-demandgen',  placementId: 'plc-off-google',     name: 'Image ads',                    format: 'Image', dailyCapacity: 60 },
+    { id: 'pos-off-dg-carousel',     mediaProductId: 'mprod-off-demandgen',  placementId: 'plc-off-google',     name: 'Carousel ads',                 format: 'Carousel', dailyCapacity: 40 },
+    { id: 'pos-off-dg-video',        mediaProductId: 'mprod-off-demandgen',  placementId: 'plc-off-google',     name: 'Video ads',                    format: 'Video', dailyCapacity: 40 },
   ],
 
 
@@ -869,7 +892,7 @@ const baseSeed: DbData = {
       languages: ['en'], bookingIds: ['B-001'], createdAt: now, updatedAt: now },
     { id: 'CR-103', name: 'Summer Launch — Entrance screens', engine: 'digital-instore', templateId: 'tpl-dgi-signage', status: 'approved',
       values: { header: 'New this summer', duration: '10', loop: 'yes' }, languages: ['en'], bookingIds: ['B-031'], createdAt: now, updatedAt: now },
-    { id: 'CR-104', name: 'Aisle Screens — Summer loop', engine: 'digital-instore', templateId: 'tpl-dgi-signage', status: 'approved',
+    { id: 'CR-104', name: 'Take-over — Summer loop', engine: 'digital-instore', templateId: 'tpl-dgi-signage', status: 'approved',
       values: { header: 'Cool down. Aisle 7.', duration: '10', loop: 'yes' }, languages: ['en'], bookingIds: ['B-026'], createdAt: now, updatedAt: now },
     { id: 'CR-105', name: 'Vloersticker — Spring decal', engine: 'offline-instore', templateId: 'tpl-oit-vloersticker', status: 'approved',
       values: {}, languages: ['en'], bookingIds: ['B-025'], createdAt: now, updatedAt: now },
@@ -932,7 +955,7 @@ const baseSeed: DbData = {
     { id: 'PR-007', name: 'Nearly sold out',           kind: 'demand',        engine: 'all',                index: 1.3,  minFillRate: 0.95, description: 'The last slots on a position.',                                 priority: 41, status: 'active', updatedAt: now },
     { id: 'PR-008', name: 'Early booking',             kind: 'early-booking', engine: 'all',                index: 0.92, minDaysAhead: 60, description: 'Booked two months ahead, 8% off — inventory certainty is worth something.', priority: 50, status: 'active', updatedAt: now },
     { id: 'PR-009', name: 'Volume deal',               kind: 'volume',        engine: 'all',                index: 0.95, minBudget: 25000, description: 'Bookings from €25,000 take 5% off.', priority: 60, status: 'active', updatedAt: now },
-    { id: 'PR-010', name: 'CTV launch pricing',        kind: 'market',        engine: 'offsite',            mediaProductIds: ['mprod-off-ctv'], index: 0.85, description: 'Introductory index while the CTV product builds a track record.', priority: 30, status: 'draft', updatedAt: now },
+    { id: 'PR-010', name: 'Demand Gen launch pricing', kind: 'market',        engine: 'offsite',            mediaProductIds: ['mprod-off-demandgen'], index: 0.85, description: 'Introductory index while Demand Gen builds a track record.', priority: 30, status: 'draft', updatedAt: now },
   ],
 
   // ── Inventory holds ───────────────────────────────────────────────────
@@ -942,10 +965,10 @@ const baseSeed: DbData = {
   inventoryHolds: [
     { id: 'IH-001', bookingId: 'B-009', positionId: 'pos-dis-entrance',    from: '2026-06-08', to: '2026-08-15', units: 2,  priceLocked: 9,    heldAt: '2026-07-27T09:00:00.000Z', expiresAt: '2026-08-03T09:00:00.000Z', status: 'held' },
     { id: 'IH-002', bookingId: 'B-010', positionId: 'pos-off-web-standard', from: '2026-06-08', to: '2026-08-15', units: 20, priceLocked: 6,    heldAt: '2026-07-28T10:30:00.000Z', expiresAt: '2026-08-02T10:30:00.000Z', status: 'held' },
-    { id: 'IH-003', bookingId: 'B-012', positionId: 'pos-dsp-pdp',          from: '2026-07-01', to: '2026-08-31', units: 4,  priceLocked: 10.8, heldAt: '2026-07-24T14:00:00.000Z', expiresAt: '2026-07-27T14:00:00.000Z', status: 'expired' },
+    { id: 'IH-003', bookingId: 'B-012', positionId: 'pos-dsp-bonus-highlight', from: '2026-07-01', to: '2026-08-31', units: 4,  priceLocked: 10.8, heldAt: '2026-07-24T14:00:00.000Z', expiresAt: '2026-07-27T14:00:00.000Z', status: 'expired' },
     { id: 'IH-004', bookingId: 'B-014', positionId: 'pos-sp-search-top',    from: '2026-08-10', to: '2026-09-10', units: 1,  priceLocked: 0.83, heldAt: '2026-07-29T08:00:00.000Z', expiresAt: '2026-08-01T08:00:00.000Z', status: 'held' },
     { id: 'IH-005', bookingId: 'B-018', positionId: 'pos-ois-floor',        from: '2026-09-01', to: '2026-09-30', units: 3,  priceLocked: 32,   heldAt: '2026-07-24T11:00:00.000Z', expiresAt: '2026-08-03T11:00:00.000Z', status: 'held' },
-    { id: 'IH-006', bookingId: 'B-005', positionId: 'pos-dsp-home-hero',    from: '2026-06-01', to: '2026-06-30', units: 1,  priceLocked: 17.5, heldAt: '2026-05-20T09:00:00.000Z', expiresAt: '2026-05-25T09:00:00.000Z', status: 'confirmed' },
+    { id: 'IH-006', bookingId: 'B-005', positionId: 'pos-dsp-home-top',     from: '2026-06-01', to: '2026-06-30', units: 1,  priceLocked: 17.5, heldAt: '2026-05-20T09:00:00.000Z', expiresAt: '2026-05-25T09:00:00.000Z', status: 'confirmed' },
   ],
 
   invoices: [],
@@ -1209,7 +1232,7 @@ function withGuaranteedTerms(db: DbData): DbData {
     if (!product?.pricingBasis || product.listPrice === undefined) return b;
     const basis = product.pricingBasis;
     const hold = db.inventoryHolds.find((h) => h.bookingId === b.id);
-    const unitPrice = hold?.priceLocked ?? product.listPrice;
+    const unitPrice = hold?.priceLocked ?? bookingListPrice(db, b) ?? product.listPrice;
     const metric = goalMetricFor(campaign.engine);
     const raw = basis === 'cpm' ? (b.budget / unitPrice) * 1000 : b.budget / unitPrice;
     const goal = { metric, amount: metric === 'impressions' ? Math.round(raw / 1000) * 1000 : Math.round(raw) };

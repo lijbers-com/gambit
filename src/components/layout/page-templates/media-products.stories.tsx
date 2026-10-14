@@ -640,7 +640,7 @@ const ProductPage: React.FC = () => {
           {pos.description && <span className="block truncate text-xs text-muted-foreground">{pos.description}</span>}
         </span>
         <span className="text-xs text-muted-foreground">{pos.format ?? '—'}</span>
-        <span className="tabular-nums text-xs">{pos.dailyCapacity}/day</span>
+        <span className="tabular-nums text-xs">{pos.stores !== undefined ? (product.engine === 'offline-instore' ? `${pos.stores} stores` : `${pos.dailyCapacity} slots · ${pos.stores} stores`) : `${pos.dailyCapacity}/day`}</span>
         <span className="flex items-center gap-2 text-xs">
           <span className="h-1.5 w-12 overflow-hidden rounded-full bg-muted"><span className={cn('block h-full rounded-full', fill >= 0.8 ? 'bg-warning-400' : 'bg-primary')} style={{ width: `${Math.round(fill * 100)}%` }} /></span>
           <span className="tabular-nums">{Math.round(fill * 100)}%</span>
@@ -691,9 +691,7 @@ const ProductPage: React.FC = () => {
                   <div className="mt-6 space-y-4">
                     <div className="flex items-start justify-between gap-4">
                       <p className="max-w-2xl text-sm text-muted-foreground">
-                        {placements.length
-                          ? 'The product groups its positions into placements; the ad server fills the positions. Click a position to see its price.'
-                          : 'This proposition puts positions straight under the product. Add a placement to group them.'}
+                        Media product → placement → position, as on every proposition: the placement is where it runs (a page, a store area, a partner), the position the slot that is booked. Click a position to see its price.
                       </p>
                       <span className="flex shrink-0 gap-2">
                         <Button variant="outline" className="gap-1.5" onClick={openPlacementDialog}><Layers className="h-4 w-4" />Add placement</Button>
@@ -748,7 +746,7 @@ const ProductPage: React.FC = () => {
                         <CardContent className="grid gap-2 text-sm">
                           <div className="flex justify-between"><span className="text-muted-foreground">Basis</span><span>{BASIS_LABEL[basis]}</span></div>
                           <div className="flex justify-between"><span className="text-muted-foreground">List price</span><span className="tabular-nums">{product.listPrice !== undefined ? formatPrice(product.listPrice, basis) : '—'}</span></div>
-                          {product.floorPrice !== undefined && <div className="flex justify-between"><span className="text-muted-foreground">Auction floor</span><span className="tabular-nums">{formatPrice(product.floorPrice, 'cpc')} CPC</span></div>}
+                          {product.floorPrice !== undefined && <div className="flex justify-between"><span className="text-muted-foreground">Auction floor</span><span className="tabular-nums">{formatPrice(product.floorPrice, basis)} {BASIS_LABEL[basis]}</span></div>}
                           <div className="flex justify-between"><span className="text-muted-foreground">Buying models</span><span className="capitalize">{(product.buyingModels ?? []).join(', ') || '—'}</span></div>
                           <div className="flex justify-between"><span className="text-muted-foreground">Price locked for</span><span>{product.holdDays ?? 5} days</span></div>
                           <div className="flex justify-between"><span className="text-muted-foreground">Priced for</span>
@@ -897,22 +895,24 @@ const ProductPage: React.FC = () => {
                 <div className="grid gap-1.5"><Label>Format</Label><Input value={newFormat} onChange={(e) => setNewFormat(e.target.value)} placeholder="970×250" /></div>
                 <div className="grid gap-1.5"><Label>Daily capacity</Label><Input type="number" value={newCapacity} onChange={(e) => setNewCapacity(Number(e.target.value))} /></div>
               </div>
-              {placements.length > 0 && (
-                <div className="grid gap-1.5">
-                  <Label>Placement</Label>
-                  <Select value={positionDialog.placementId ?? 'none'} onValueChange={(v) => setPositionDialog({ open: true, placementId: v === 'none' ? undefined : v })}>
+              {/* Every position sits in a placement: product → placement → position. */}
+              <div className="grid gap-1.5">
+                <Label>Placement</Label>
+                {placements.length > 0 ? (
+                  <Select value={positionDialog.placementId ?? placements[0].id} onValueChange={(v) => setPositionDialog({ open: true, placementId: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Not in a placement</SelectItem>
                       {placements.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                </div>
-              )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">Add a placement first — every position sits in one.</p>
+                )}
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setPositionDialog({ open: false })}>Cancel</Button>
-              <Button disabled={!newName.trim()} onClick={() => { createPosition({ mediaProductId: product.id, placementId: positionDialog.placementId, name: newName.trim(), description: newDesc.trim() || undefined, format: newFormat.trim() || undefined, dailyCapacity: newCapacity }); setPositionDialog({ open: false }); }}>Add position</Button>
+              <Button disabled={!newName.trim() || placements.length === 0} onClick={() => { createPosition({ mediaProductId: product.id, placementId: positionDialog.placementId ?? placements[0].id, name: newName.trim(), description: newDesc.trim() || undefined, format: newFormat.trim() || undefined, dailyCapacity: newCapacity }); setPositionDialog({ open: false }); }}>Add position</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

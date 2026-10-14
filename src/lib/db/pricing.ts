@@ -92,10 +92,11 @@ export function rulesForProduct(db: DbData, product: MediaProduct): PricingRule[
 export function priceFor(db: DbData, target: MediaProduct | Position, ctx: PriceContext = {}): PriceBuildUp | undefined {
   const product = 'engine' in target ? target : db.mediaProducts.find((p) => p.id === target.mediaProductId);
   if (!product || !product.pricingBasis) return undefined;
-  // Positions inherit the product's rate card: one price per product is
-  // what the retailer sells, and what a booking locks.
-  const listPrice = product.listPrice ?? 0;
-  const floorPrice = product.floorPrice;
+  // A position inherits the product's rate card unless the retailer prices
+  // it apart (AH: the app homepage costs more than the web one).
+  const position = 'engine' in target ? undefined : target;
+  const listPrice = position?.listPrice ?? product.listPrice ?? 0;
+  const floorPrice = position?.floorPrice ?? product.floorPrice;
   const steps: PriceStep[] = [];
   let price = listPrice;
   for (const rule of rulesForProduct(db, product)) {

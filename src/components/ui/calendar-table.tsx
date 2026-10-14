@@ -37,6 +37,9 @@ export interface Booking {
 export interface Position {
   id: string;
   name: string;
+  /** The placement it sits in (page, store area, partner). Consecutive
+   *  positions of one placement are grouped under its name. */
+  placement?: string;
   availability: CalendarCellValue[];
   /** See MediaProduct.storeCapacity. */
   storeCapacity?: number;
@@ -211,6 +214,8 @@ const formatBookingBadge = (
 export interface MediaProduct {
   id: string;
   name: string;
+  /** As Position.placement, when the row stands for a position. */
+  placement?: string;
   availability: CalendarCellValue[];
   bookings?: Booking[];
   isHighlighted?: boolean[];
@@ -977,10 +982,26 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
               </tr>
 
               {/* Expanded positions (ad positions / screens under the channel) — capped at maxInlinePositions */}
-              {expandedRows.includes(product.id) && product.positions && product.positions.slice(0, maxInlinePositions).map((position) => (
-                <tr key={`pos-${position.id}`} className="bg-muted/50">
+              {expandedRows.includes(product.id) && product.positions && product.positions.slice(0, maxInlinePositions).map((position, positionIndex, shown) => (
+                <React.Fragment key={`pos-${position.id}`}>
+                {/* Media product → placement → position: a placement heads
+                    its positions, once, where the group starts. */}
+                {position.placement && position.placement !== shown[positionIndex - 1]?.placement && (
+                  <tr className="bg-muted/50">
+                    <td
+                      colSpan={weeks + 1}
+                      className="pl-8 pr-4 pt-3 pb-1 text-xs font-medium text-muted-foreground"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+                        {position.placement}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                <tr className="bg-muted/50">
                   <td
-                    className="py-[11px] align-middle pl-8 pr-4"
+                    className={cn('py-[11px] align-middle pr-4', position.placement ? 'pl-14' : 'pl-8')}
                     style={{ width: zonesColumnWidth, maxWidth: zonesColumnWidth }}
                   >
                     {/* CornerDownRight indent + truncate so long position names
@@ -998,6 +1019,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                     renderAvailabilityCell(value, i, { ...product, id: position.id, name: position.name, availability: position.availability, positions: undefined }, undefined, position)
                   )}
                 </tr>
+                </React.Fragment>
               ))}
 
               {/* "+N more positions" row — appears when the channel has more

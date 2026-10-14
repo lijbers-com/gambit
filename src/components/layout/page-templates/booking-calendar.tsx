@@ -131,7 +131,15 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
 
   const products = db.mediaProducts.filter((m) => m.engine === engine && m.status !== 'archived');
   const singleProduct = products.length === 1;
-  const positionsOfProduct = (p: MediaProduct) => db.positions.filter((x) => x.mediaProductId === p.id);
+  // Media product → placement → position: positions run in their
+  // placement's order, so each placement reads as one group.
+  const placementOrder = (id: string) => db.placements.findIndex((x) => x.id === id);
+  const placementName = (id: string) => db.placements.find((x) => x.id === id)?.name;
+  const positionsOfProduct = (p: MediaProduct) => db.positions
+    .filter((x) => x.mediaProductId === p.id)
+    .map((x, i) => ({ x, i }))
+    .sort((a, b) => placementOrder(a.x.placementId) - placementOrder(b.x.placementId) || a.i - b.i)
+    .map(({ x }) => x);
   const allPositions = products.flatMap(positionsOfProduct);
 
   // ── State ─────────────────────────────────────────────────────────────
@@ -234,6 +242,7 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
     return {
       id: pos.id,
       name: pos.name,
+      placement: placementName(pos.placementId),
       availability: weeks.map((w, i) => cellFor(w, stores[i])),
       capacity: weeks.map((w) => w.capacity),
       ...(config.storeBased ? { availableStores: stores, storeCapacity: Math.round((pos.stores ?? 0) * storeShare) } : {}),
@@ -332,7 +341,7 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
 
   // ── Filters ───────────────────────────────────────────────────────────
   const productOptions = singleProduct
-    ? allPositions.map((p) => ({ label: p.name, value: p.id, description: p.format }))
+    ? allPositions.map((p) => ({ label: p.name, value: p.id, description: [placementName(p.placementId), p.format].filter(Boolean).join(' · ') }))
     : products.map((p) => ({ label: p.name, value: p.id, description: p.description }));
   const maxStores = Math.max(10, ...allPositions.map((p) => p.stores ?? 0));
   const filters: FilterBarFilter[] = [

@@ -33,6 +33,7 @@ import { AddButton } from '@/components/ui/add-button';
 import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
 import { openCampaignWizard, openMediaPlanWizard } from '@/lib/create-entities';
 import { prototypeToday } from '@/lib/clock';
+import { productForBooking } from '@/lib/db/guaranteed';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Campaign Overview',
@@ -518,7 +519,12 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       // Its bookings buy the same way, so only the campaign says it.
                       { key: 'buyingType', header: 'Type', render: row => (row._type === 'campaign' ? <BuyingTypeLabel type={row.buyingType} /> : null) },
                       { key: 'advertiser', header: 'Advertiser' },
-                      ...(engineType === 'offsite' ? [{ key: 'platform', header: 'Platform', render: () => 'Epsilon' }] : []),
+                      ...(engineType === 'offsite' ? [{ key: 'platform', header: 'Platform', render: (row: { _type?: string; id: string }) => {
+                        // The partners behind the campaign's bookings — DPG Media, Marktplaats, Google (DV360).
+                        if (row._type !== 'campaign') return null;
+                        const partners = new Set(db.bookings.filter((b) => b.campaignId === row.id).map((b) => productForBooking(db, b)?.partner).filter(Boolean));
+                        return partners.size ? [...partners].join(', ') : '—';
+                      } }] : []),
                       { key: 'products', header: 'Retail products', render: row => {
                         if (row._type === 'booking') return null;
                         const maxShow = 3;

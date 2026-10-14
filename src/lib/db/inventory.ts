@@ -18,7 +18,7 @@
  */
 
 import type { Booking, DbData, EngineId, GoalMetric, MediaProduct, Position, PricingRule } from './types';
-import { buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
+import { bookingListPrice, buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
 import { PROTOTYPE_TODAY } from '../clock';
 
 /** The prototype's today (lib/clock) — calendars open on it. */
@@ -91,6 +91,9 @@ const UNITS_PER_SLOT_DAY: Partial<Record<EngineId, number>> = {
   offsite: 900,
   'sponsored-products': 12,
 };
+/** Clicks per impression assumed where clicks are bought on an impressions
+ *  proposition, until the partner reports it. */
+const CLICK_THROUGH_RATE = 0.01;
 /** Digital in-store: impressions one loop slot earns in one store in a week. */
 const IMPRESSIONS_PER_STORE_SLOT_WEEK = 24;
 
@@ -122,11 +125,14 @@ export function loadStateOf(booking: Booking): LoadState | null {
 export function bookingVolume(db: DbData, booking: Booking): number {
   if (booking.goal) return booking.goal.amount;
   const product = productForBooking(db, booking);
-  const price = product?.listPrice;
+  const price = bookingListPrice(db, booking);
   if (!product || !price) return 0;
   switch (product.pricingBasis) {
     case 'cpm': return (booking.budget / price) * 1000;
     case 'cpc':
+      // Clicks bought on a proposition counted in impressions (offsite
+      // Demand Gen): the impressions it takes to earn them.
+      return product.engine !== 'sponsored-products' ? booking.budget / price / CLICK_THROUGH_RATE : booking.budget / price;
     case 'per-store':
     case 'per-day': return booking.budget / price;
     default: return booking.budget / price;

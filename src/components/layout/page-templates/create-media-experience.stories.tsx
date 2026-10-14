@@ -322,26 +322,27 @@ const retailProducts = [
  */
 const assistedBookings: Record<string, { name: string; positionId: string; detail: string }[]> = {
   display: [
-    { name: 'Homepage top banner', positionId: 'pos-dsp-home-top', detail: 'Homepage · above the fold' },
-    { name: 'Category top banner', positionId: 'pos-dsp-cat-top', detail: 'Category pages · above the grid' },
-    { name: 'PDP banner', positionId: 'pos-dsp-pdp', detail: 'Product pages · high intent' },
+    { name: 'Homepage banner', positionId: 'pos-dsp-home-top', detail: 'Homepage · ah.nl homepage' },
+    { name: 'Bonus Booster', positionId: 'pos-dsp-bonus-booster', detail: 'Bonus · ah.nl Bonus page' },
+    { name: 'Allerhande Koken banner', positionId: 'pos-dsp-ah-app', detail: 'Allerhande · Allerhande Koken (app)' },
   ],
   'sponsored-products': [
-    { name: 'Brand keywords', positionId: 'pos-sp-search', detail: 'Search · your own brand terms' },
-    { name: 'Category keywords', positionId: 'pos-sp-search', detail: 'Search · generic category terms' },
-    { name: 'Competitor keywords', positionId: 'pos-sp-search', detail: 'Search · competitor brand terms' },
+    // AH: keywords the product is found on organically, never a competitor's brand.
+    { name: 'Brand keywords', positionId: 'pos-sp-search', detail: 'Sponsored Products · search · your own brand terms' },
+    { name: 'Category keywords', positionId: 'pos-sp-search', detail: 'Sponsored Products · search · generic category terms' },
+    { name: 'Category pages', positionId: 'pos-sp-category', detail: 'Sponsored Products · category pages' },
   ],
   'digital-instore': [
-    { name: 'Entrance screens', positionId: 'pos-dis-entrance', detail: 'In-store screens · store entrance' },
-    { name: 'Aisle screens', positionId: 'pos-dis-aisle', detail: 'In-store screens · category aisle' },
+    { name: 'Entrance screens', positionId: 'pos-dis-entrance', detail: 'In-store screens · entrance' },
+    { name: 'Checkout screens', positionId: 'pos-dis-checkout', detail: 'In-store screens · checkout' },
   ],
   'offline-instore': [
-    { name: 'Shelf displays', positionId: 'pos-ois-shelf', detail: 'Printed materials · at the shelf' },
-    { name: 'Floor stickers', positionId: 'pos-ois-floor', detail: 'Printed materials · aisle floor' },
+    { name: 'Wobblers', positionId: 'pos-ois-shelf', detail: 'In-store POS · ambient aisles' },
+    { name: 'VSB', positionId: 'pos-ois-endcap', detail: 'In-store POS · ambient aisles' },
   ],
   offsite: [
-    { name: 'Open web display', positionId: 'pos-off-web-standard', detail: 'Display · Epsilon' },
-    { name: 'Social — Meta', positionId: 'pos-off-soc-meta', detail: 'Social Media · Meta' },
+    { name: 'IAB standard · DPG', positionId: 'pos-off-web-standard', detail: 'Open web display · DPG Media' },
+    { name: 'Efficient reach', positionId: 'pos-off-yt-reach', detail: 'YouTube · skippable + bumper' },
   ],
 };
 

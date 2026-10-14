@@ -638,7 +638,7 @@ export const Display: Story = {
     const displayCurrentPositions = displayMediaProduct[0]
       ? dbDisplay.positions
           .filter((p) => p.mediaProductId === displayMediaProduct[0])
-          .map((p) => ({ value: p.id, label: p.name, format: p.format, description: `${p.dailyCapacity} per day` }))
+          .map((p) => ({ value: p.id, label: p.name, format: p.format, description: dbOffsite.placements.find((x) => x.id === p.placementId)?.name ?? '' }))
       : [];
     const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
     const [positionSearch, setPositionSearch] = React.useState('');
@@ -4615,11 +4615,10 @@ export const OffsiteDisplay: Story = {
     const [selectedDevices, setSelectedDevices] = React.useState<string[]>([]);
     const [selectedGeos, setSelectedGeos] = React.useState<string[]>([]);
 
-    // Offsite channels + positions come from the prototype database: the
-    // channel (Display, OLV, CTV, Contextual Commerce Media, Social Media,
-    // DOOH) groups positions — and for Social Media the positions ARE the
-    // platforms (Meta, TikTok, Pinterest, YouTube). The executing platform
-    // shows alongside, under the same name the campaign table uses.
+    // Offsite media products and positions come from the prototype database
+    // (AH: open web display on DPG Media and Marktplaats, YouTube and Demand
+    // Gen through DV360). The executing partner shows alongside, under the
+    // same name the campaign table uses.
     const dbOffsite = useDb();
     const offsiteMediaProducts = dbOffsite.mediaProducts
       .filter((m) => m.engine === 'offsite')
@@ -4631,7 +4630,7 @@ export const OffsiteDisplay: Story = {
     const currentPositions = mediaProduct[0]
       ? dbOffsite.positions
           .filter((p) => p.mediaProductId === mediaProduct[0])
-          .map((p) => ({ value: p.id, label: p.name, format: p.format, description: `${p.dailyCapacity} per day` }))
+          .map((p) => ({ value: p.id, label: p.name, format: p.format, description: dbOffsite.placements.find((x) => x.id === p.placementId)?.name ?? '' }))
       : [];
 
     const retailProducts = [

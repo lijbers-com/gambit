@@ -247,15 +247,6 @@ export interface MetricDefinition {
   description?: string;
 }
 
-// ── Channels, positions & availability ─────────────────────────────────
-//
-// Every engine offers inventory the same way: a CHANNEL (also called media
-// product or platform — one name to be settled later) groups POSITIONS, and a
-// position is the smallest bookable unit. Offsite illustrates the model best:
-// channels like Display, Online Video, CTV, Contextual Commerce Media, Social
-// Media and Digital Out Of Home — where for Social Media the positions are the
-// platforms themselves (Meta, TikTok, Pinterest, YouTube).
-
 // ── Media products, placements, positions ──────────────────────────────
 //
 // What the retailer sells. A media product is the sellable thing — composed
@@ -276,7 +267,7 @@ export interface MediaProduct {
   engine: EngineId;
   name: string;
   description?: string;
-  /** Executing partner behind this channel (e.g. Epsilon, Chicory, Vistar). */
+  /** Executing partner behind the product (e.g. DPG Media, Google (DV360)). */
   partner?: string;
   status?: MediaProductStatus;
   /** How it can be bought; a product can offer both. */
@@ -362,8 +353,9 @@ export interface InventoryHold {
 export interface Position {
   id: string;
   mediaProductId: string;
-  /** The placement it sits in, where the proposition groups positions. */
-  placementId?: string;
+  /** The placement it sits in — a page, a store area, a partner. Every
+   *  position has one: media product → placement → position, everywhere. */
+  placementId: string;
   name: string;
   description?: string;
   /** Bookable slots per day (capacity model kept deliberately simple). */
@@ -373,9 +365,9 @@ export interface Position {
   /** In-store only: the stores that carry this fixture or screen — what the
    *  in-store calendars count availability in (see inventory.ts). */
   stores?: number;
-  /** Auction: the lowest bid the position accepts, € CPM. */
+  /** Where the retailer prices the position apart from its product: the
+   *  lowest auction bid and the list price, in the product's basis. */
   floorPrice?: number;
-  /** Guaranteed: the fixed price of a day on the position, €. */
   listPrice?: number;
 }
 

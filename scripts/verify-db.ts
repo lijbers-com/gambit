@@ -134,6 +134,23 @@ for (const p of d.positions) {
 }
 ok('in-store positions carry their store counts');
 
+// One hierarchy on every proposition: media product → placement → position.
+for (const engine of ['display', 'sponsored-products', 'digital-instore', 'offline-instore', 'offsite'] as const) {
+  const products = d.mediaProducts.filter((m) => m.engine === engine);
+  if (!products.length) fail(`${engine} has no media products`);
+  for (const m of products) {
+    if (!d.placements.some((p) => p.mediaProductId === m.id)) fail(`${m.id} has no placements`);
+  }
+}
+for (const p of d.positions) {
+  const placement = d.placements.find((x) => x.id === p.placementId);
+  if (!placement) fail(`${p.id} sits in no placement`);
+  else if (placement.mediaProductId !== p.mediaProductId) fail(`${p.id} sits in a placement of another product`);
+}
+for (const b of d.bookings) for (const id of b.positionIds) if (!d.positions.some((p) => p.id === id)) fail(`${b.id} books unknown position ${id}`);
+for (const h of d.inventoryHolds) if (!d.positions.some((p) => p.id === h.positionId)) fail(`${h.id} holds unknown position ${h.positionId}`);
+ok('every position sits in a placement of its own product; bookings and holds point at real positions');
+
 // ── 4. Derived to-do engine ────────────────────────────────────────────
 console.log('\n4. Derived to-do engine');
 

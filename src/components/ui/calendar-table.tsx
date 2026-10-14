@@ -293,6 +293,8 @@ export interface CalendarTableProps {
   /** Bookings shown under an open row — one line each, earliest first —
    *  before the rest fold into a "+N more bookings" row. Default 6. */
   maxBookingLanes?: number;
+  /** Heading of the name column. Default "Placements". */
+  nameColumnLabel?: string;
 }
 
 /** What a row knows beyond its cells: the stores bar's length and the
@@ -330,6 +332,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   storeTarget,
   defaultExpandedIds,
   maxBookingLanes = 6,
+  nameColumnLabel = 'Placements',
   onChannelClick,
   onBookingClick,
   maxInlinePositions = 5,
@@ -757,7 +760,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
               className="h-14 px-4 py-3 text-left font-normal text-foreground tracking-wide whitespace-nowrap bg-[var(--brand-page-bg-hex)]"
               style={{ width: zonesColumnWidth, minWidth: zonesColumnWidth }}
             >
-              Media products
+              {nameColumnLabel}
             </th>
             {weekNumbers.map(week => (
               <th

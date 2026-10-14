@@ -18,6 +18,7 @@ import { deriveTasks, derivePlanHealth } from '../src/lib/db/tasks';
 import { deriveMessages } from '../src/lib/db/messages';
 import { FAQ_SURFACES, faqsFor, canManageFaq } from '../src/lib/db/faq';
 import { PROTOTYPE_TODAY } from '../src/lib/clock';
+import { engineOfPosition } from '../src/lib/db/hierarchy';
 
 let failures = 0;
 const fail = (msg: string) => {
@@ -66,8 +67,10 @@ for (const u of d.users) {
 ok(`users → advertisers (${d.users.length} users)`);
 
 for (const m of d.mediaProducts) if (!engineIds.has(m.engine)) fail(`${m.id}: unknown engine ${m.engine}`);
-for (const p of d.positions) if (!mediaProductIds.has(p.mediaProductId)) fail(`${p.id}: unknown media product ${p.mediaProductId}`);
-ok(`media products → engines; positions → products`);
+for (const m of d.mediaProducts) for (const id of m.positionIds) if (!positionIds.has(id)) fail(`${m.id}: unknown position ${id}`);
+for (const m of d.mediaProducts) if (!m.positionIds.length) fail(`${m.id}: an empty package`);
+for (const b of d.bookings) if (b.mediaProductId && !mediaProductIds.has(b.mediaProductId)) fail(`${b.id}: unknown media product ${b.mediaProductId}`);
+ok(`media products → engines and their positions`);
 
 for (const m of d.metricDefinitions) {
   if (m.engine !== 'all' && !engineIds.has(m.engine)) fail(`metric ${m.key}: unknown engine ${m.engine}`);
@@ -105,9 +108,9 @@ for (const c of d.campaigns) {
     // Booking positions must belong to the campaign's engine.
     for (const posId of b.positionIds) {
       const pos = d.positions.find((p) => p.id === posId)!;
-      const product = d.mediaProducts.find((m) => m.id === pos.mediaProductId)!;
-      if (product.engine !== c.engine)
-        fail(`${b.id}: position ${posId} belongs to engine ${product.engine}, campaign is ${c.engine}`);
+      const engine = engineOfPosition(d, pos);
+      if (engine !== c.engine)
+        fail(`${b.id}: position ${posId} belongs to engine ${engine}, campaign is ${c.engine}`);
     }
   }
 }
@@ -130,27 +133,29 @@ for (const e of d.engines) {
 }
 
 for (const p of d.positions) {
-  const engine = d.mediaProducts.find((m) => m.id === p.mediaProductId)?.engine;
+  const engine = engineOfPosition(d, p);
   if ((engine === 'offline-instore' || engine === 'digital-instore') && !p.stores) fail(`${p.id}: in-store position without a store count`);
 }
 ok('in-store positions carry their store counts');
 
-// One hierarchy on every proposition: media product → placement → position.
+// One inventory on every proposition: placement group → placement → position;
+// media products are packages of those positions, within their proposition.
 for (const engine of ['display', 'sponsored-products', 'digital-instore', 'offline-instore', 'offsite'] as const) {
-  const products = d.mediaProducts.filter((m) => m.engine === engine);
-  if (!products.length) fail(`${engine} has no media products`);
-  for (const m of products) {
-    if (!d.placements.some((p) => p.mediaProductId === m.id)) fail(`${m.id} has no placements`);
-  }
+  const groups = d.placementGroups.filter((g) => g.engine === engine);
+  if (!groups.length) fail(`${engine} has no placement groups`);
+  for (const g of groups) if (!d.placements.some((p) => p.groupId === g.id)) fail(`${g.id} has no placements`);
+  if (!d.mediaProducts.some((m) => m.engine === engine)) fail(`${engine} has no media products`);
 }
-for (const p of d.positions) {
-  const placement = d.placements.find((x) => x.id === p.placementId);
-  if (!placement) fail(`${p.id} sits in no placement`);
-  else if (placement.mediaProductId !== p.mediaProductId) fail(`${p.id} sits in a placement of another product`);
+for (const pl of d.placements) if (!d.placementGroups.some((g) => g.id === pl.groupId)) fail(`${pl.id} sits in no placement group`);
+for (const p of d.positions) if (!d.placements.some((x) => x.id === p.placementId)) fail(`${p.id} sits in no placement`);
+for (const m of d.mediaProducts) for (const id of m.positionIds) {
+  const pos = d.positions.find((p) => p.id === id);
+  if (pos && engineOfPosition(d, pos) !== m.engine) fail(`${m.id} packages ${id} from another proposition`);
 }
+for (const p of d.positions) if (!d.mediaProducts.some((m) => m.positionIds.includes(p.id))) console.log(`  ⚠ ${p.id} is in no media product`);
 for (const b of d.bookings) for (const id of b.positionIds) if (!d.positions.some((p) => p.id === id)) fail(`${b.id} books unknown position ${id}`);
 for (const h of d.inventoryHolds) if (!d.positions.some((p) => p.id === h.positionId)) fail(`${h.id} holds unknown position ${h.positionId}`);
-ok('every position sits in a placement of its own product; bookings and holds point at real positions');
+ok('placement groups → placements → positions; products package their own proposition; bookings and holds point at real positions');
 
 // The seed reads as of the prototype's today: nothing runs past its end.
 for (const e of [...d.mediaPlans, ...d.campaigns, ...d.bookings]) {

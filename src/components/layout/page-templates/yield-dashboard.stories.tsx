@@ -42,6 +42,11 @@ import {
   type PerformanceScope,
   type Totals,
 } from '@/lib/db/performance';
+import { groupOf, productsOfPosition } from '@/lib/db/hierarchy';
+import { placementsOf, positionsOf } from '@/lib/db/pricing';
+
+/** Whether a media product's package reaches into a placement. */
+const inProduct = (db: DbData, placementId: string, productId: string) => positionsOf(db, productId, placementId).length > 0;
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Yield Dashboard',
@@ -284,7 +289,8 @@ function buildYieldModel(db: DbData, from: string, to: string): YieldModel {
   const mondays = mondaysBetween(from, to);
   const positions: PositionYield[] = [];
   for (const position of db.positions) {
-    const product = db.mediaProducts.find((m) => m.id === position.mediaProductId);
+    // The rate-card line a position is sold in first — its own product.
+    const product = productsOfPosition(db, position.id)[0];
     if (!product) continue;
     const weeks = mondays.map((m) => positionWeek(db, position, m));
     positions.push({
@@ -425,7 +431,7 @@ const PRICE_GROUP: Record<PricingRule['kind'], PriceGroup> = {
  *  rules read the fill; early-booking reads how far ahead the period starts.
  *  Volume deals depend on a booking's budget, so they do not show here. */
 function priceAnatomy(db: DbData, target: MediaProduct | Position, model: YieldModel, fill: number) {
-  const build = priceFor(db, target, {
+  const build = priceFor(db, 'engine' in target ? target : productsOfPosition(db, target.id)[0], {
     from: model.from,
     to: model.to,
     fillRate: fill,
@@ -655,13 +661,13 @@ export const YieldDashboard: Story = {
     // The filters narrow the hierarchy: proposition → media product → placement.
     const engine = engineFilter && engineFilter !== 'all' ? (engineFilter as EngineId) : undefined;
     const product = db.mediaProducts.find((m) => m.id === retailMediaProductFilter && (!engine || m.engine === engine));
-    const placement = db.placements.find((p) => p.id === adSpaceFilter && (product ? p.mediaProductId === product.id : !engine || db.mediaProducts.find((m) => m.id === p.mediaProductId)?.engine === engine));
+    const placement = db.placements.find((p) => p.id === adSpaceFilter && (product ? inProduct(db, p.id, product.id) : !engine || groupOf(db, p)?.engine === engine));
     const filter: YieldFilter = { engine, productId: product?.id, placementId: placement?.id };
     const channel = channelFilter && channelFilter !== 'all' ? (channelFilter as Channel) : undefined;
     const inScope = useMemo(() => scopedPositions(model, filter), [model, filter.engine, filter.productId, filter.placementId]);
 
     const productOptions = db.mediaProducts.filter((m) => !engine || m.engine === engine);
-    const placementOptions = db.placements.filter((p) => (product ? p.mediaProductId === product.id : productOptions.some((m) => m.id === p.mediaProductId)));
+    const placementOptions = db.placements.filter((p) => (product ? inProduct(db, p.id, product.id) : productOptions.some((m) => inProduct(db, p.id, m.id))));
 
     // Get filtered data based on current filter selections
     const filteredFillRateMetrics = fillRateCards(inScope, engine);
@@ -745,7 +751,7 @@ export const YieldDashboard: Story = {
                     options={[
                       { label: 'All Placements', value: 'all' },
                       ...placementOptions.map((p) => ({
-                        label: product ? p.name : `${db.mediaProducts.find((m) => m.id === p.mediaProductId)?.name ?? ''} · ${p.name}`,
+                        label: product ? p.name : `${groupOf(db, p)?.name ?? ''} · ${p.name}`,
                         value: p.id,
                       })),
                     ]}
@@ -1645,7 +1651,7 @@ function buildYieldReports(db: DbData, model: YieldModel) {
   const productKeys = (m: MediaProduct, channels: Channel[]): Omit<ReportKeys, 'id'> => ({
     _engine: m.engine,
     _productId: m.id,
-    _placementIds: db.placements.filter((pl) => pl.mediaProductId === m.id).map((pl) => pl.id),
+    _placementIds: placementsOf(db, m.id).map((pl) => pl.id),
     _channels: channels,
   });
 
@@ -1811,8 +1817,8 @@ export const YieldReportView: Story = {
       .filter((m) => !engineFilter.length || engineFilter.includes(m.engine))
       .map((m) => ({ label: m.name, value: m.id }));
     const adSpaceOptions = db.placements
-      .filter((pl) => retailMediaProductOptions.some((o) => o.value === pl.mediaProductId) && (!retailMediaProductFilter.length || retailMediaProductFilter.includes(pl.mediaProductId)))
-      .map((pl) => ({ label: `${db.mediaProducts.find((m) => m.id === pl.mediaProductId)?.name ?? ''} · ${pl.name}`, value: pl.id }));
+      .filter((pl) => retailMediaProductOptions.some((o) => inProduct(db, pl.id, o.value)) && (!retailMediaProductFilter.length || retailMediaProductFilter.some((id) => inProduct(db, pl.id, id))))
+      .map((pl) => ({ label: `${groupOf(db, pl)?.name ?? ''} · ${pl.name}`, value: pl.id }));
 
     const fallback = defaultFrame();
     const { from, to } = rangeOf(dateRange, fallback);

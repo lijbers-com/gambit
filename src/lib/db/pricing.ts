@@ -88,15 +88,12 @@ export function rulesForProduct(db: DbData, product: MediaProduct): PricingRule[
     .sort((a, b) => a.priority - b.priority);
 }
 
-/** The price of a product — or of one of its positions, which inherits the product's card. */
-export function priceFor(db: DbData, target: MediaProduct | Position, ctx: PriceContext = {}): PriceBuildUp | undefined {
-  const product = 'engine' in target ? target : db.mediaProducts.find((p) => p.id === target.mediaProductId);
+/** The price of a media product: its rate card with the rules that apply.
+ *  Positions carry no price of their own — what is sold is the product. */
+export function priceFor(db: DbData, product: MediaProduct | undefined, ctx: PriceContext = {}): PriceBuildUp | undefined {
   if (!product || !product.pricingBasis) return undefined;
-  // A position inherits the product's rate card unless the retailer prices
-  // it apart (AH: the app homepage costs more than the web one).
-  const position = 'engine' in target ? undefined : target;
-  const listPrice = position?.listPrice ?? product.listPrice ?? 0;
-  const floorPrice = position?.floorPrice ?? product.floorPrice;
+  const listPrice = product.listPrice ?? 0;
+  const floorPrice = product.floorPrice;
   const steps: PriceStep[] = [];
   let price = listPrice;
   for (const rule of rulesForProduct(db, product)) {
@@ -155,16 +152,20 @@ export const ENGINE_LABEL: Record<EngineId, string> = {
   offsite: 'Offsite',
 };
 
-export function placementsOf(db: DbData, productId: string) {
-  return db.placements.filter((p) => p.mediaProductId === productId);
+/** The positions a product's package runs on — within one placement when given. */
+export function positionsOf(db: DbData, productId: string, placementId?: string | null) {
+  const ids = new Set(db.mediaProducts.find((m) => m.id === productId)?.positionIds ?? []);
+  return db.positions.filter((p) => ids.has(p.id) && (placementId == null || p.placementId === placementId));
 }
 
-export function positionsOf(db: DbData, productId: string, placementId?: string | null) {
-  return db.positions.filter((p) => p.mediaProductId === productId && (placementId === undefined ? true : (p.placementId ?? null) === placementId));
+/** The placements a product's package reaches into. */
+export function placementsOf(db: DbData, productId: string) {
+  const ids = new Set(positionsOf(db, productId).map((p) => p.placementId));
+  return db.placements.filter((p) => ids.has(p.id));
 }
 
 export function holdsFor(db: DbData, filter: { productId?: string; positionId?: string; bookingId?: string }): InventoryHold[] {
-  const positionIds = filter.productId ? new Set(db.positions.filter((p) => p.mediaProductId === filter.productId).map((p) => p.id)) : undefined;
+  const positionIds = filter.productId ? new Set(db.mediaProducts.find((m) => m.id === filter.productId)?.positionIds ?? []) : undefined;
   return db.inventoryHolds.filter((h) =>
     (!filter.positionId || h.positionId === filter.positionId)
     && (!filter.bookingId || h.bookingId === filter.bookingId)

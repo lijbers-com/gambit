@@ -1,5 +1,6 @@
-import type { Booking, Campaign, DbData, EngineId, MediaPlan } from './types';
+import type { Booking, Campaign, DbData, EngineId, MediaPlan, Position } from './types';
 import { mondaysBetween, positionWeek, weeklyCapacity } from './inventory';
+import { engineOfPosition } from './hierarchy';
 import { PROTOTYPE_TODAY } from '../clock';
 
 /**
@@ -68,28 +69,30 @@ export function withMarketDemand(db: DbData): DbData {
   let campaignN = 200;
   let bookingN = 300;
 
-  // What a flight books: one position — or, in store, a whole placement:
+  // What a flight runs on: one position — or, in store, a whole placement:
   // AH sells a screen group's players as one package (a take-over is its
   // three screens), and in-store POS as a combination of the formats at a
-  // shelf (VSB + wobbler).
-  const units = db.positions.flatMap((position) => {
-    const engine = db.mediaProducts.find((m) => m.id === position.mediaProductId)?.engine;
-    if (engine !== 'digital-instore' && engine !== 'offline-instore') return [{ position, positions: [position] }];
+  // shelf (VSB + wobbler). Each flight buys a media product (a package)
+  // that covers its unit, at that product's price.
+  const units = db.positions.flatMap((position): { position: Position; positions: Position[]; engine: EngineId }[] => {
+    const engine = engineOfPosition(db, position);
+    if (!engine) return [];
+    if (engine !== 'digital-instore' && engine !== 'offline-instore') return [{ position, positions: [position], engine }];
     const group = db.positions.filter((p) => p.placementId === position.placementId);
-    return group[0].id === position.id ? [{ position, positions: group }] : [];
+    return group[0].id === position.id ? [{ position, positions: group, engine }] : [];
   });
 
-  for (const { position, positions: unitPositions } of units) {
-    const product = db.mediaProducts.find((m) => m.id === position.mediaProductId);
-    if (!product || product.status === 'archived' || product.status === 'draft') continue;
-    const engine = product.engine;
-    const price = position.listPrice ?? product.listPrice;
-    if (!price) continue;
+  for (const { position, positions: unitAll, engine } of units) {
+    const candidates = db.mediaProducts.filter((m) => m.status !== 'archived' && m.status !== 'draft' && m.listPrice && unitAll.some((p) => m.positionIds.includes(p.id)));
+    if (!candidates.length) continue;
     const r = rng(position.id);
-    const capacity = unitPositions.reduce((n, p) => n + weeklyCapacity(db, p), 0);
     let cursor = addDays(YEAR_FROM, Math.floor(r() * 3) * 7);
 
     while (cursor < YEAR_TO) {
+      const product = candidates[Math.floor(r() * candidates.length)];
+      const price = product.listPrice!;
+      const unitPositions = unitAll.filter((p) => product.positionIds.includes(p.id));
+      const capacity = unitPositions.reduce((n, p) => n + weeklyCapacity(db, p), 0);
       const weeks = 8 + Math.floor(r() * 6);          // 8–13 week flights
       const start = cursor;
       const end = addDays(start, weeks * 7 - 1);
@@ -162,8 +165,8 @@ export function withMarketDemand(db: DbData): DbData {
       }
       bookingN += 1;
       bookings.push({
-        id: `B-${bookingN}`, campaignId: campaign.id, name: `${unitPositions.length > 1 ? db.placements.find((x) => x.id === position.placementId)?.name ?? position.name : position.name} — ${pick.brand}`,
-        status, budget, spend, startDate: start, endDate: end, positionIds: unitPositions.map((p) => p.id),
+        id: `B-${bookingN}`, campaignId: campaign.id, name: `${product.name} — ${pick.brand}`,
+        status, budget, spend, startDate: start, endDate: end, positionIds: unitPositions.map((p) => p.id), mediaProductId: product.id,
         creativeStatus: 'approved', ...(approvedAt ? { approvedAt } : {}),
         createdAt: now, updatedAt: now,
       });

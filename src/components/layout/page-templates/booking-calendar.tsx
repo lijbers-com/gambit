@@ -43,7 +43,7 @@ import {
 import { Table } from '@/components/ui/table';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
-import { useDb, type Booking, type EngineId, type MediaProduct, type Position, type PlanStatus } from '@/lib/db';
+import { useDb, groupsOf, positionsOfGroup, type Booking, type EngineId, type Position, type PlanStatus } from '@/lib/db';
 import {
   STORE_TYPES,
   bookingStoresOn,
@@ -52,7 +52,7 @@ import {
   loadStateOf,
   mondaysBetween,
   positionWeek,
-  productWeek,
+  positionsWeek,
   retailMomentsFor,
   storeShareOf,
   storesFree,
@@ -130,18 +130,20 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
   const { theme: storybookTheme } = useStorybookTheme();
   const routes = getRoutesForTheme(storybookTheme || 'retailMedia');
 
+  // The inventory, three levels deep: placement group → placement →
+  // position. Media products are packages of positions — the Media product
+  // filter narrows the grid to what a package can run on.
   const products = db.mediaProducts.filter((m) => m.engine === engine && m.status !== 'archived');
-  const singleProduct = products.length === 1;
-  // Media product → placement → position: positions run in their
-  // placement's order, so each placement reads as one group.
+  const groups = groupsOf(db, engine);
   const placementOrder = (id: string) => db.placements.findIndex((x) => x.id === id);
   const placementName = (id: string) => db.placements.find((x) => x.id === id)?.name;
-  const positionsOfProduct = (p: MediaProduct) => db.positions
-    .filter((x) => x.mediaProductId === p.id)
+  const positionsOfGroupSorted = (groupId: string) => positionsOfGroup(db, groupId)
     .map((x, i) => ({ x, i }))
     .sort((a, b) => placementOrder(a.x.placementId) - placementOrder(b.x.placementId) || a.i - b.i)
     .map(({ x }) => x);
-  const allPositions = products.flatMap(positionsOfProduct);
+  const allPositions = groups.flatMap((g) => positionsOfGroupSorted(g.id));
+  // One group (sponsored products) opens on its placements straight away.
+  const singleGroup = groups.length === 1;
 
   // ── State ─────────────────────────────────────────────────────────────
   const [activeView, setActiveView] = useState<ViewKey>(config.defaultView);
@@ -189,11 +191,13 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
   const activeTarget = config.storeBased && Number.isFinite(target) && target > 0 ? target : undefined;
 
   // ── Rows ──────────────────────────────────────────────────────────────
-  // Media product filter: the products, or — where a proposition sells one
-  // product — the positions inside it (the formats, the screens).
-  const visibleProducts = products.filter((p) => singleProduct || !selected.length || selected.includes(p.id));
-  const visiblePositions = (p: MediaProduct) =>
-    positionsOfProduct(p).filter((x) => !singleProduct || !selected.length || selected.includes(x.id));
+  // Media product filter: with packages picked, only the positions they
+  // can run on stay in the grid.
+  const inPackages = selected.length
+    ? new Set(products.filter((p) => selected.includes(p.id)).flatMap((p) => p.positionIds))
+    : undefined;
+  const visiblePositions = (groupId: string) => positionsOfGroupSorted(groupId).filter((x) => !inPackages || inPackages.has(x.id));
+  const visibleGroups = groups.filter((g) => visiblePositions(g.id).length > 0);
 
   const bookingsFor = (positions: Position[]): CalendarBooking[] => {
     const ids = new Set(positions.map((p) => p.id));
@@ -252,49 +256,45 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
     };
   };
 
-  const rows: CalendarRow[] = useMemo(() => visibleProducts.map((product) => {
-    const positions = visiblePositions(product);
+  const rows: CalendarRow[] = useMemo(() => visibleGroups.map((group) => {
+    const positions = visiblePositions(group.id);
     const posRows = positions.map(positionRow);
-    const weeks = mondays.map((m) => productWeek(db, product, m, inventoryOpts, positions.map((p) => p.id)));
-    // In stores, a product row is either the booking you are composing —
-    // with formats picked, the stores free for every one of them (the
+    const weeks = mondays.map((m) => positionsWeek(db, positions, m, inventoryOpts));
+    // In stores, a row is either the booking you are composing — with a
+    // package picked, the stores free for every one of its positions (the
     // fewest), checked against the target — or, with none picked, the
-    // total across its formats, which is what its fill rate counts.
-    const combo = singleProduct && selected.length > 0 && posRows.length > 0;
-    const stores = mondays.map((_, i) => combo
-      ? Math.min(...posRows.map((r) => r.stores[i]))
-      : posRows.reduce((sum, r) => sum + r.stores[i], 0));
-    const storeCapacity = combo
-      ? Math.min(...posRows.map((r) => r.storeCapacity ?? 0))
-      : posRows.reduce((sum, r) => sum + (r.storeCapacity ?? 0), 0);
-    // Placements: the level between the product and its positions, each a
+    // total across its positions, which is what its fill rate counts.
+    const combo = selected.length > 0 && posRows.length > 0;
+    const sumOrMin = (list: typeof posRows, i: number) => combo ? Math.min(...list.map((r) => r.stores[i])) : list.reduce((sum, r) => sum + r.stores[i], 0);
+    const capOf = (list: typeof posRows) => combo ? Math.min(...list.map((r) => r.storeCapacity ?? 0)) : list.reduce((sum, r) => sum + (r.storeCapacity ?? 0), 0);
+    const stores = mondays.map((_, i) => sumOrMin(posRows, i));
+    // Placements: the level between the group and its positions, each a
     // row of its own summed (or, while composing, combined) the same way.
     const placementRows = [...new Set(positions.map((p) => p.placementId))].map((placementId) => {
       const own = posRows.filter((r) => positions.find((p) => p.id === r.id)?.placementId === placementId);
-      const ids = own.map((r) => r.id);
-      const pWeeks = mondays.map((m) => productWeek(db, product, m, inventoryOpts, ids));
-      const pStores = mondays.map((_, i) => combo ? Math.min(...own.map((r) => r.stores[i])) : own.reduce((sum, r) => sum + r.stores[i], 0));
-      const pCapacity = combo ? Math.min(...own.map((r) => r.storeCapacity ?? 0)) : own.reduce((sum, r) => sum + (r.storeCapacity ?? 0), 0);
+      const pWeeks = mondays.map((m) => positionsWeek(db, positions.filter((p) => p.placementId === placementId), m, inventoryOpts));
+      const pStores = mondays.map((_, i) => sumOrMin(own, i));
       return {
         id: placementId,
         name: placementName(placementId) ?? placementId,
         availability: pWeeks.map((w, i) => cellFor(w, pStores[i])),
         capacity: pWeeks.map((w) => w.capacity),
-        ...(config.storeBased ? { storeCapacity: pCapacity, ...(combo ? { availableStores: pStores } : { skipTargetCheck: true }) } : {}),
+        ...(config.storeBased ? { storeCapacity: capOf(own), ...(combo ? { availableStores: pStores } : { skipTargetCheck: true }) } : {}),
         positions: own,
       };
     });
     return {
-      id: product.id,
-      name: product.name,
+      id: group.id,
+      name: group.name,
       placements: placementRows,
       availability: weeks.map((w, i) => cellFor(w, stores[i])),
       capacity: weeks.map((w) => w.capacity),
-      ...(config.storeBased ? { storeCapacity, ...(combo ? { availableStores: stores } : { skipTargetCheck: true }) } : {}),
+      ...(config.storeBased ? { storeCapacity: capOf(posRows), ...(combo ? { availableStores: stores } : { skipTargetCheck: true }) } : {}),
       positions: posRows,
       bookings: bookingsFor(positions),
     };
   }).filter((r) => !search.trim() || r.name.toLowerCase().includes(search.trim().toLowerCase())
+    || r.placements?.some((p) => p.name.toLowerCase().includes(search.trim().toLowerCase()))
     || r.positions?.some((p) => p.name.toLowerCase().includes(search.trim().toLowerCase()))),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [db, engine, activeView, mondays.join(), storeShare, selected.join(), statuses.join(), retailProducts.join(), search]);
@@ -315,20 +315,16 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
   const openCell = (row: CalendarRow, weekNumber: number) => {
     const i = weekNumbers.indexOf(weekNumber);
     if (i < 0) return;
-    const product = products.find((p) => p.id === row.id);
+    // The positions under the row: a group's, a placement's, or the one.
+    const group = groups.find((g) => g.id === row.id);
     const placement = db.placements.find((p) => p.id === row.id);
     const position = db.positions.find((p) => p.id === row.id);
-    const placementProduct = placement && products.find((p) => p.id === placement.mediaProductId);
-    const week = product
-      ? productWeek(db, product, mondays[i], inventoryOpts, visiblePositions(product).map((p) => p.id))
-      : placement && placementProduct
-        ? productWeek(db, placementProduct, mondays[i], inventoryOpts, visiblePositions(placementProduct).filter((p) => p.placementId === placement.id).map((p) => p.id))
-        : position ? positionWeek(db, position, mondays[i], inventoryOpts) : undefined;
-    if (!week) return;
-    // Stores free: the row's own figure, else the sum over its positions.
-    const under = product ? visiblePositions(product)
-      : placement && placementProduct ? visiblePositions(placementProduct).filter((p) => p.placementId === placement.id)
+    const under = group ? visiblePositions(group.id)
+      : placement ? visiblePositions(placement.groupId).filter((p) => p.placementId === placement.id)
         : position ? [position] : [];
+    if (!under.length) return;
+    const week = positionsWeek(db, under, mondays[i], inventoryOpts);
+    // Stores free: the row's own figure, else the sum over its positions.
     const stores = row.availableStores?.[i]
       ?? (config.storeBased ? under.reduce((n, p) => n + storesFree(db, p, positionWeek(db, p, mondays[i], inventoryOpts), storeShare), 0) : undefined);
     setCell({ name: row.name, monday: mondays[i], week, stores, storeCapacity: row.storeCapacity });
@@ -369,9 +365,8 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
   }) : [];
 
   // ── Filters ───────────────────────────────────────────────────────────
-  const productOptions = singleProduct
-    ? allPositions.map((p) => ({ label: p.name, value: p.id, description: [placementName(p.placementId), p.format].filter(Boolean).join(' · ') }))
-    : products.map((p) => ({ label: p.name, value: p.id, description: p.description }));
+  // The packages the retailer sells here; picking one keeps its positions.
+  const productOptions = products.map((p) => ({ label: p.name, value: p.id, description: `${p.positionIds.length} position${p.positionIds.length === 1 ? '' : 's'} · ${p.description ?? ''}` }));
   const maxStores = Math.max(10, ...allPositions.map((p) => p.stores ?? 0));
   const filters: FilterBarFilter[] = [
     ...(config.statusFilter ? [{ name: 'Status', options: STATUS_OPTIONS, selectedValues: statuses, onChange: setStatuses }] : []),
@@ -381,7 +376,6 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
       selectedValues: selected,
       onChange: setSelected,
       forceSearch: productOptions.length > 8,
-      ...(config.quantities && singleProduct ? { quantities, onQuantitiesChange: setQuantities } : {}),
     },
     ...(config.storeBased ? [{
       name: 'Stores',
@@ -487,11 +481,12 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
               label: config.title,
               content: (
                 <CalendarTable
-                  key={singleProduct ? 'single' : 'multi'}
+                  key={singleGroup ? 'single' : 'multi'}
                   mediaProducts={rows}
+                  nameColumnLabel="Placements"
                   {...commonProps}
-                  defaultExpandedIds={singleProduct ? rows.map((r) => r.id) : undefined}
-                  onChannelClick={singleProduct ? undefined : (p) => { setFocusedId(p.id); setActiveTab(p.id); }}
+                  defaultExpandedIds={singleGroup ? rows.map((r) => r.id) : undefined}
+                  onChannelClick={singleGroup ? undefined : (p) => { setFocusedId(p.id); setActiveTab(p.id); }}
                 />
               ),
             },

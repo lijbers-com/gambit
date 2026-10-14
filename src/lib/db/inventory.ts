@@ -20,6 +20,7 @@
 import type { Booking, DbData, EngineId, GoalMetric, MediaProduct, Position, PricingRule } from './types';
 import { bookingListPrice, buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
 import { PROTOTYPE_TODAY } from '../clock';
+import { engineOfPosition } from './hierarchy';
 
 /** The prototype's today (lib/clock) — calendars open on it. */
 export { PROTOTYPE_TODAY };
@@ -97,9 +98,7 @@ const CLICK_THROUGH_RATE = 0.01;
 /** Digital in-store: impressions one loop slot earns in one store in a week. */
 const IMPRESSIONS_PER_STORE_SLOT_WEEK = 24;
 
-export function engineOfPosition(db: DbData, position: Position): EngineId | undefined {
-  return db.mediaProducts.find((m) => m.id === position.mediaProductId)?.engine;
-}
+export { engineOfPosition };
 
 /** What a position can hold in one week, in its proposition's unit. */
 export function weeklyCapacity(db: DbData, position: Position): number {
@@ -236,9 +235,13 @@ function finish(w: InventoryWeek): InventoryWeek {
   return w;
 }
 
-/** A media product's week: its positions added up. */
+/** A media product's week: the positions of its package added up. */
 export function productWeek(db: DbData, product: MediaProduct, monday: string, opts: WeekOptions = {}, positionIds?: string[]): InventoryWeek {
-  const positions = db.positions.filter((p) => p.mediaProductId === product.id && (!positionIds || positionIds.includes(p.id)));
+  return positionsWeek(db, db.positions.filter((p) => product.positionIds.includes(p.id) && (!positionIds || positionIds.includes(p.id))), monday, opts);
+}
+
+/** Any set of positions' week added up — a placement, a placement group. */
+export function positionsWeek(db: DbData, positions: Position[], monday: string, opts: WeekOptions = {}): InventoryWeek {
   const weeks = positions.map((p) => positionWeek(db, p, monday, opts));
   const w: InventoryWeek = {
     monday, capacity: 0, booked: 0, confirmed: 0, reserved: 0, used: 0, available: 0, overbooked: 0, fill: 0,

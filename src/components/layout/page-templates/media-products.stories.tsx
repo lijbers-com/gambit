@@ -29,6 +29,9 @@ import {
 import type { DateRange } from 'react-day-picker';
 import { ArrowRight, Boxes, ChevronDown, ChevronRight, Layers, Lock, Plus, Tag } from 'lucide-react';
 import { PROTOTYPE_TODAY, prototypeNow } from '@/lib/clock';
+import { groupOf, groupsOf, placementsOfGroup, positionsOfPlacement } from '@/lib/db/hierarchy';
+import { Checkbox } from '@/components/ui/checkbox';
+import { productForBooking } from '@/lib/db/guaranteed';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Media Products',
@@ -200,7 +203,7 @@ const RuleDialog: React.FC<{ open: boolean; onClose: () => void; rule?: PricingR
 // ── Shared: the media product dialog ────────────────────────────────────
 
 const ProductDialog: React.FC<{ open: boolean; onClose: () => void; product?: MediaProduct; onCreated?: (id: string) => void }> = ({ open, onClose, product, onCreated }) => {
-  const blank = (): Omit<MediaProduct, 'id'> => ({ engine: 'display', name: '', description: '', status: 'draft', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 10, floorPrice: undefined, holdDays: 5, constraints: [], owner: 'Yield Manager' });
+  const blank = (): Omit<MediaProduct, 'id'> => ({ engine: 'display', name: '', description: '', status: 'draft', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 10, floorPrice: undefined, holdDays: 5, constraints: [], owner: 'Yield Manager', positionIds: [] });
   const [draft, setDraft] = useState<Omit<MediaProduct, 'id'>>(blank);
   const [constraintText, setConstraintText] = useState('');
   React.useEffect(() => {
@@ -313,7 +316,7 @@ const PriceBuildUpCard: React.FC<{ product: MediaProduct; position?: Position; c
   const to = range?.to ? range.to.toISOString().slice(0, 10) : from;
   const daysAhead = from ? Math.max(0, Math.round((new Date(from).getTime() - today.getTime()) / 86400000)) : undefined;
   const fillRate = position ? fillRateFor(db, position, from, to) : undefined;
-  const build = priceFor(db, position ?? product, { from, to, daysAhead, budget, fillRate });
+  const build = priceFor(db, product, { from, to, daysAhead, budget, fillRate });
   const allRules = rulesForProduct(db, product);
   if (!build) return null;
   return (
@@ -406,8 +409,8 @@ const OverviewPage: React.FC = () => {
   ).sort((a, b) => a.priority - b.priority);
   const holds = db.inventoryHolds.map((h) => {
     const position = db.positions.find((p) => p.id === h.positionId);
-    const product = position && db.mediaProducts.find((m) => m.id === position.mediaProductId);
     const booking = db.bookings.find((b) => b.id === h.bookingId);
+    const product = booking && productForBooking(db, booking);
     return { ...h, effective: effectiveHoldStatus(h), position, product, booking };
   }).filter((h) => engineFilter.length === 0 || (h.product && engineFilter.includes(h.product.engine)));
 
@@ -597,8 +600,8 @@ const ProductPage: React.FC = () => {
   const [tab, setTab] = useState('structure');
   const [editOpen, setEditOpen] = useState(false);
   const [ruleDialog, setRuleDialog] = useState<{ open: boolean; rule?: PricingRule }>({ open: false });
-  const [placementDialog, setPlacementDialog] = useState(false);
-  const [positionDialog, setPositionDialog] = useState<{ open: boolean; placementId?: string }>({ open: false });
+  const [packageDialog, setPackageDialog] = useState(false);
+  const [packageDraft, setPackageDraft] = useState<string[]>([]);
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [newName, setNewName] = useState('');
@@ -621,13 +624,15 @@ const ProductPage: React.FC = () => {
 
   const toggle = (id: string) => setCollapsed((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
-  const openPositionDialog = (placementId?: string) => { setNewName(''); setNewDesc(''); setNewCapacity(4); setNewFormat(''); setPositionDialog({ open: true, placementId }); };
-  const openPlacementDialog = () => { setNewName(''); setNewDesc(''); setPlacementDialog(true); };
+  // The package is picked from the proposition's inventory: placement group
+  // → placement → position. Positions are created with the inventory, not here.
+  const openPackageDialog = () => { setPackageDraft(product.positionIds); setPackageDialog(true); };
+  const inventory = groupsOf(db, product.engine).map((g) => ({ group: g, placements: placementsOfGroup(db, g.id).map((pl) => ({ placement: pl, positions: positionsOfPlacement(db, pl.id) })) }));
 
   const positionRow = (pos: Position, nested: boolean) => {
     const fill = fillRateFor(db, pos);
     const held = holds.filter((h) => h.positionId === pos.id && h.effective === 'held').length;
-    const build = priceFor(db, pos, {});
+    const build = priceFor(db, product, {});
     return (
       <button
         key={pos.id}
@@ -691,11 +696,10 @@ const ProductPage: React.FC = () => {
                   <div className="mt-6 space-y-4">
                     <div className="flex items-start justify-between gap-4">
                       <p className="max-w-2xl text-sm text-muted-foreground">
-                        Media product → placement → position, as on every proposition: the placement is where it runs (a page, a store area, a partner), the position the slot that is booked. Click a position to see its price.
+                        The package: the positions a booking of this product can run on, from the proposition's inventory (placement group › placement › position). Click a position to see its price.
                       </p>
                       <span className="flex shrink-0 gap-2">
-                        <Button variant="outline" className="gap-1.5" onClick={openPlacementDialog}><Layers className="h-4 w-4" />Add placement</Button>
-                        <Button className="gap-1.5" onClick={() => openPositionDialog(undefined)}><Plus className="h-4 w-4" />Add position</Button>
+                        <Button className="gap-1.5" onClick={openPackageDialog}><Layers className="h-4 w-4" />Edit positions</Button>
                       </span>
                     </div>
                     <div className="rounded-lg border border-border">
@@ -713,10 +717,10 @@ const ProductPage: React.FC = () => {
                                   {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                 </button>
                                 <Boxes className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm font-medium">{plc.name}</span>
+                                <span className="text-sm font-medium">{[groupOf(db, plc)?.name, plc.name].filter(Boolean).join(' › ')}</span>
                                 {plc.description && <span className="text-xs text-muted-foreground">— {plc.description}</span>}
                                 <Badge variant="secondary" className="ml-1">{kids.length}</Badge>
-                                <Button size="sm" variant="ghost" className="ml-auto h-7 gap-1 text-xs" onClick={() => openPositionDialog(plc.id)}><Plus className="h-3 w-3" />Position</Button>
+
                               </div>
                               {open && kids.map((pos) => positionRow(pos, true))}
                             </div>
@@ -871,48 +875,37 @@ const ProductPage: React.FC = () => {
         <ProductDialog open={editOpen} product={product} onClose={() => setEditOpen(false)} />
         <RuleDialog open={ruleDialog.open} rule={ruleDialog.rule} engine={product.engine} productId={ruleDialog.rule ? undefined : product.id} onClose={() => setRuleDialog({ open: false })} />
 
-        <Dialog open={placementDialog} onOpenChange={(o) => !o && setPlacementDialog(false)}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>New placement</DialogTitle><DialogDescription>A group of positions inside {product.name}.</DialogDescription></DialogHeader>
-            <div className="grid gap-row">
-              <div className="grid gap-1.5"><Label>Name</Label><Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Above the fold" /></div>
-              <div className="grid gap-1.5"><Label>Description</Label><Input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} /></div>
+        <Dialog open={packageDialog} onOpenChange={(o) => !o && setPackageDialog(false)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Positions in {product.name}</DialogTitle>
+              <DialogDescription>The package: which positions a booking of this product can run on. The inventory itself — placement groups, placements, positions — is set up per proposition.</DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+              {inventory.map(({ group, placements: pls }) => (
+                <div key={group.id} className="space-y-2">
+                  <div className="text-sm font-medium">{group.name}</div>
+                  {pls.map(({ placement, positions: ps }) => (
+                    <div key={placement.id} className="ml-3 space-y-1">
+                      <div className="text-xs font-medium text-muted-foreground">{placement.name}</div>
+                      {ps.map((pos) => (
+                        <label key={pos.id} className="ml-3 flex cursor-pointer items-center gap-2 text-sm">
+                          <Checkbox
+                            checked={packageDraft.includes(pos.id)}
+                            onCheckedChange={(v) => setPackageDraft((d) => v ? [...d, pos.id] : d.filter((x) => x !== pos.id))}
+                          />
+                          <span>{pos.name}</span>
+                          {pos.format && <span className="text-xs text-muted-foreground">{pos.format}</span>}
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setPlacementDialog(false)}>Cancel</Button>
-              <Button disabled={!newName.trim()} onClick={() => { createPlacement({ mediaProductId: product.id, name: newName.trim(), description: newDesc.trim() || undefined }); setPlacementDialog(false); }}>Add placement</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={positionDialog.open} onOpenChange={(o) => !o && setPositionDialog({ open: false })}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>New position</DialogTitle><DialogDescription>A slot the ad server fills{positionDialog.placementId ? ` in ${placements.find((p) => p.id === positionDialog.placementId)?.name}` : ''}. It inherits the product&apos;s rate card unless priced on its own.</DialogDescription></DialogHeader>
-            <div className="grid gap-row">
-              <div className="grid gap-1.5"><Label>Name</Label><Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Hero banner" /></div>
-              <div className="grid gap-1.5"><Label>Description</Label><Input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-row">
-                <div className="grid gap-1.5"><Label>Format</Label><Input value={newFormat} onChange={(e) => setNewFormat(e.target.value)} placeholder="970×250" /></div>
-                <div className="grid gap-1.5"><Label>Daily capacity</Label><Input type="number" value={newCapacity} onChange={(e) => setNewCapacity(Number(e.target.value))} /></div>
-              </div>
-              {/* Every position sits in a placement: product → placement → position. */}
-              <div className="grid gap-1.5">
-                <Label>Placement</Label>
-                {placements.length > 0 ? (
-                  <Select value={positionDialog.placementId ?? placements[0].id} onValueChange={(v) => setPositionDialog({ open: true, placementId: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {placements.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Add a placement first — every position sits in one.</p>
-                )}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setPositionDialog({ open: false })}>Cancel</Button>
-              <Button disabled={!newName.trim() || placements.length === 0} onClick={() => { createPosition({ mediaProductId: product.id, placementId: positionDialog.placementId ?? placements[0].id, name: newName.trim(), description: newDesc.trim() || undefined, format: newFormat.trim() || undefined, dailyCapacity: newCapacity }); setPositionDialog({ open: false }); }}>Add position</Button>
+              <Button variant="outline" onClick={() => setPackageDialog(false)}>Cancel</Button>
+              <Button disabled={packageDraft.length === 0} onClick={() => { updateMediaProduct(product.id, { positionIds: packageDraft }); setPackageDialog(false); }}>Save package</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

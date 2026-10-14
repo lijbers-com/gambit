@@ -71,25 +71,19 @@ export function productForBooking(db: DbData, booking: Booking): MediaProduct | 
   // The product chosen in the booking's form wins.
   const chosen = booking.mediaProductId && db.mediaProducts.find((m) => m.id === booking.mediaProductId);
   if (chosen) return chosen;
-  const position = booking.positionIds.map((id) => db.positions.find((p) => p.id === id)).find(Boolean);
-  const fromPosition = position && db.mediaProducts.find((m) => m.id === position.mediaProductId);
-  if (fromPosition) return fromPosition;
+  // Else the first package that holds all its positions, then any that holds one.
+  const ids = booking.positionIds;
+  const holdsAll = ids.length ? db.mediaProducts.find((m) => ids.every((id) => m.positionIds.includes(id))) : undefined;
+  if (holdsAll) return holdsAll;
+  const holdsOne = db.mediaProducts.find((m) => ids.some((id) => m.positionIds.includes(id)));
+  if (holdsOne) return holdsOne;
   const campaign = db.campaigns.find((c) => c.id === booking.campaignId);
   return db.mediaProducts.find((m) => m.engine === campaign?.engine && m.status !== 'archived' && (m.buyingModels ?? []).includes('guaranteed'));
 }
 
-/** The list price a booking's positions carry, before pricing rules: the
- *  mean over its positions in the product (each its own price, else the
- *  product's), else the product's own. */
+/** The list price a booking pays before pricing rules: its product's. */
 export function bookingListPrice(db: DbData, booking: Booking): number | undefined {
-  const product = productForBooking(db, booking);
-  if (!product) return undefined;
-  const prices = booking.positionIds
-    .map((id) => db.positions.find((p) => p.id === id))
-    .filter((p): p is NonNullable<typeof p> => !!p && p.mediaProductId === product.id)
-    .map((p) => p.listPrice ?? product.listPrice)
-    .filter((n): n is number => n !== undefined);
-  return prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : product.listPrice;
+  return productForBooking(db, booking)?.listPrice;
 }
 
 /** How many priced units a goal is: thousands of impressions for a CPM,
@@ -130,8 +124,7 @@ export function listPriceFor(db: DbData, booking: Booking, now = prototypeNow())
   if (!product) return undefined;
   const position = booking.positionIds.map((id) => db.positions.find((p) => p.id === id)).find(Boolean);
   const daysAhead = Math.max(0, Math.round((new Date(booking.startDate).getTime() - now.getTime()) / 86400000));
-  // Priced from the position when it sits in the product — it may carry its own rate.
-  return priceFor(db, position && position.mediaProductId === product.id ? position : product, {
+  return priceFor(db, product, {
     from: booking.startDate, to: booking.endDate, daysAhead, budget: booking.budget,
     fillRate: position ? fillRateFor(db, position, booking.startDate, booking.endDate) : undefined,
   });

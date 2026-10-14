@@ -18,6 +18,7 @@ import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 
 import { CONFIGURATION_RULES as configurationRulesData } from '@/lib/configuration-rules';
+import { BASIS_LABEL } from '@/lib/db/pricing';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Engine Configuration',
@@ -168,11 +169,11 @@ const createEngineConfigurationStories = (
     const listings = db.listings.filter((l) => l.engine === engine);
     const allowed = listings.filter((l) => l.kind === 'allow');
     const blocked = listings.filter((l) => l.kind === 'block');
-    // What its positions cost: a floor for auctions, a list price when guaranteed.
-    const engineProductIds = new Set(db.mediaProducts.filter((m) => m.engine === engine).map((m) => m.id));
-    const pricedPositions = db.positions
-      .filter((pos) => engineProductIds.has(pos.mediaProductId))
-      .map((pos) => ({ ...pos, product: db.mediaProducts.find((m) => m.id === pos.mediaProductId)?.name ?? '' }));
+    // What it sells and at what price: its media products (packages of
+    // positions), each a list price and, when sold at auction, a floor.
+    const pricedPositions = db.mediaProducts
+      .filter((m) => m.engine === engine && m.status !== 'archived')
+      .map((m) => ({ ...m, positions: m.positionIds.length, basis: m.pricingBasis ? BASIS_LABEL[m.pricingBasis] : '' }));
     const hasAuction = ['sponsored-products', 'display', 'digital-instore'].includes(engine);
     const settingsHref = (tab: string) => `/configuration/${engineType}/settings?tab=${tab}`;
     // The dashboard's rows: steps per stage, and users per organisation
@@ -338,14 +339,14 @@ const createEngineConfigurationStories = (
                 <CardContent className="flex h-full flex-col p-5">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
                     <Tag className="h-5 w-5 text-primary" />
-                    Position pricing
+                    Media product pricing
                   </h3>
                   <div className="mt-4">
                     <Table
                       columns={[
-                        { key: 'name', header: 'Position', className: 'font-medium' },
-                        ...(hasAuction ? [{ key: 'floorPrice', header: 'Floor', render: (pos: typeof pricedPositions[number]) => `€${pos.floorPrice?.toFixed(2)}` }] : []),
-                        { key: 'listPrice', header: 'List', render: (pos) => `€${pos.listPrice?.toLocaleString()}` },
+                        { key: 'name', header: 'Media product', className: 'font-medium' },
+                        ...(hasAuction ? [{ key: 'floorPrice', header: 'Floor', render: (pos: typeof pricedPositions[number]) => pos.floorPrice !== undefined ? `€${pos.floorPrice.toFixed(2)}` : '—' }] : []),
+                        { key: 'listPrice', header: 'List', render: (pos) => pos.listPrice !== undefined ? `€${pos.listPrice.toLocaleString()} ${pos.basis}` : '—' },
                       ]}
                       data={pricedPositions.slice(0, 5)}
                       rowKey={(pos) => pos.id}
@@ -574,12 +575,11 @@ const createEngineConfigurationStories = (
                   <div className="mt-6">
                     <Table
                       columns={[
-                        { key: 'name', header: 'Position' },
-                        { key: 'product', header: 'Media product' },
-                        { key: 'format', header: 'Format', render: (row) => row.format ?? '—' },
-                        { key: 'dailyCapacity', header: 'Slots / day' },
-                        ...(hasAuction ? [{ key: 'floorPrice', header: 'Floor price (auction, CPM)', render: (row: typeof pricedPositions[number]) => `€${row.floorPrice?.toFixed(2)}` }] : []),
-                        { key: 'listPrice', header: 'List price (guaranteed, per day)', render: (row) => `€${row.listPrice?.toLocaleString()}` },
+                        { key: 'name', header: 'Media product' },
+                        { key: 'positions', header: 'Positions' },
+                        { key: 'basis', header: 'Basis' },
+                        ...(hasAuction ? [{ key: 'floorPrice', header: 'Floor price (auction)', render: (row: typeof pricedPositions[number]) => row.floorPrice !== undefined ? `€${row.floorPrice.toFixed(2)}` : '—' }] : []),
+                        { key: 'listPrice', header: 'List price', render: (row) => row.listPrice !== undefined ? `€${row.listPrice.toLocaleString()}` : '—' },
                       ]}
                       data={pricedPositions}
                       rowKey={(row) => row.id}

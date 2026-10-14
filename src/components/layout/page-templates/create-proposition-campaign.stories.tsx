@@ -706,7 +706,7 @@ const PropositionWizard = ({
         id: mp.id,
         name: mp.name,
         priceLine: productPriceLine(mp, sellsGoal ? 'guaranteed' : 'auction'),
-        positions: db.positions.filter((p) => p.mediaProductId === mp.id),
+        positions: db.positions.filter((p) => mp.positionIds.includes(p.id)),
       }))
       .filter((ch) => ch.positions.length > 0);
   }, [db, propositionType, sellsGoal]);

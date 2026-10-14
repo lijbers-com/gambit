@@ -639,7 +639,7 @@ export const Display: Story = {
       .map((m) => ({ value: m.id, label: m.name, description: m.description ?? '' }));
     const displayCurrentPositions = displayMediaProduct[0]
       ? dbDisplay.positions
-          .filter((p) => p.mediaProductId === displayMediaProduct[0])
+          .filter((p) => dbDisplay.mediaProducts.find((m) => m.id === displayMediaProduct[0])?.positionIds.includes(p.id))
           .map((p) => ({ value: p.id, label: p.name, format: p.format, description: dbDisplay.placements.find((x) => x.id === p.placementId)?.name ?? '' }))
       : [];
     const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
@@ -4631,7 +4631,7 @@ export const OffsiteDisplay: Story = {
       }));
     const currentPositions = mediaProduct[0]
       ? dbOffsite.positions
-          .filter((p) => p.mediaProductId === mediaProduct[0])
+          .filter((p) => dbOffsite.mediaProducts.find((m) => m.id === mediaProduct[0])?.positionIds.includes(p.id))
           .map((p) => ({ value: p.id, label: p.name, format: p.format, description: dbOffsite.placements.find((x) => x.id === p.placementId)?.name ?? '' }))
       : [];
 

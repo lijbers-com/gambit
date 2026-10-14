@@ -171,9 +171,9 @@ function holdInventory(db: DbData, booking: Booking) {
   const daysAhead = Math.max(0, Math.round((new Date(booking.startDate).getTime() - prototypeNow().getTime()) / 86400000));
   for (const positionId of booking.positionIds) {
     const position = db.positions.find((p) => p.id === positionId);
-    const product = position && db.mediaProducts.find((m) => m.id === position.mediaProductId);
+    const product = productForBooking(db, booking);
     if (!position || !product) continue;
-    const build = priceFor(db, position, { from: booking.startDate, to: booking.endDate, daysAhead, budget: booking.budget, fillRate: fillRateFor(db, position, booking.startDate, booking.endDate) });
+    const build = priceFor(db, product, { from: booking.startDate, to: booking.endDate, daysAhead, budget: booking.budget, fillRate: fillRateFor(db, position, booking.startDate, booking.endDate) });
     const heldAt = prototypeNow();
     const expiresAt = new Date(heldAt.getTime() + (product.holdDays ?? 5) * 86400000);
     db.inventoryHolds.push({
@@ -183,7 +183,7 @@ function holdInventory(db: DbData, booking: Booking) {
       from: booking.startDate,
       to: booking.endDate,
       units: 1,
-      priceLocked: build?.price ?? position.listPrice ?? product.listPrice ?? 0,
+      priceLocked: build?.price ?? product.listPrice ?? 0,
       heldAt: heldAt.toISOString(),
       expiresAt: expiresAt.toISOString(),
       status: 'held',
@@ -232,7 +232,7 @@ export function quoteBookingPrice(bookingId: string): 'quoted' | 'no-budget' | '
   const view = bookingPrice(db, { ...booking, price: undefined });
   if (view.state !== 'indicative') return 'no-budget';
   const product = productForBooking(db, booking);
-  const positionId = booking.positionIds[0] ?? db.positions.find((p) => p.mediaProductId === product?.id)?.id;
+  const positionId = booking.positionIds[0] ?? product?.positionIds[0];
   const heldAt = prototypeNow();
   const hold: InventoryHold | undefined = positionId ? {
     id: nextId('IH', db.inventoryHolds),

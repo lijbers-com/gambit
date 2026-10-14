@@ -253,13 +253,15 @@ export interface MetricDefinition {
 
 // ── Media products, placements, positions ──────────────────────────────
 //
-// What the retailer sells. A media product is the sellable thing — composed
-// by the retailer (today in AdCRM, from here on in Edge) with its rate card,
-// its buying models and the rules it comes with. Inside it sit placements,
-// and inside those the positions the ad server fills. How deep that goes
-// differs per proposition: display and offsite group positions into
-// placements; sponsored products and the in-store engines put positions
-// straight under the product.
+// Two things, kept apart. The INVENTORY is where ads can run, three levels
+// deep on every proposition: a placement group (a store zone, a page, a
+// store area, a partner) holds placements (a shelf, a page surface, a screen
+// group), and a placement holds the positions the ad server fills (a format
+// at a shelf, a banner slot, a player). A MEDIA PRODUCT is what the retailer
+// sells: a package it composes itself from positions — a rate card line
+// ("Bonus Booster") or a bundle ("VSB + wobbler", "Bereik Booster") — with
+// its rate card, its buying models and its rules. One position can sit in
+// several products.
 
 export type BuyingModel = 'guaranteed' | 'auction';
 /** What the list price is a price of. */
@@ -287,12 +289,24 @@ export interface MediaProduct {
   /** The rules the product comes with: minimum run time, formats, share caps. */
   constraints?: string[];
   owner?: string;
+  /** The package: the positions a booking of this product can run on. */
+  positionIds: string[];
 }
 
-/** A grouping of positions inside a media product — "Above the fold". */
+/** The top inventory level: a store zone (Frozen), a page (Bonus), a store
+ *  area (Checkout), a partner (YouTube). */
+export interface PlacementGroup {
+  id: string;
+  engine: EngineId;
+  name: string;
+  description?: string;
+}
+
+/** The middle inventory level: a shelf (Ice cream), a page surface (ah.nl
+ *  Bonus page), a screen group (In-store take-over). */
 export interface Placement {
   id: string;
-  mediaProductId: string;
+  groupId: string;
   name: string;
   description?: string;
 }
@@ -356,9 +370,8 @@ export interface InventoryHold {
 
 export interface Position {
   id: string;
-  mediaProductId: string;
-  /** The placement it sits in — a page, a store area, a partner. Every
-   *  position has one: media product → placement → position, everywhere. */
+  /** The placement it sits in: placement group → placement → position,
+   *  on every proposition. */
   placementId: string;
   name: string;
   description?: string;
@@ -369,10 +382,6 @@ export interface Position {
   /** In-store only: the stores that carry this fixture or screen — what the
    *  in-store calendars count availability in (see inventory.ts). */
   stores?: number;
-  /** Where the retailer prices the position apart from its product: the
-   *  lowest auction bid and the list price, in the product's basis. */
-  floorPrice?: number;
-  listPrice?: number;
 }
 
 // ── Allow and block lists ───────────────────────────────────────────────
@@ -650,6 +659,7 @@ export interface DbData {
   bookings: Booking[];
   metricDefinitions: MetricDefinition[];
   mediaProducts: MediaProduct[];
+  placementGroups: PlacementGroup[];
   placements: Placement[];
   positions: Position[];
   pricingRules: PricingRule[];

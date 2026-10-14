@@ -22,9 +22,13 @@ export interface FilterBarFilter {
     onChange: (value: string) => void;
     placeholder?: string;
     type?: 'text' | 'number' | 'date';
+    unit?: string;
   };
   /** Force the search field in the popover even when options is small. */
   forceSearch?: boolean;
+  /** Per-option quantity — see Filter. */
+  quantities?: Record<string, number>;
+  onQuantitiesChange?: (quantities: Record<string, number>) => void;
 }
 
 /** A single view option for the FilterBar's view-switcher dropdown. */
@@ -128,6 +132,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onChange={filter.onChange}
             customInput={filter.customInput}
             forceSearch={filter.forceSearch}
+            quantities={filter.quantities}
+            onQuantitiesChange={filter.onQuantitiesChange}
           />
         ))}
       </div>

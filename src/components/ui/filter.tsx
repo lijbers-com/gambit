@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { X, Search, Store, Calendar as CalendarIcon } from 'lucide-react';
+import { X, Search, Store, Calendar as CalendarIcon, Minus, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Popover, PopoverTrigger, PopoverContent } from './popover';
@@ -23,7 +23,14 @@ export interface FilterProps {
     onChange: (value: string) => void;
     placeholder?: string;
     type?: 'text' | 'number' | 'date';
+    /** Shown after the value on the chip, so a set threshold reads as
+     *  "300 stores" without opening the popover. */
+    unit?: string;
   };
+  /** How many of each selected option — a booking asks for "Vloersticker ×2".
+   *  When given, a selected option gets a stepper and the chip reads "×n". */
+  quantities?: Record<string, number>;
+  onQuantitiesChange?: (quantities: Record<string, number>) => void;
   /** Force the search field to render even when the option list is short.
    *  Useful for filters whose option set grows over time (e.g. Channel,
    *  Publisher) and where users expect a search box from the first click. */
@@ -43,6 +50,8 @@ export const Filter: React.FC<FilterProps> = ({
   customInput,
   forceSearch = false,
   keepName = false,
+  quantities,
+  onQuantitiesChange,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -64,23 +73,34 @@ export const Filter: React.FC<FilterProps> = ({
 
   const handleClear = () => {
     if (onChange) onChange([]);
+    if (customInput?.value) customInput.onChange('');
     setOpen(false);
   };
 
-  // Display logic for selected labels
+  const quantityOf = (value: string) => quantities?.[value] ?? 1;
+  const setQuantity = (value: string, next: number) => {
+    if (!onQuantitiesChange) return;
+    onQuantitiesChange({ ...quantities, [value]: Math.min(9, Math.max(1, next)) });
+  };
+
   const selectedLabels = options
     .filter((opt) => selectedValues.includes(opt.value))
-    .map((opt) => opt.label);
-  let displayLabel = name;
-  if (!keepName) {
-    if (selectedLabels.length === 1) {
-      displayLabel = selectedLabels[0];
-    } else if (selectedLabels.length === 2) {
-      displayLabel = `${selectedLabels[0]}, ${selectedLabels[1]}`;
-    } else if (selectedLabels.length > 2) {
-      displayLabel = `${selectedLabels[0]}, ${selectedLabels[1]} + ${selectedLabels.length - 2} more`;
-    }
+    .map((opt) => (quantities ? `${opt.label} ×${quantityOf(opt.value)}` : opt.label));
+  let optionsLabel = '';
+  if (selectedLabels.length === 1) {
+    optionsLabel = selectedLabels[0];
+  } else if (selectedLabels.length === 2) {
+    optionsLabel = `${selectedLabels[0]}, ${selectedLabels[1]}`;
+  } else if (selectedLabels.length > 2) {
+    optionsLabel = `${selectedLabels[0]}, ${selectedLabels[1]} + ${selectedLabels.length - 2} more`;
   }
+  const inputLabel = customInput?.value
+    ? [customInput.value, customInput.unit].filter(Boolean).join(' ')
+    : '';
+  const isActive = selectedLabels.length > 0 || !!inputLabel;
+  const displayLabel = keepName || !isActive
+    ? name
+    : [inputLabel, optionsLabel].filter(Boolean).join(' · ');
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -92,13 +112,13 @@ export const Filter: React.FC<FilterProps> = ({
             'inline-flex items-center gap-2',
             // An active filter is a made choice, so it uses the same surface
             // as every other selected thing in a form rather than a brand tint.
-            selectedLabels.length > 0 && 'border-foreground/20 bg-surface-selected text-foreground',
+            isActive && 'border-foreground/20 bg-surface-selected text-foreground',
             className
           )}
           aria-label={name}
         >
-          <span className="truncate max-w-[220px]">{displayLabel}</span>
-          {selectedValues.length > 0 && !keepName && (
+          <span className="truncate max-w-[260px]">{displayLabel}</span>
+          {isActive && !keepName && (
             <span
               onClick={e => {
                 e.stopPropagation();
@@ -181,7 +201,7 @@ export const Filter: React.FC<FilterProps> = ({
                   tabIndex={-1}
                   className="mt-0.5"
                 />
-                <div className="flex-1 space-y-1">
+                <div className="flex-1 min-w-0 space-y-1">
                   <span className="truncate block">{opt.label}</span>
                   {opt.description && (
                     <span className="text-xs text-muted-foreground block">
@@ -189,6 +209,34 @@ export const Filter: React.FC<FilterProps> = ({
                     </span>
                   )}
                 </div>
+                {quantities && selectedValues.includes(opt.value) && (
+                  // preventDefault keeps a click on the stepper from toggling
+                  // the label's checkbox.
+                  <div
+                    className="flex shrink-0 items-center gap-1"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <button
+                      type="button"
+                      aria-label={`Fewer ${opt.label}`}
+                      disabled={quantityOf(opt.value) <= 1}
+                      onClick={() => setQuantity(opt.value, quantityOf(opt.value) - 1)}
+                      className="flex h-6 w-6 items-center justify-center rounded-md border border-border hover:bg-surface-hover disabled:opacity-40"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </button>
+                    <span className="w-6 text-center text-sm tabular-nums">×{quantityOf(opt.value)}</span>
+                    <button
+                      type="button"
+                      aria-label={`More ${opt.label}`}
+                      disabled={quantityOf(opt.value) >= 9}
+                      onClick={() => setQuantity(opt.value, quantityOf(opt.value) + 1)}
+                      className="flex h-6 w-6 items-center justify-center rounded-md border border-border hover:bg-surface-hover disabled:opacity-40"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
               </label>
             ))
           )}

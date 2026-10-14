@@ -835,6 +835,11 @@ const calendarProducts = [
   { id: 'homepage', name: 'Homepage', availability: [{ booked: 60, reserved: 20, available: 20 }, { booked: 85, reserved: 10, available: 5 }, { booked: 40, available: 60 }, { booked: 95, overbooked: 8 }, { booked: 30, available: 70 }, { booked: 55, reserved: 25, available: 20 }] },
   { id: 'category', name: 'Category pages', availability: [{ booked: 30, available: 70 }, { booked: 45, reserved: 15, available: 40 }, { booked: 70, available: 30 }, { booked: 50, available: 50 }, { booked: 20, available: 80 }, { booked: 35, available: 65 }] },
 ];
+/** Available stores per week for two zones, out of 1,100 stores each. */
+const calendarStoreProducts = [
+  { id: 'zuivel', name: 'Zuivel', storeCapacity: 1100, availability: [612, 551, 497, 444, 398, 291] },
+  { id: 'diepvries', name: 'Diepvries', storeCapacity: 1100, availability: [480, 420, 350, 310, 260, 330] },
+];
 /* ── The registry ───────────────────────────────────────────────────── */
 
 export const previewRegistry: Record<string, PreviewEntry> = {
@@ -1174,6 +1179,7 @@ export const previewRegistry: Record<string, PreviewEntry> = {
   /* Product surfaces — the composed booking block itself + the calendar grid */
   'booking-budget-runtime': { title: 'Booking budget & runtime', group: 'Product surfaces', wide: true, render: () => <StatefulBookingRuntime /> },
   'calendar-table': { title: 'Calendar table (availability grid)', group: 'Product surfaces', wide: true, render: () => <CalendarTable mediaProducts={calendarProducts} weeks={6} startWeek={37} displayType="fillRateBar" /> },
+  'calendar-table--stores': { title: 'Calendar table / Available stores against a target', group: 'Product surfaces', wide: true, render: () => <CalendarTable mediaProducts={calendarStoreProducts} weeks={6} startWeek={42} displayType="stores" storeTarget={300} /> },
   'hierarchy-sidebar': {
     title: 'Hierarchy sidebar', group: 'Product surfaces',
     render: () => (

@@ -13,7 +13,7 @@ import {
 import { FillRateBar, FillRateValue } from '@/components/ui/fill-rate-bar';
 import { AvailableTimeBar, AvailableTimeValue } from '@/components/ui/available-time-bar';
 import { MetricRow, MetricDefinition } from '@/components/ui/metric-row';
-import { FilterBar } from '@/components/ui/filter-bar';
+import { FilterBar, type FilterBarFilter } from '@/components/ui/filter-bar';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { 
   RightDrawer, 
@@ -28,6 +28,7 @@ import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { defaultRoutes } from '../default-routes';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
+import { useDb } from '@/lib/db';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import React, { useState } from 'react';
 import { DateRange } from "react-day-picker";
@@ -2278,16 +2279,21 @@ const OfflineInstoreCalendarTemplate = ({
   const { theme: storybookTheme } = useStorybookTheme();
   const currentTheme = storybookTheme || 'retailMedia';
   const routes = getRoutesForTheme(currentTheme);
-  const [inventoryType, setInventoryType] = useState<string[]>([]);
+  // Finding a slot: which media product a booking needs (and how many per
+  // store), in which store types, and how many stores in total.
+  const [mediaProductIds, setMediaProductIds] = useState<string[]>([]);
+  const [mediaProductQty, setMediaProductQty] = useState<Record<string, number>>({});
   const [storeType, setStoreType] = useState<string[]>([]);
+  const [storeTarget, setStoreTarget] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
+  const db = useDb();
+  const offlineFormats = db.creativeTemplates.filter((t) => t.engine === 'offline-instore');
   const [focusedChannelId, setFocusedChannelId] = useState<string | null>(null);
   // Which tab is currently visible. Kept separate from focusedChannelId so
   // jumping back to the main tab doesn't close the focused-channel tab —
   // the user closes that one explicitly via its X icon.
   const [activeTabValue, setActiveTabValue] = useState<string>('all');
   const [retailProduct, setRetailProduct] = useState<string[]>([]);
-  const [maxStoreAmount, setMaxStoreAmount] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{
     mediaProduct: any;
@@ -2379,56 +2385,38 @@ const OfflineInstoreCalendarTemplate = ({
     }))
   }));
 
-  // Function to calculate availability reduction based on filters
-  const calculateFilteredAvailability = (baseAvailability: number[], product: any, shouldHideGreyCells = false) => {
-    let reductionFactor = 1.0;
-    
-    // Reduce availability if specific filters are applied
-    if (inventoryType.length > 0) {
-      // If specific inventory types are selected, reduce availability by 20%
-      reductionFactor *= 0.8;
-    }
-    
-    if (storeType.length > 0) {
-      // If specific store types are selected, reduce availability by 15%
-      reductionFactor *= 0.85;
-    }
-    
-    if (retailProduct.length > 0) {
-      // If specific retail products are selected, reduce availability by 25%
-      reductionFactor *= 0.75;
-    }
-    
-    // Apply reduction and round to integers, then cap at max store amount if specified
-    return baseAvailability.map(val => {
-      if (typeof val === 'number') {
-        let filteredVal = Math.round(val * reductionFactor);
-        
-        // Apply max store amount cap if specified
-        if (maxStoreAmount && !isNaN(parseInt(maxStoreAmount))) {
-          const maxStores = parseInt(maxStoreAmount);
-          filteredVal = Math.min(filteredVal, maxStores);
-        }
-        
-        
-        return filteredVal;
-      }
-      return val;
-    });
+  // Narrowing to what a booking needs. Demo shares until store master data
+  // carries real fixture counts: the part of the stores of a type, and the
+  // part of the stores that can hold n of a media product.
+  const STORE_TYPE_SHARE: Record<string, number> = { 'ah-dnah': 0.8, 'ah-xl': 0.2 };
+  const FORMAT_SHARE: Record<string, number> = {
+    'tpl-oit-wobbler': 0.95,
+    'tpl-oit-vsb': 0.85,
+    'tpl-oit-vloersticker': 0.9,
+    'tpl-oit-koeldeursticker': 0.6,
+    'tpl-oit-makelaarsbord': 0.45,
+    'tpl-oit-koeldeurvlag': 0.55,
   };
+  /** Stores per zone before any narrowing — the Available stores bar's length. */
+  const ZONE_STORES = 1100;
+  const storeShare = storeType.length > 0
+    ? storeType.reduce((sum, t) => sum + (STORE_TYPE_SHARE[t] ?? 0.5), 0)
+    : 1;
+  const formatShare = mediaProductIds.reduce(
+    (share, id) => share * Math.pow(FORMAT_SHARE[id] ?? 0.8, mediaProductQty[id] ?? 1),
+    1,
+  );
+  const scopeShare = storeShare * formatShare * (retailProduct.length > 0 ? 0.75 : 1);
+  const targetStores = parseInt(storeTarget, 10);
+  const activeTarget = Number.isFinite(targetStores) && targetStores > 0 ? targetStores : undefined;
+
+  const narrow = (values: any[]) =>
+    values.map((v) => (typeof v === 'number' ? Math.round(v * scopeShare) : v));
+  const storeCounts = (values: any[]) =>
+    values.map((v) => (typeof v === 'number' ? v : 0));
 
   // Filter the adjusted bookings data based on selected filters
   const filteredBookingsData = adjustedBookingsData.filter(product => {
-    // Inventory type filter
-    if (inventoryType.length > 0 && !inventoryType.some(type => product.inventoryTypes?.includes(type))) {
-      return false;
-    }
-    
-    // Store type filter
-    if (storeType.length > 0 && !storeType.some(type => product.storeTypes?.includes(type))) {
-      return false;
-    }
-    
     // Retail product filter
     if (retailProduct.length > 0 && !retailProduct.some(productId => product.retailProducts?.includes(productId))) {
       return false;
@@ -2441,13 +2429,47 @@ const OfflineInstoreCalendarTemplate = ({
 
     return true;
   }).map(product => {
-    const shouldHideGreyCells = activeView === 'stores' || activeView === 'reach';
+    const availability = narrow(product.availability);
     return {
       ...product,
-      availability: calculateFilteredAvailability(product.availability, product, shouldHideGreyCells),
-      reachData: product.reachData ? calculateFilteredAvailability(product.reachData, product, shouldHideGreyCells) : undefined,
+      availability,
+      availableStores: storeCounts(availability),
+      storeCapacity: Math.round(ZONE_STORES * scopeShare),
+      reachData: product.reachData ? narrow(product.reachData) : undefined,
+      positions: product.positions?.map((pos: any) => {
+        const posAvailability = narrow(pos.availability);
+        return { ...pos, availability: posAvailability, availableStores: storeCounts(posAvailability) };
+      }),
     };
   });
+
+  // The slot finder's two filters — the page's bar and the cell drawer's
+  // read the same state, so a target set in one holds in the other.
+  const mediaProductFilter: FilterBarFilter = {
+    name: 'Media product',
+    options: offlineFormats.map((f) => ({ label: f.name, value: f.id, description: f.description })),
+    selectedValues: mediaProductIds,
+    onChange: setMediaProductIds,
+    quantities: mediaProductQty,
+    onQuantitiesChange: setMediaProductQty,
+  };
+  const storesFilter: FilterBarFilter = {
+    name: 'Stores',
+    customInput: {
+      label: 'Target',
+      value: storeTarget,
+      onChange: setStoreTarget,
+      placeholder: 'Target number of stores',
+      type: 'number',
+      unit: 'stores',
+    },
+    options: [
+      { label: 'AH DNAH', value: 'ah-dnah' },
+      { label: 'AH XL', value: 'ah-xl' },
+    ],
+    selectedValues: storeType,
+    onChange: setStoreType,
+  };
 
   return (
     <RightDrawer open={drawerOpen} onOpenChange={setDrawerOpen}>
@@ -2485,25 +2507,8 @@ const OfflineInstoreCalendarTemplate = ({
                 activeView={activeView}
                 onViewChange={setActiveView}
                 filters={[
-                  {
-                    name: 'Inventory type',
-                    options: [
-                      { label: 'Small Package', value: 'package-small' },
-                      { label: 'Medium Package', value: 'package-medium' },
-                      { label: 'Large Package', value: 'package-large' },
-                    ],
-                    selectedValues: inventoryType,
-                    onChange: setInventoryType,
-                  },
-                  {
-                    name: 'Store type',
-                    options: [
-                      { label: 'AH DNAH', value: 'ah-dnah' },
-                      { label: 'AH XL', value: 'ah-xl' },
-                    ],
-                    selectedValues: storeType,
-                    onChange: setStoreType,
-                  },
+                  mediaProductFilter,
+                  storesFilter,
                   {
                     name: 'Retail Product',
                     options: [
@@ -2557,6 +2562,8 @@ const OfflineInstoreCalendarTemplate = ({
                 id: pos.id,
                 name: pos.name,
                 availability: pos.availability,
+                availableStores: pos.availableStores,
+                storeCapacity: focusedChannel.storeCapacity,
                 // Bookings belong to the parent channel — share them with every
                 // position row so expanding a position in the focused tab still
                 // shows the booking bars (positions don't carry their own list).
@@ -2579,6 +2586,7 @@ const OfflineInstoreCalendarTemplate = ({
             onBookingClick: (booking: any) => { window.location.href = `/campaigns/${booking.id}`; },
             hideGreyCells: activeView === 'stores' || activeView === 'reach',
             hasRetailProductFilter: retailProduct.length > 0,
+            storeTarget: activeTarget,
           };
 
           const tabs = [
@@ -2669,25 +2677,8 @@ const OfflineInstoreCalendarTemplate = ({
 
               <FilterBar
                 filters={[
-                  {
-                    name: 'Inventory type',
-                    options: [
-                      { label: 'Small', value: 'package-small' },
-                      { label: 'Medium', value: 'package-medium' },
-                      { label: 'Large', value: 'package-large' },
-                    ],
-                    selectedValues: inventoryType,
-                    onChange: setInventoryType,
-                  },
-                  {
-                    name: 'Store type',
-                    options: [
-                      { label: 'AH DNAH', value: 'ah-dnah' },
-                      { label: 'AH XL', value: 'ah-xl' },
-                    ],
-                    selectedValues: storeType,
-                    onChange: setStoreType,
-                  },
+                  mediaProductFilter,
+                  storesFilter,
                   {
                     name: 'Retail Product',
                     options: [

@@ -120,6 +120,14 @@ export interface FillRateBarProps {
    *  impressions target; the used count is derived from the percentage
    *  already computed inside the bar. */
   impressionsTotal?: number
+  /** "percent" (default) labels each side as a share; "count" labels the
+   *  raw values — the Available stores view reads "350 … 450" stores. */
+  format?: "percent" | "count"
+  /** Unit for counts in the tooltip legend ("stores"). */
+  unit?: string
+  /** Replaces the right-hand label with a status, e.g. "50 short" when a
+   *  cell cannot reach the store target. Warning tone: an attention state. */
+  note?: string
 }
 
 export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
@@ -136,6 +144,9 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
       title,
       hoverTooltip = true,
       impressionsTotal,
+      format = "percent",
+      unit,
+      note,
     },
     ref
   ) => {
@@ -163,7 +174,11 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
     const tooltipText =
       title ??
       present
-        .map((s) => `${labels[s.key]}: ${pct(s.raw).toFixed(0)}%`)
+        .map((s) =>
+          format === "count"
+            ? `${labels[s.key]}: ${Math.round(s.raw).toLocaleString("en-GB")}${unit ? ` ${unit}` : ""}`
+            : `${labels[s.key]}: ${pct(s.raw).toFixed(0)}%`
+        )
         .join(" • ")
 
     const visibleLabels = labelSegments ?? present.map((s) => s.key)
@@ -217,11 +232,18 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
               />
               <span className="text-muted-foreground flex-1">{labels[key]}</span>
               <span className="font-medium tabular-nums text-foreground">
-                {Math.round(pct(raw))}%
+                {format === "count"
+                  ? `${Math.round(raw).toLocaleString("en-GB")}${unit ? ` ${unit}` : ""}`
+                  : `${Math.round(pct(raw))}%`}
               </span>
             </div>
           )
         })}
+        {note && (
+          <div className="pt-1 text-xs" style={{ color: "hsl(var(--warning-700))" }}>
+            {note}
+          </div>
+        )}
       </div>
     )
 
@@ -238,15 +260,25 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
       ? Math.round((impressionsTotal * Math.min(usedPct, 100)) / 100)
       : undefined
 
+    const countLabel = (n: number) => Math.round(n).toLocaleString("en-GB")
     const leftLabel =
-      usedImpressions !== undefined ? `${usedPct}% / ${fmtK(usedImpressions)}` : `${usedPct}%`
-    const rightLabel = `${rightPrefix}${rightPct}%`
+      format === "count"
+        ? countLabel(usedTotal)
+        : usedImpressions !== undefined ? `${usedPct}% / ${fmtK(usedImpressions)}` : `${usedPct}%`
+    const rightLabel =
+      format === "count"
+        ? `${rightPrefix}${countLabel(overbookedRaw > 0 ? overbookedRaw : availableRaw)}`
+        : `${rightPrefix}${rightPct}%`
 
     const labelRow = hasRollup ? (
       <div className="flex w-full justify-between gap-1 text-[10px] leading-none tabular-nums whitespace-nowrap">
         <span style={{ color: colors.booked }}>{leftLabel}</span>
-        {!impressionsMode && showRight && (
-          <span style={{ color: rightColor }}>{rightLabel}</span>
+        {note ? (
+          <span style={{ color: "hsl(var(--warning-700))" }}>{note}</span>
+        ) : (
+          !impressionsMode && showRight && (
+            <span style={{ color: rightColor }}>{rightLabel}</span>
+          )
         )}
       </div>
     ) : null

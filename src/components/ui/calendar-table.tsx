@@ -34,6 +34,10 @@ export interface Position {
   id: string;
   name: string;
   availability: CalendarCellValue[];
+  /** See MediaProduct.storeCapacity. */
+  storeCapacity?: number;
+  /** See MediaProduct.availableStores. */
+  availableStores?: number[];
 }
 
 /** Color mapping for the four booking statuses. Booked / Confirmed /
@@ -208,6 +212,13 @@ export interface MediaProduct {
    *  before the bookings — typically screens or banner positions on
    *  this channel. */
   positions?: Position[];
+  /** Stores in scope for this row — the full length of the Available
+   *  stores bar. Omitted, it is derived from the row's largest value. */
+  storeCapacity?: number;
+  /** Available stores per week, for checking `storeTarget` in views whose
+   *  cells are not store counts (fill rate, bookings). In the Available
+   *  stores view the cell value is used. */
+  availableStores?: number[];
 }
 
 export interface RetailerEvent {
@@ -237,7 +248,26 @@ export interface CalendarTableProps {
   maxInlinePositions?: number;
   hideGreyCells?: boolean;
   hasRetailProductFilter?: boolean;
+  /** Stores a booking needs. Set, every cell is checked against it: a week
+   *  that cannot reach it fades and says how many stores it is short, so the
+   *  weeks that can take the booking are the ones left standing. */
+  storeTarget?: number;
 }
+
+/** What a row knows beyond its cells: the stores bar's length and the
+ *  available stores the target is checked against. */
+interface RowMeta {
+  availability: CalendarCellValue[];
+  storeCapacity?: number;
+  availableStores?: number[];
+}
+
+/** Round up to a figure a bar can plausibly be "out of". */
+const niceCeil = (n: number) => {
+  if (n <= 0) return 1;
+  const step = n <= 100 ? 10 : n <= 1000 ? 50 : 100;
+  return Math.ceil(n / step) * step;
+};
 
 export const CalendarTable: React.FC<CalendarTableProps> = ({ 
   mediaProducts, 
@@ -250,6 +280,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   onCellClick,
   hideGreyCells = false,
   hasRetailProductFilter = false,
+  storeTarget,
   onChannelClick,
   onBookingClick,
   maxInlinePositions = 5,
@@ -309,8 +340,23 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     return retailerEvents.some(event => event.week === weekNum);
   };
 
-  const renderAvailabilityCell = (value: CalendarCellValue, weekIndex: number, mediaProduct: MediaProduct, isHighlighted?: boolean) => {
+  const renderAvailabilityCell = (value: CalendarCellValue, weekIndex: number, mediaProduct: MediaProduct, isHighlighted?: boolean, row?: RowMeta) => {
     const hasEvent = hasEventInWeek(weekNumbers[weekIndex]);
+    const meta: RowMeta = row ?? mediaProduct;
+
+    // Target check: the week's available stores against what the booking
+    // needs. Cells with no store figure are left alone.
+    const storesInCell =
+      meta.availableStores?.[weekIndex] ??
+      (displayType === 'stores' && typeof value === 'number' ? value : undefined);
+    const shortBy =
+      storeTarget && storeTarget > 0 && storesInCell !== undefined
+        ? Math.max(0, storeTarget - storesInCell)
+        : 0;
+    const fitClass = shortBy > 0 ? 'opacity-40' : undefined;
+    const fitTitle = shortBy > 0
+      ? `${shortBy.toLocaleString('en-GB')} stores short of the ${storeTarget!.toLocaleString('en-GB')}-store target`
+      : undefined;
 
     // Bookings cell: small status-colored count chips
     // (■4 ■1 = 4 booked + 1 reserved).
@@ -326,7 +372,8 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       return (
         <td
           key={weekIndex}
-          className="px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors"
+          className={cn("px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors", fitClass)}
+          title={fitTitle}
           onClick={handleCellClick}
         >
           {chips.length === 0 ? (
@@ -362,7 +409,8 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       return (
         <td
           key={weekIndex}
-          className="p-0 align-middle hover:bg-neutral-50 transition-colors"
+          className={cn("p-0 align-middle hover:bg-neutral-50 transition-colors", fitClass)}
+          title={fitTitle}
           onClick={handleCellClick}
         >
           <AvailableTimeBar value={value} height={10} showLabels className="px-3 py-[11px]" />
@@ -387,7 +435,8 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       return (
         <td
           key={weekIndex}
-          className="p-0 align-middle hover:bg-neutral-50 transition-colors"
+          className={cn("p-0 align-middle hover:bg-neutral-50 transition-colors", fitClass)}
+          title={fitTitle}
           onClick={handleCellClick}
         >
           <FillRateBar
@@ -396,6 +445,44 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
             showLabels
             className="px-3 py-[11px]"
             impressionsTotal={impressionsTotal}
+          />
+        </td>
+      );
+    }
+
+    // Available stores: the same bar as fill rate, in store counts — booked
+    // stores in the chart blue, the stores still free in grey, overbooked
+    // (a negative count) in the destructive red.
+    if (displayType === 'stores' && typeof value === 'number') {
+      const handleCellClick = () => {
+        if (onCellClick) onCellClick(mediaProduct, weekNumbers[weekIndex], value);
+      };
+      const rowMax = Math.max(
+        0,
+        ...meta.availability.filter((v): v is number => typeof v === 'number'),
+      );
+      const capacity = meta.storeCapacity ?? niceCeil(rowMax);
+      const free = Math.max(0, value);
+      const over = Math.max(0, -value);
+      return (
+        <td
+          key={weekIndex}
+          className={cn("p-0 align-middle cursor-pointer hover:bg-neutral-50 transition-colors", fitClass)}
+          title={fitTitle}
+          onClick={handleCellClick}
+        >
+          <FillRateBar
+            value={{
+              booked: Math.max(0, capacity - free),
+              available: free,
+              overbooked: over,
+            }}
+            height={10}
+            showLabels
+            format="count"
+            unit="stores"
+            note={shortBy > 0 ? `${shortBy.toLocaleString('en-GB')} short` : undefined}
+            className="px-3 py-[11px]"
           />
         </td>
       );
@@ -476,9 +563,10 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       <td 
         key={weekIndex} 
         className={cn(
-          "px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors"
-          // Removed thick border and conditional border coloring
+          "px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors",
+          fitClass
         )}
+        title={fitTitle}
         onClick={handleCellClick}
       >
         <div className="flex items-center justify-center gap-1">
@@ -877,7 +965,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                   </div>
                 </td>
                 {product.availability.slice(0, weeks).map((value, i) =>
-                  renderAvailabilityCell(value, i, product, product.isHighlighted?.[i])
+                  renderAvailabilityCell(value, i, product, product.isHighlighted?.[i], product)
                 )}
               </tr>
 
@@ -900,7 +988,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                     </div>
                   </td>
                   {position.availability.slice(0, weeks).map((value, i) =>
-                    renderAvailabilityCell(value, i, { ...product, name: position.name }, undefined)
+                    renderAvailabilityCell(value, i, { ...product, name: position.name }, undefined, position)
                   )}
                 </tr>
               ))}

@@ -713,17 +713,9 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   };
 
   const zonesColumnWidth = '240px';
-  // Wider columns when the cells render a stacked bar — the per-segment
-  // labels need room to breathe.
-  //  - `impressionsBar` is the widest (label is "85% / 330K", up to ~12 chars)
-  //  - `fillRateBar` / `availableTimeBar` show shorter "85%" labels
-  //  - simple numeric / status cells stay compact
-  const weekColumnWidth =
-    displayType === 'impressionsBar'
-      ? '160px'
-      : displayType === 'fillRateBar' || displayType === 'availableTimeBar'
-      ? '140px'
-      : '100px';
+  // One week width for every view, sized for the bars' labels, so switching
+  // views never moves the columns.
+  const weekColumnWidth = '140px';
 
   return (
     <TooltipProvider delayDuration={150}>

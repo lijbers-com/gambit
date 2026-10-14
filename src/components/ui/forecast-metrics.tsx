@@ -1,4 +1,5 @@
 import type { MetricDefinition } from './metric-row';
+import type { DbData } from '@/lib/db/types';
 import { planForecast, fmtForecastRange, fmtForecastCount } from '@/lib/forecast';
 import { kpiEstimates, stageEstimateKpis } from '@/lib/funnel';
 
@@ -33,13 +34,17 @@ export interface ForecastMetricsInput {
    *  rather than the budget itself — for surfaces whose control panel already
    *  states the budget, so the row never repeats it. */
   spend?: number;
+  /** The live store, so prices edited in configuration move the forecast;
+   *  the seed when omitted. */
+  db?: DbData;
 }
 
 const fmtK = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n)}`);
 
-export function buildForecastMetrics({ budget, days = 0, stage, spend }: ForecastMetricsInput): MetricDefinition[] {
+export function buildForecastMetrics({ budget, days = 0, engines, stage, spend, db }: ForecastMetricsInput): MetricDefinition[] {
   const noBudget = budget <= 0;
-  const fc = planForecast(budget);
+  // The plan's own split across propositions: each forecasts at its own rates.
+  const fc = planForecast(budget, engines, db);
   const perDay = days > 0 ? `€${(budget / days).toFixed(0)}/day over ${days} days` : 'No dates set';
   // Surfaces that already state the budget elsewhere (a control panel) lead
   // with spend instead, so the row never says the same number twice.

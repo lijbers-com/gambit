@@ -14,7 +14,7 @@ import { prototypeNow } from '../clock';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 43;
+export const SEED_VERSION = 44;
 
 const now = prototypeNow().toISOString();
 
@@ -260,8 +260,8 @@ const baseSeed: DbData = {
     { id: 'C-021', mediaPlanId: 'MP-009', name: 'Spring Refresh — Sponsored products', engine: 'sponsored-products', status: 'completed', budget: 3000, spend: 2980, startDate: '2026-01-12', endDate: '2026-02-15', createdAt: now, updatedAt: now },
     { id: 'C-022', mediaPlanId: 'MP-009', name: 'New Year Reset — Digital in-store',   engine: 'digital-instore',    buyingType: 'guaranteed', status: 'completed', budget: 2500, spend: 2500, startDate: '2026-01-05', endDate: '2026-01-31', createdAt: now, updatedAt: now },
     { id: 'C-023', mediaPlanId: 'MP-010', name: 'Coffee Moments — Offsite',            engine: 'offsite',            status: 'completed', budget: 4200, spend: 4100, startDate: '2026-02-01', endDate: '2026-03-15', createdAt: now, updatedAt: now },
-    { id: 'C-024', mediaPlanId: 'MP-010', name: 'Coffee Moments — Offline in-store',   engine: 'offline-instore',    status: 'running',   budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', createdAt: now, updatedAt: now },
-    { id: 'C-025', mediaPlanId: 'MP-011', name: 'Summer Launch — Digital in-store',    engine: 'digital-instore',    buyingType: 'guaranteed', status: 'running',   budget: 6500, spend: 2250, startDate: '2026-05-04', endDate: '2026-06-30', createdAt: now, updatedAt: now },
+    { id: 'C-024', mediaPlanId: 'MP-010', name: 'Coffee Moments — Offline in-store',   engine: 'offline-instore',    status: 'completed',   budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', createdAt: now, updatedAt: now },
+    { id: 'C-025', mediaPlanId: 'MP-011', name: 'Summer Launch — Digital in-store',    engine: 'digital-instore',    buyingType: 'guaranteed', status: 'running',   budget: 6500, spend: 2250, startDate: '2026-06-15', endDate: '2026-07-31', createdAt: now, updatedAt: now },
     { id: 'C-026', mediaPlanId: 'MP-011', name: 'Ice Cream Summer — Sponsored products', engine: 'sponsored-products', status: 'paused',  budget: 3200, spend: 2100, startDate: '2026-05-18', endDate: '2026-07-31', createdAt: now, updatedAt: now },
     { id: 'C-027', mediaPlanId: 'MP-012', name: 'Back to School — Offsite',            engine: 'offsite',            status: 'in-option', budget: 5400, spend: 0,    startDate: '2026-09-01', endDate: '2026-09-30', createdAt: now, updatedAt: now },
     { id: 'C-028', mediaPlanId: 'MP-012', name: 'Back to School — Offline in-store',   engine: 'offline-instore',    status: 'in-option', budget: 4100, spend: 0,    startDate: '2026-08-24', endDate: '2026-09-20', createdAt: now, updatedAt: now },
@@ -303,12 +303,23 @@ const baseSeed: DbData = {
     { id: 'B-022', campaignId: 'C-022', name: 'Entrance Screens — January',  status: 'completed', budget: 2500, spend: 2500, startDate: '2026-01-05', endDate: '2026-01-31', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-023', campaignId: 'C-023', name: 'Open Web — Coffee',           status: 'completed', budget: 2400, spend: 2350, startDate: '2026-02-01', endDate: '2026-03-15', positionIds: ['pos-off-web-standard'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-024', campaignId: 'C-023', name: 'Demand Gen — Coffee moments', status: 'completed', budget: 1800, spend: 1750, startDate: '2026-02-10', endDate: '2026-03-15', positionIds: ['pos-off-dg-image', 'pos-off-dg-video'],  creativeStatus: 'approved', createdAt: now, updatedAt: now },
-    { id: 'B-025', campaignId: 'C-024', name: 'Vloerstickers — Spring',     status: 'running',   budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', positionIds: ['pos-ois-floor'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-025', campaignId: 'C-024', name: 'Vloerstickers — Spring',     status: 'completed', budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', positionIds: ['pos-ois-floor'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     // Two bookings pacing far apart on purpose: the aisle screens sit on
     // budget they cannot use while the entrance screens are nearly capped —
     // the shape the booking-rebalance recommendation exists to catch.
-    { id: 'B-026', campaignId: 'C-025', name: 'Take-over — Summer',         status: 'running',   budget: 3000, spend: 880,  startDate: '2026-05-04', endDate: '2026-06-30', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
-    { id: 'B-031', campaignId: 'C-025', name: 'Entrance Screens — Summer',   status: 'running',   budget: 1500, spend: 1370, startDate: '2026-05-04', endDate: '2026-06-30', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-026', campaignId: 'C-025', name: 'Take-over — Summer',         status: 'running',   budget: 3000, spend: 880,  startDate: '2026-06-15', endDate: '2026-07-31', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-031', campaignId: 'C-025', name: 'Entrance Screens — Summer',   status: 'running',   budget: 1500, spend: 1370, startDate: '2026-06-15', endDate: '2026-07-31', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    // On the AH positions the first seed left empty, so every placement
+    // shows delivery somewhere (Bonus, Allerhande, checkout, cooler and
+    // freezer doors, YouTube, category pages).
+    { id: 'B-032', campaignId: 'C-004', name: 'Bonus Booster — Drinks', status: 'running', budget: 2400, spend: 1450, startDate: '2026-07-06', endDate: '2026-08-15', positionIds: ['pos-dsp-bonus-booster'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-033', campaignId: 'C-008', name: 'Allerhande Koken — Summer recipes', status: 'running', budget: 2200, spend: 1050, startDate: '2026-07-01', endDate: '2026-08-31', positionIds: ['pos-dsp-ah-app'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-034', campaignId: 'C-013', name: 'Checkout screens — Coffee', status: 'running', budget: 2400, spend: 780, startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-dis-checkout'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-035', campaignId: 'C-014', name: 'Koeldeurvlag — Coffee', status: 'in-option', budget: 1800, spend: 0, startDate: '2026-08-03', endDate: '2026-08-30', positionIds: ['pos-ois-coolerflag'], creativeStatus: 'submitted', createdAt: now, updatedAt: now },
+    { id: 'B-036', campaignId: 'C-016', name: 'Vriesdeurframe — Ice cream', status: 'paused', budget: 2000, spend: 900, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-ois-freezerframe'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-037', campaignId: 'C-009', name: 'YouTube — Efficient reach', status: 'running', budget: 2600, spend: 1250, startDate: '2026-07-01', endDate: '2026-08-31', positionIds: ['pos-off-yt-reach'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-038', campaignId: 'C-005', name: 'Category pages — Soft drinks', status: 'running', budget: 1200, spend: 820, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-sp-category'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-039', campaignId: 'C-015', name: 'Bonus Highlight — Ice cream', status: 'paused', budget: 1600, spend: 700, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-dsp-bonus-highlight'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-027', campaignId: 'C-026', name: 'Search — Ice cream',          status: 'paused',    budget: 3200, spend: 2100, startDate: '2026-05-18', endDate: '2026-07-31', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-028', campaignId: 'C-027', name: 'Open Web — Back to school',   status: 'in-option', budget: 5400, spend: 0,    startDate: '2026-09-01', endDate: '2026-09-30', positionIds: ['pos-off-web-standard'], creativeStatus: 'submitted', createdAt: now, updatedAt: now },
     { id: 'B-029', campaignId: 'C-028', name: 'Wobblers — September',  status: 'in-option', budget: 4100, spend: 0,    startDate: '2026-08-24', endDate: '2026-09-20', positionIds: ['pos-ois-shelf'],    creativeStatus: 'missing',   createdAt: now, updatedAt: now },
@@ -1265,4 +1276,30 @@ function withGuaranteedTerms(db: DbData): DbData {
   return withTerms;
 }
 
-export const seedData: DbData = withGuaranteedTerms(baseSeed);
+/**
+ * A campaign's spend is what its bookings spent, and it can hold what they
+ * are booked for; it advertises its plan's brands' retail products. Derived
+ * here so the seed cannot drift from its own bookings; a plan can hold its
+ * campaigns.
+ */
+function withCampaignRollups(db: DbData): DbData {
+  const campaigns = db.campaigns.map((c) => {
+    const bookings = db.bookings.filter((b) => b.campaignId === c.id);
+    const plan = db.mediaPlans.find((p) => p.id === c.mediaPlanId);
+    const products = c.retailProductIds ?? db.retailProducts.filter((r) => plan?.brandIds.includes(r.brandId)).slice(0, 3).map((r) => r.id);
+    if (!bookings.length) return { ...c, retailProductIds: products };
+    return {
+      ...c,
+      spend: bookings.reduce((n, b) => n + b.spend, 0),
+      budget: Math.max(c.budget, bookings.filter((b) => b.status !== 'draft').reduce((n, b) => n + b.budget, 0)),
+      retailProductIds: products,
+    };
+  });
+  const mediaPlans = db.mediaPlans.map((p) => ({
+    ...p,
+    budget: Math.max(p.budget, campaigns.filter((c) => c.mediaPlanId === p.id).reduce((n, c) => n + c.budget, 0)),
+  }));
+  return { ...db, campaigns, mediaPlans };
+}
+
+export const seedData: DbData = withGuaranteedTerms(withCampaignRollups(baseSeed));

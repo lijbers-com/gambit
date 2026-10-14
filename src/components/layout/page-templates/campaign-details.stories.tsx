@@ -5,7 +5,9 @@ import { AppLayout } from '../app-layout';
 import { CardWithTabs, tabFirst } from '../../ui/card';
 import { Card, CardHeader, CardContent, MetricCard } from '@/components/ui/card';
 import { MetricRow } from '@/components/ui/metric-row';
-import { getPropositionMetrics } from '@/lib/proposition-metrics';
+import { usePropositionMetrics } from '@/lib/proposition-metrics';
+import { campaignBookingRows } from '@/lib/booking-rows';
+import { useDb } from '@/lib/db';
 import { InsightsTab } from './insights-tab';
 import { InboxPanel, useUnreadCount } from '@/components/ui/inbox-panel';
 import { EntityControlBar } from '@/components/ui/entity-control-bar';
@@ -973,7 +975,7 @@ const updatedForecastMetrics = [
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="digital-instore" scope="campaign" />,
+              content: <InsightsTab engineType="digital-instore" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',
@@ -1075,13 +1077,6 @@ export const DigitalInstoreRunning: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const bookingData = [
-      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'Homepage', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Footer', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend' },
-      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget' },
-      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Homepage', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend' },
-    ];
     
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Digital In-store: Summer Launch', description: 'Initial campaign creation' },
@@ -1137,7 +1132,8 @@ export const DigitalInstoreRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
-    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('digital-instore', 'campaign'), routeCampaign);
+    const bookingData = campaignBookingRows(useDb(), routeCampaign?.id, 'digital-instore');
+    const campaignMetrics = useCampaignDeliveryMetrics(usePropositionMetrics('digital-instore', routeCampaign ? { campaignIds: [routeCampaign.id] } : {}), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1437,12 +1433,7 @@ export const DigitalInstoreRunning: Story = {
                       },
                       {
                         name: 'Placement',
-                        options: [
-                          { label: 'Homepage', value: 'Homepage' },
-                          { label: 'Sidebar', value: 'Sidebar' },
-                          { label: 'Footer', value: 'Footer' },
-                          { label: 'Header', value: 'Header' },
-                        ],
+                        options: [...new Set(bookingData.map((r) => r.placement))].map((v) => ({ label: v, value: v })),
                         selectedValues: placement,
                         onChange: setPlacement,
                       },
@@ -1481,7 +1472,7 @@ export const DigitalInstoreRunning: Story = {
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="digital-instore" scope="campaign" />,
+              content: <InsightsTab engineType="digital-instore" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',
@@ -1590,13 +1581,6 @@ export const OfflineInstoreRunning: Story = {
     const [bookingDeadline, setBookingDeadline] = useState<string>('');
     const [bookingReadiness, setBookingReadiness] = useState<string[]>([]);
     const [bookingSearch, setBookingSearch] = useState<string>('');
-    const bookingData = [
-      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'End Cap', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Optimize Budget', brand: 'Dove', retailProduct: 'Dove Body Wash 250ml', location: 'Amsterdam Centrum', readiness: 'Ready', creativeDeadline: '2024-05-20', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
-      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Shelf Edge', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Increase Spend', brand: 'Knorr', retailProduct: 'Knorr Stock Cubes', location: 'Rotterdam Zuid', readiness: 'Ready', creativeDeadline: '2024-06-19', adSpend: '€6,490', impressions: '375,084', clicks: '4,913', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€8,536', onlineSkuUnits: '691', onlineSkuConversions: '427', instoreSkuRevenue: '€10,248', instoreSkuUnits: '978', instoreSkuConversions: '616', totalSkuRevenue: '€18,784', totalSkuUnits: '1,669', totalSkuConversions: '1,043' },
-      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Floor Stand', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Optimize Budget', brand: 'Lipton', retailProduct: 'Lipton Ice Tea 1.5L', location: 'Utrecht Overvecht', readiness: 'Creative missing', creativeDeadline: '2024-07-29', adSpend: '€7,778', impressions: '450,101', clicks: '5,895', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€10,243', onlineSkuUnits: '829', onlineSkuConversions: '512', instoreSkuRevenue: '€12,298', instoreSkuUnits: '1,174', instoreSkuConversions: '739', totalSkuRevenue: '€22,541', totalSkuUnits: '2,003', totalSkuConversions: '1,251' },
-      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Aisle Header', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Increase Spend', brand: 'Magnum', retailProduct: 'Magnum Classic 4-pack', location: 'Eindhoven Woensel', readiness: 'Awaiting approval', creativeDeadline: '2024-10-18', adSpend: '€5,846', impressions: '337,575', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,682', onlineSkuUnits: '622', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '554', totalSkuRevenue: '€16,905', totalSkuUnits: '1,503', totalSkuConversions: '938' },
-      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Checkout', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Optimize Budget', brand: 'Dove', retailProduct: 'Dove Body Wash 250ml', location: 'Amsterdam Centrum', readiness: 'Ready', creativeDeadline: '2024-11-15', adSpend: '€5,846', impressions: '337,576', clicks: '4,423', cpc: '€1.32', ctr: '1.31%', cpm: '€26.64', ecpm: '€17.30', onlineSkuRevenue: '€7,683', onlineSkuUnits: '623', onlineSkuConversions: '384', instoreSkuRevenue: '€9,223', instoreSkuUnits: '881', instoreSkuConversions: '553', totalSkuRevenue: '€16,906', totalSkuUnits: '1,504', totalSkuConversions: '937' },
-    ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offline In-store: Summer Launch', description: 'Initial campaign creation' },
@@ -1652,7 +1636,8 @@ export const OfflineInstoreRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
-    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('offline-instore', 'campaign'), routeCampaign);
+    const bookingData = campaignBookingRows(useDb(), routeCampaign?.id, 'offline-instore');
+    const campaignMetrics = useCampaignDeliveryMetrics(usePropositionMetrics('offline-instore', routeCampaign ? { campaignIds: [routeCampaign.id] } : {}), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -1874,13 +1859,7 @@ export const OfflineInstoreRunning: Story = {
                       },
                       {
                         name: 'Placement',
-                        options: [
-                          { label: 'End Cap', value: 'End Cap' },
-                          { label: 'Shelf Edge', value: 'Shelf Edge' },
-                          { label: 'Floor Stand', value: 'Floor Stand' },
-                          { label: 'Aisle Header', value: 'Aisle Header' },
-                          { label: 'Checkout', value: 'Checkout' },
-                        ],
+                        options: [...new Set(bookingData.map((r) => r.placement))].map((v) => ({ label: v, value: v })),
                         selectedValues: placement,
                         onChange: setPlacement,
                       },
@@ -2000,7 +1979,7 @@ export const OfflineInstoreRunning: Story = {
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="offline-instore" scope="campaign" />,
+              content: <InsightsTab engineType="offline-instore" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',
@@ -2100,13 +2079,6 @@ export const DisplayRunning: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const bookingData = [
-      { id: 'LI-001', status: 'Live', name: 'Booking 1', placement: 'Above The Fold', start: '2024-06-01', end: '2024-06-30', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,248', totalSkuConversionRate: '3.2%', totalSkuUnits: '2,156', totalSkuRevenue: '$45,280', totalSkuRoas: '480%', onlineSkuConversions: '892', onlineSkuUnits: '1,543', onlineSkuRevenue: '$32,100', instoreSkuConversions: '356', instoreSkuUnits: '613', instoreSkuRevenue: '$13,180' },
-      { id: 'LI-002', status: 'Live', name: 'Booking 2', placement: 'Sidebar', start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', totalSkuConversions: '987', totalSkuConversionRate: '2.8%', totalSkuUnits: '1,734', totalSkuRevenue: '$38,450', totalSkuRoas: '420%', onlineSkuConversions: '721', onlineSkuUnits: '1,245', onlineSkuRevenue: '$27,320', instoreSkuConversions: '266', instoreSkuUnits: '489', instoreSkuRevenue: '$11,130' },
-      { id: 'LI-003', status: 'Live', name: 'Booking 3', placement: 'Native Feed', start: '2024-08-10', end: '2024-09-10', aiRecommendation: 'Increase Spend', totalSkuConversions: '2,134', totalSkuConversionRate: '4.1%', totalSkuUnits: '3,567', totalSkuRevenue: '$72,450', totalSkuRoas: '530%', onlineSkuConversions: '1,489', onlineSkuUnits: '2,398', onlineSkuRevenue: '$49,780', instoreSkuConversions: '645', instoreSkuUnits: '1,169', instoreSkuRevenue: '$22,670' },
-      { id: 'LI-004', status: 'Live', name: 'Booking 4', placement: 'Interstitial', start: '2024-11-01', end: '2024-11-30', aiRecommendation: 'Optimize Budget', totalSkuConversions: '743', totalSkuConversionRate: '2.1%', totalSkuUnits: '1,298', totalSkuRevenue: '$28,920', totalSkuRoas: '370%', onlineSkuConversions: '534', onlineSkuUnits: '923', onlineSkuRevenue: '$20,440', instoreSkuConversions: '209', instoreSkuUnits: '375', instoreSkuRevenue: '$8,480' },
-      { id: 'LI-005', status: 'Live', name: 'Booking 5', placement: 'Bottom Banner', start: '2024-12-01', end: '2024-12-31', aiRecommendation: 'Increase Spend', totalSkuConversions: '1,567', totalSkuConversionRate: '3.6%', totalSkuUnits: '2,834', totalSkuRevenue: '$58,670', totalSkuRoas: '490%', onlineSkuConversions: '1,098', onlineSkuUnits: '1,954', onlineSkuRevenue: '$40,230', instoreSkuConversions: '469', instoreSkuUnits: '880', instoreSkuRevenue: '$18,440' },
-    ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Display: Summer Launch', description: 'Initial campaign creation' },
@@ -2162,7 +2134,8 @@ export const DisplayRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
-    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('display', 'campaign'), routeCampaign);
+    const bookingData = campaignBookingRows(useDb(), routeCampaign?.id, 'display');
+    const campaignMetrics = useCampaignDeliveryMetrics(usePropositionMetrics('display', routeCampaign ? { campaignIds: [routeCampaign.id] } : {}), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -2411,13 +2384,7 @@ export const DisplayRunning: Story = {
                       },
                       {
                         name: 'Placement',
-                        options: [
-                          { label: 'Above The Fold', value: 'Above The Fold' },
-                          { label: 'Sidebar', value: 'Sidebar' },
-                          { label: 'Native Feed', value: 'Native Feed' },
-                          { label: 'Interstitial', value: 'Interstitial' },
-                          { label: 'Bottom Banner', value: 'Bottom Banner' },
-                        ],
+                        options: [...new Set(bookingData.map((r) => r.placement))].map((v) => ({ label: v, value: v })),
                         selectedValues: placement,
                         onChange: setPlacement,
                       },
@@ -2467,7 +2434,7 @@ export const DisplayRunning: Story = {
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="display" scope="campaign" />,
+              content: <InsightsTab engineType="display" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',
@@ -2922,7 +2889,7 @@ export const OfflineInstoreInOption: Story = {
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="offline-instore" scope="campaign" />,
+              content: <InsightsTab engineType="offline-instore" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',
@@ -3389,7 +3356,7 @@ export const DisplayInOption: Story = {
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="display" scope="campaign" />,
+              content: <InsightsTab engineType="display" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',
@@ -4176,7 +4143,7 @@ export const SponsoredProductsInOption: Story = {
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="sponsored-products" scope="campaign" />,
+              content: <InsightsTab engineType="sponsored-products" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',
@@ -4275,12 +4242,6 @@ export const SponsoredProductsRunning: Story = {
     const [bookingPosition, setBookingPosition] = useState<string[]>([]);
     // The bookings under this campaign: one per position, each with its own
     // keywords, products and bids — the campaign itself only groups them.
-    const spBookingData = [
-      { id: 'LI-101', status: 'Live',      name: 'Top of Search · Summer Launch', position: 'Top of search', start: '2024-08-01', end: '2024-08-30', aiRecommendation: 'Increase Spend',  keywords: 124, products: 18, dailyBudget: '€50', impressions: '342,156', clicks: '8,923', avgCPC: '€0.38', ctr: '2.6%', conversions: '412', sales: '€4,234', spent: '€3,391', roas: '125%' },
-      { id: 'LI-102', status: 'Live',      name: 'In-grid · Summer Launch',       position: 'In-grid',       start: '2024-08-01', end: '2024-08-30', aiRecommendation: 'Optimize Budget', keywords: 86,  products: 18, dailyBudget: '€35', impressions: '187,432', clicks: '4,567', avgCPC: '€0.42', ctr: '2.4%', conversions: '198', sales: '€2,156', spent: '€1,918', roas: '112%' },
-      { id: 'LI-103', status: 'In review', name: 'Category page · Beer',          position: 'Category page', start: '2024-09-01', end: '2024-09-30', aiRecommendation: 'Increase Spend',  keywords: 42,  products: 9,  dailyBudget: '€25', impressions: '—',       clicks: '—',     avgCPC: '—',     ctr: '—',    conversions: '—',   sales: '—',      spent: '—',      roas: '—' },
-      { id: 'LI-104', status: 'Paused',    name: 'Product page · Heineken 0.0',   position: 'Product page',  start: '2024-07-01', end: '2024-07-31', aiRecommendation: 'Optimize Budget', keywords: 31,  products: 4,  dailyBudget: '€20', impressions: '89,234',  clicks: '1,892', avgCPC: '€0.29', ctr: '2.1%', conversions: '96',  sales: '€1,234', spent: '€549',   roas: '225%' },
-    ];
     const [creativeStatus, setCreativeStatus] = useState<string[]>([]);
     const [creativeFormat, setCreativeFormat] = useState<string[]>([]);
     const [logUsers, setLogUsers] = useState<string[]>([]);
@@ -4425,7 +4386,8 @@ export const SponsoredProductsRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
-    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('sponsored-products', 'campaign'), routeCampaign);
+    const spBookingData = campaignBookingRows(useDb(), routeCampaign?.id, 'sponsored-products');
+    const campaignMetrics = useCampaignDeliveryMetrics(usePropositionMetrics('sponsored-products', routeCampaign ? { campaignIds: [routeCampaign.id] } : {}), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('15000');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('500');
     const [detailsCPC, setDetailsCPC] = useState<string>('0.42');
@@ -4761,7 +4723,7 @@ export const SponsoredProductsRunning: Story = {
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="sponsored-products" scope="campaign" />,
+              content: <InsightsTab engineType="sponsored-products" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',
@@ -4864,15 +4826,6 @@ export const OffsiteRunning: Story = {
     });
     const [conversionWindow, setConversionWindow] = React.useState<number>(14);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
-    const bookingData = [
-      { id: 'LI-001', status: 'Live', name: 'Coca-Cola Summer Break', channel: 'Homepage Hero', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 2 }, adSpend: '$12,350', impressions: '1,835,331', clicks: '28,349', viewability: '72.4%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,234', onlineSkuUnits: '2,118', onlineSkuConversions: '1,276', instoreSkuRevenue: '$22,326', instoreSkuUnits: '1,494', instoreSkuConversions: '902', totalSkuRevenue: '$53,560', totalSkuUnits: '3,612', totalSkuConversions: '2,178' },
-      { id: 'LI-002', status: 'Live', name: 'Dove Open Web Boost', channel: 'Category Leaderboard', destination: 'All', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 5 }, adSpend: '$15,561', impressions: '2,312,917', clicks: '35,722', viewability: '68.1%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$39,355', onlineSkuUnits: '2,669', onlineSkuConversions: '1,608', instoreSkuRevenue: '$28,130', instoreSkuUnits: '1,882', instoreSkuConversions: '1,136', totalSkuRevenue: '$67,485', totalSkuUnits: '4,551', totalSkuConversions: '2,744' },
-      { id: 'LI-003', status: 'Live', name: 'Hellmann\'s Recipe Season', channel: 'Product Page Rectangle', destination: 'CNN only', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg'], total: 1 }, adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', viewability: '79.3%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
-      { id: 'LI-004', status: 'Live', name: 'Ben & Jerry\'s Summer Scoop', channel: 'Search Results Top', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 3 }, adSpend: '$9,566', impressions: '1,421,287', clicks: '21,953', viewability: '65.8%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$24,205', onlineSkuUnits: '1,641', onlineSkuConversions: '989', instoreSkuRevenue: '$17,304', instoreSkuUnits: '1,158', instoreSkuConversions: '699', totalSkuRevenue: '$41,509', totalSkuUnits: '2,799', totalSkuConversions: '1,688' },
-      { id: 'LI-005', status: 'Live', name: 'Axe Back to Campus', channel: 'Checkout Sidebar', destination: 'All', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg'], total: 4 }, adSpend: '$14,184', impressions: '2,108,394', clicks: '32,561', viewability: '83.6%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$35,886', onlineSkuUnits: '2,434', onlineSkuConversions: '1,467', instoreSkuRevenue: '$25,651', instoreSkuUnits: '1,716', instoreSkuConversions: '1,036', totalSkuRevenue: '$61,537', totalSkuUnits: '4,150', totalSkuConversions: '2,503' },
-      { id: 'LI-006', status: 'Live', name: 'Knorr Weeknight Meals', channel: 'Newsletter Half Page', destination: 'CNN only', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 1 }, adSpend: '$8,255', impressions: '1,226,527', clicks: '18,944', viewability: '71.2%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$20,896', onlineSkuUnits: '1,417', onlineSkuConversions: '854', instoreSkuRevenue: '$14,935', instoreSkuUnits: '999', instoreSkuConversions: '603', totalSkuRevenue: '$35,831', totalSkuUnits: '2,416', totalSkuConversions: '1,457' },
-      { id: 'LI-007', status: 'Live', name: 'Magnum Indulgence Moments', channel: 'Mobile Interstitial', destination: 'New York Times', start: '2024-06-01', end: '2024-06-30', retailMedia: { images: ['/products/AHI_326b5a694f4a696b516a575a77426b66767874375641.jpeg', '/products/AHI_58595668654137515274614244637957324d34372d51.jpeg', '/products/AHI_656b70553646657151435343764372315175694b3941.jpeg'], total: 6 }, adSpend: '$12,350', impressions: '1,834,470', clicks: '28,326', viewability: '76.9%', cpc: '$0.44', ctr: '1.54%', cpm: '$9.34', ecpm: '$6.73', onlineSkuRevenue: '$31,177', onlineSkuUnits: '2,110', onlineSkuConversions: '1,273', instoreSkuRevenue: '$22,283', instoreSkuUnits: '1,491', instoreSkuConversions: '900', totalSkuRevenue: '$53,460', totalSkuUnits: '3,601', totalSkuConversions: '2,173' },
-    ];
 
     const logData = [
       { id: 'LOG-001', timestamp: '2024-12-10 14:30:00', user: 'Jane Doe', action: 'Campaign Created', field: 'Campaign', oldValue: '-', newValue: 'Offsite: Summer Launch', description: 'Initial offsite campaign creation' },
@@ -4916,7 +4869,8 @@ export const OffsiteRunning: Story = {
     const [detailsObjectiveKpi, setDetailsObjectiveKpi] = React.useState<ObjectiveKpiValue>({ objective: null, kpis: [] });
     const campaignUnread = useUnreadCount('campaign', undefined, ['recommendation']);
     const routeCampaign = useRouteCampaign();
-    const campaignMetrics = useCampaignDeliveryMetrics(getPropositionMetrics('offsite', 'campaign'), routeCampaign);
+    const bookingData = campaignBookingRows(useDb(), routeCampaign?.id, 'offsite');
+    const campaignMetrics = useCampaignDeliveryMetrics(usePropositionMetrics('offsite', routeCampaign ? { campaignIds: [routeCampaign.id] } : {}), routeCampaign);
     const [detailsBudget, setDetailsBudget] = useState<string>('');
     const [detailsDailyBudget, setDetailsDailyBudget] = useState<string>('');
     const [detailsCPC, setDetailsCPC] = useState<string>('');
@@ -5237,7 +5191,7 @@ export const OffsiteRunning: Story = {
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="offsite" scope="campaign" />,
+              content: <InsightsTab engineType="offsite" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',
@@ -5705,7 +5659,7 @@ export const OffsiteInOption: Story = {
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType="offsite" scope="campaign" />,
+              content: <InsightsTab engineType="offsite" performanceScope={routeCampaign ? { campaignIds: [routeCampaign.id] } : undefined} mediaPlanId={routeCampaign?.mediaPlanId} />,
             },
             {
               label: 'Logs',

@@ -13,6 +13,7 @@ import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { Inbox } from '@/components/ui/inbox';
 import { BarChartComponent } from '@/components/ui/bar-chart';
 import { propositionColor } from '@/lib/proposition-colors';
+import { breakdown, totalsFor } from '@/lib/db/performance';
 import { useSession, useDb, useMyTasks, useInboxState, deriveMessages, derivePlanHealth, type EngineId, type PlanStatus } from '@/lib/db';
 import React from 'react';
 
@@ -100,10 +101,11 @@ export const Home: Story = {
     // Spend per proposition — the insight is about the mix, so the chart has to
     // show the mix. One bar per proposition that carries any spend, biggest
     // first, so the dominant one the message names reads immediately.
+    // The spend is the performance model's (lib/db/performance.ts) — the same
+    // breakdown every insight reads.
     const homeSpendByProposition = (() => {
-      const totals = new Map<EngineId, number>();
-      db.campaigns.forEach((c) => totals.set(c.engine, (totals.get(c.engine) ?? 0) + c.spend));
-      return Array.from(totals.entries())
+      return breakdown(db, {}, 'engine')
+        .map((row) => [row.id as EngineId, row.totals.spend] as const)
         .filter(([, spend]) => spend > 0)
         .sort((a, b) => b[1] - a[1])
         // Short axis labels — the full names overlap in a half-width widget and
@@ -132,7 +134,8 @@ export const Home: Story = {
       .map(({ plan }) => {
         const planCampaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
         const bookings = db.bookings.filter((b) => planCampaigns.some((c) => c.id === b.campaignId)).length;
-        const spend = planCampaigns.reduce((s, c) => s + c.spend, 0);
+        // Spend to date per the performance model — the plan's bookings.
+        const spend = totalsFor(db, { mediaPlanId: plan.id }).spend;
         return {
           id: plan.id,
           title: plan.name,

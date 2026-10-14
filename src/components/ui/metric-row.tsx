@@ -54,7 +54,7 @@ export interface MetricDefinition {
    *  Use when the metric needs more than the default line chart — e.g. the
    *  per-proposition breakdown views on the Media-plans page. If omitted
    *  and showCharts is on, the row falls back to a line chart using
-   *  chartData (or a deterministic demo series). */
+   *  chartData; without one, no chart is drawn. */
   expandedContent?: React.ReactNode
 }
 
@@ -199,30 +199,17 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       }
     }
 
-    const generateDemoChartData = (key: string): Array<{ day: string; value: number }> => {
-      const seed = key.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-      const base = 1000 + (seed % 9000)
-      const days = []
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        const pseudoRandom = ((seed * (i + 1) * 1337) % 1000) / 1000
-        days.push({ day: dayLabel, value: Math.round(base + pseudoRandom * base * 0.4) })
-      }
-      return days
-    }
-
     const activeMetric = selectedMetrics.find(m => m.key === activeKey)
     // When `expandedContent` is set on the active metric, render that bespoke
     // node in the panel below — used for the per-proposition breakdown views.
-    // Otherwise we fall through to the default line chart (chartData or
-    // a deterministic demo series).
+    // Otherwise we fall through to the default line chart of the metric's
+    // chartData — the performance model's weekly series. A metric without a
+    // series gets no chart: the row never draws an invented one.
     const chartPanelCustom = showCharts && activeKey && activeMetric?.expandedContent
       ? activeMetric.expandedContent
       : null
-    const chartPanelData = showCharts && activeKey && activeMetric && !chartPanelCustom
-      ? (activeMetric.chartData ?? generateDemoChartData(activeKey))
+    const chartPanelData = showCharts && activeKey && activeMetric && !chartPanelCustom && activeMetric.chartData?.length
+      ? activeMetric.chartData
       : null
 
     return (

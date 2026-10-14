@@ -41,218 +41,395 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { MetricRow, type MetricDefinition } from '@/components/ui/metric-row';
 import { SessionDateRange } from '@/components/ui/session-date-range';
 import { CardInsightList, type CardInsight } from '@/components/ui/insights-notifications';
-import { shareOfVoiceCase, salesUpliftTestCase, volumePacingCase, buyerMixCase, budgetRecommendationCase, keywordRecommendationCase } from '@/lib/case-templates';
+import { volumePacingCase, buyerMixCase, budgetRecommendationCase } from '@/lib/case-templates';
 import { Label } from '@/components/ui/label';
-import { prototypeToday } from '@/lib/clock';
+import { prototypeToday, PROTOTYPE_TODAY } from '@/lib/clock';
+import { useDb } from '@/lib/db';
+import type { DbData } from '@/lib/db';
+import {
+  BENCHMARKS,
+  EMPTY,
+  add,
+  breakdown,
+  bookingsIn,
+  previousPeriod,
+  ratesOf,
+  seriesFor,
+  totalsFor,
+  type BreakdownRow,
+  type Grain,
+  type PerformanceScope,
+  type Totals,
+} from '@/lib/db/performance';
+import { fmtEuro, fmtCount } from '@/lib/proposition-metrics';
+import { useSessionFilters } from '@/lib/session-filters';
 
-// The Share of Voice card's own insights — template-built cases, shown in
-// the card the numbers live in (see ui/insights-notifications).
-const sovCardInsights: CardInsight[] = [
-  {
-    id: 'INS-sov-45',
-    kind: 'insight',
-    subject: 'Share of voice up 4 pts after the June flight',
-    preview: 'Your brand now takes 45% of category impressions against 55% for all competitors combined — up 4 points on last month.',
-    context: 'All propositions · Category: soft drinks',
-    caseData: shareOfVoiceCase({ brandShare: 45, category: 'soft drinks', trendPts: 4 }),
-  },
-  {
-    id: 'INS-sov-instore',
-    kind: 'insight',
-    subject: 'In-store screens beat entrance DOOH on uplift',
-    preview: 'The neighbours A/B test measured +59% uplift for in-store screens vs. +40% at the entrance — and twice the new customers.',
-    context: 'Digital in-store · A/B test, week 12',
-    caseData: salesUpliftTestCase({
-      test: 'Neighbours A/B test',
-      a: { label: 'Entrance DOOH', uplift: 40, newCustomers: 123, base: '€35K', perStore: '€139' },
-      b: { label: 'In-store screens', uplift: 59, newCustomers: 243, base: '€29K', perStore: '€173' },
-    }),
-  },
-];
+// ── Insights data ───────────────────────────────────────────────────────
+//
+// Every number on the routed insights pages (/insights → FunnelView,
+// /insights/report → ProductReportView) comes from the performance model
+// (lib/db/performance.ts) over the prototype database: the sum of the
+// bookings in scope, delivered up to the prototype's today. A filter
+// narrows the scope; nothing is rescaled or seeded per page.
+//
+// The constants below are the only figures this file adds — each a
+// stand-in until the data behind it reports. Change them here, never inline.
 
-const volumeCardInsights: CardInsight[] = [
-  {
-    id: 'INS-volume-pace',
-    kind: 'insight',
-    subject: 'Volume is pacing 8% ahead of plan',
-    preview: 'The flight has delivered 612K impressions against a 700K target, running 8% ahead of where it should be at this point.',
-    context: 'All propositions · this flight',
-    caseData: volumePacingCase({ delivered: '612K', target: '700K', pacePct: 108, topChannel: 'Display onsite' }),
-  },
-  {
-    id: 'INS-volume-budget',
-    kind: 'recommendation',
-    subject: 'Shift €2,000 from display to sponsored products',
-    preview: 'Sponsored products is returning 440% against display\u2019s 210% this month — the same volume can buy more return.',
-    context: 'Holiday Sale Plan',
-    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€2,000', roasFrom: '210%', roasTo: '440%' }),
-  },
-];
+/** Buyers per purchase: some purchases are the same shopper buying again.
+ *  The same 0.85 the performance model counts new-to-brand buyers from. */
+const BUYERS_PER_CONVERSION = 0.85;
+/** Of the buyers who are not new to the brand, the share won back after
+ *  lapsing; the rest are existing buyers. Stand-in until the loyalty card
+ *  splits returning buyers. */
+const LAPSED_SHARE_OF_RETURNING = 0.4;
+/** Add-to-carts per click on the product page. Stand-in until the site's
+ *  basket events report. */
+const ADD_TO_CART_PER_CLICK = 0.2;
+/** Share of a proposition's spend a budget recommendation suggests moving. */
+const SHIFT_SHARE = 0.1;
+/** The insights pages' default window: the year so far, to the prototype's today. */
+const INSIGHTS_FROM = `${PROTOTYPE_TODAY.slice(0, 4)}-01-01`;
 
-const engagementCardInsights: CardInsight[] = [
-  {
-    id: 'INS-engagement-pace',
-    kind: 'insight',
-    subject: 'Engagement is pacing 15% ahead of plan',
-    preview: 'The flight has delivered 92K clicks against an 80K target, running 15% ahead of where it should be at this point.',
-    context: 'All propositions · this flight',
-    caseData: volumePacingCase({ delivered: '92K', target: '80K', pacePct: 115, topChannel: 'Sponsored products', unit: 'clicks' }),
-  },
-  {
-    id: 'INS-engagement-ctr',
-    kind: 'recommendation',
-    subject: 'Shift €1,500 from display to sponsored products',
-    preview: "Sponsored products is converting at 2.8% CTR against display's 1.9% this month — the same spend can earn more clicks.",
-    context: 'Holiday Sale Plan',
-    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€1,500', roasFrom: '1.9%', roasTo: '2.8%', metric: 'CTR' }),
-  },
-];
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAY_MS = 86_400_000;
+const daysBetween = (from: string, to: string) => Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS) + 1;
 
-const unitsCardInsights: CardInsight[] = [
-  {
-    id: 'INS-units-pace',
-    kind: 'insight',
-    subject: 'Units sold are pacing 19% ahead of plan',
-    preview: 'The flight has sold 17.8K units against a 15K target, running 19% ahead of where it should be at this point.',
-    context: 'All propositions · this flight',
-    caseData: volumePacingCase({ delivered: '17.8K', target: '15K', pacePct: 119, topChannel: 'Sponsored products', unit: 'units sold' }),
-  },
-  {
-    id: 'INS-units-roas',
-    kind: 'recommendation',
-    subject: 'Shift €3,000 from display to sponsored products',
-    preview: "Sponsored products is returning 580% ROAS against display's 420% this month — the same spend can buy more return.",
-    context: 'Holiday Sale Plan',
-    caseData: budgetRecommendationCase({ from: 'Display', to: 'Sponsored products', amount: '€3,000', roasFrom: '420%', roasTo: '580%' }),
-  },
-];
+/** Who bought: new to the brand from the model, the rest split by the
+ *  fixed lapsed share above. */
+function buyerSplit(t: Totals) {
+  const buyers = t.conversions * BUYERS_PER_CONVERSION;
+  const newToBrand = Math.min(buyers, t.newToBrandBuyers);
+  const returning = buyers - newToBrand;
+  return {
+    buyers,
+    newToBrand,
+    lapsed: returning * LAPSED_SHARE_OF_RETURNING,
+    existing: returning * (1 - LAPSED_SHARE_OF_RETURNING),
+  };
+}
 
-const ctrCardInsights: CardInsight[] = [
-  {
+/** The session's date range, clamped to what has delivered; the year so
+ *  far when none is set. */
+function insightsWindow(f: { dateFrom?: string; dateTo?: string }): { from: string; to: string } {
+  const to = f.dateTo && f.dateTo < PROTOTYPE_TODAY ? f.dateTo : PROTOTYPE_TODAY;
+  const from = f.dateFrom ?? INSIGHTS_FROM;
+  return { from: from <= to ? from : to, to };
+}
+
+/** Months for a long window, weeks for a quarter, days for a month. */
+function grainFor(from: string, to: string): Grain {
+  const days = daysBetween(from, to);
+  return days <= 31 ? 'day' : days <= 120 ? 'week' : 'month';
+}
+
+/** "Mar – May 2026" — a campaign's run, for a filter option. */
+function runLabel(start: string, end: string): string {
+  const m = (iso: string) => MONTH_SHORT[Number(iso.slice(5, 7)) - 1];
+  const sameYear = start.slice(0, 4) === end.slice(0, 4);
+  if (sameYear && start.slice(5, 7) === end.slice(5, 7)) return `${m(start)} ${start.slice(0, 4)}`;
+  return sameYear ? `${m(start)} – ${m(end)} ${end.slice(0, 4)}` : `${m(start)} ${start.slice(0, 4)} – ${m(end)} ${end.slice(0, 4)}`;
+}
+
+/** What the scope's bookings should have spent inside the window at an even
+ *  pace — the plan a pacing figure compares delivery with. */
+function plannedSpendInWindow(db: DbData, scope: PerformanceScope): number {
+  const end = scope.to ?? PROTOTYPE_TODAY;
+  return bookingsIn(db, scope).reduce((sum, b) => {
+    const from = scope.from && scope.from > b.startDate ? scope.from : b.startDate;
+    const to = end < b.endDate ? end : b.endDate;
+    if (to < from) return sum;
+    return sum + (b.budget * daysBetween(from, to)) / Math.max(1, daysBetween(b.startDate, b.endDate));
+  }, 0);
+}
+
+/** The scope's totals per proposition; propositions without bookings read empty. */
+function totalsByEngine(db: DbData, scope: PerformanceScope): Record<EngineId, Totals> {
+  const rows = breakdown(db, scope, 'engine');
+  return Object.fromEntries(
+    ENGINE_ORDER.map((e) => [e, rows.find((r) => r.id === e)?.totals ?? EMPTY]),
+  ) as Record<EngineId, Totals>;
+}
+
+/** Breakdowns of several scopes (one per selected proposition) as one. */
+function mergeRows(lists: BreakdownRow[][]): BreakdownRow[] {
+  const out = new Map<string, BreakdownRow>();
+  for (const list of lists) for (const r of list) {
+    const cur = out.get(r.id);
+    out.set(r.id, cur ? { ...cur, totals: add(cur.totals, r.totals) } : r);
+  }
+  return [...out.values()];
+}
+
+/** "+12%" vs. the period before; nothing when the period before had none. */
+function changeBadge(now: number, before: number | undefined, lowerIsBetter = false): Pick<MetricDefinition, 'badgeValue' | 'badgeVariant'> {
+  if (before === undefined || before <= 0) return {};
+  const d = Math.round(((now - before) / before) * 100);
+  const up = d > 0;
+  return { badgeValue: `${d > 0 ? '+' : ''}${d}%`, badgeVariant: d === 0 ? 'secondary' : up !== lowerIsBetter ? 'success' : 'warning' };
+}
+
+const pctOf = (n: number, digits = 0) => `${(n * 100).toFixed(digits)}%`;
+const euro2 = (n: number) => `€${n.toFixed(2)}`;
+const paceWords = (pct: number) => (pct >= 100 ? `pacing ${pct - 100}% ahead of plan` : `at ${pct}% of plan`);
+
+/** The labels the funnel's cards use for each proposition. */
+const FUNNEL_ENGINE_LABEL: Record<EngineId, string> = {
+  'sponsored-products': 'Sponsored Products',
+  display: 'Display',
+  'digital-instore': 'Digital Media In-store',
+  'offline-instore': 'Offline Media In-store',
+  offsite: 'Display Offsite',
+};
+
+/** The labels the custom reports use for each proposition. */
+const REPORT_ENGINE_LABEL: Record<EngineId, string> = {
+  'sponsored-products': 'Sponsored Products',
+  display: 'Display',
+  'digital-instore': 'Digital In-store',
+  'offline-instore': 'Offline In-store',
+  offsite: 'Display Offsite',
+};
+
+/** A budget shift inside the plan spending most in scope: from the
+ *  proposition doing worst on `score` to the one doing best. */
+function budgetShift(
+  db: DbData,
+  scope: PerformanceScope,
+  score: (t: Totals) => number,
+  eligible: (t: Totals) => boolean = (t) => t.spend > 0,
+) {
+  const plan = breakdown(db, scope, 'mediaPlan')[0];
+  if (!plan) return undefined;
+  const rows = breakdown(db, { ...scope, mediaPlanId: plan.id }, 'engine').filter((r) => eligible(r.totals));
+  if (rows.length < 2) return undefined;
+  const sorted = [...rows].sort((a, b) => score(a.totals) - score(b.totals));
+  const from = sorted[0];
+  const to = sorted[sorted.length - 1];
+  if (score(from.totals) === score(to.totals)) return undefined;
+  const amount = Math.max(100, Math.round((from.totals.spend * SHIFT_SHARE) / 100) * 100);
+  return {
+    plan: plan.name,
+    from: from.id as EngineId,
+    to: to.id as EngineId,
+    fromTotals: from.totals,
+    toTotals: to.totals,
+    amount: `€${amount.toLocaleString('en-GB')}`,
+  };
+}
+
+/** A product row of the funnel's product charts: its sales, tagged with
+ *  the proposition that sold most of it. */
+type ProductSales = { id: string; name: string; value: number; engine: EngineId; color: string; spend: number };
+
+function productSales(db: DbData, scope: PerformanceScope): ProductSales[] {
+  return breakdown(db, scope, 'retailProduct')
+    .map((r) => {
+      const engines = breakdown(db, { ...scope, retailProductIds: [r.id] }, 'engine');
+      const lead = [...engines].sort((a, b) => b.totals.sales - a.totals.sales)[0];
+      const engine = (lead?.id ?? 'sponsored-products') as EngineId;
+      return { id: r.id, name: r.name, value: Math.round(r.totals.sales), engine, color: propositionColor(engine), spend: r.totals.spend };
+    })
+    .filter((p) => p.value > 0)
+    .sort((a, b) => b.value - a.value);
+}
+
+/** The funnel cards' insights — template-built cases, every figure read
+ *  from the same scope the cards above them plot. A case with nothing to
+ *  say in scope (no delivery, one proposition) is left out. */
+function funnelInsights(db: DbData, scope: PerformanceScope, products: ProductSales[]) {
+  const t = totalsFor(db, scope);
+  const by = totalsByEngine(db, scope);
+  const engines = ENGINE_ORDER.filter((e) => by[e].spend > 0);
+  const planned = plannedSpendInWindow(db, scope);
+  const pace = planned > 0 ? t.spend / planned : 0;
+  const pacePct = Math.round(pace * 100);
+  const lead = (value: (x: Totals) => number) => [...engines].sort((a, b) => value(by[b]) - value(by[a]))[0];
+  const ctxAll = `${engines.length > 1 ? 'All propositions' : engines.map((e) => FUNNEL_ENGINE_LABEL[e]).join('')} · this period`;
+
+  const pacing = (id: string, unit: string, label: string, volume: number, top: EngineId | undefined, fmt: (n: number) => string): CardInsight | undefined => {
+    if (!(pace > 0) || volume <= 0 || !top) return undefined;
+    const target = volume / pace;
+    return {
+      id,
+      kind: 'insight',
+      subject: `${label} ${label.endsWith('s') ? 'are' : 'is'} ${paceWords(pacePct)}`,
+      preview: `The period has delivered ${fmt(volume)} ${unit} against ${fmt(target)} planned to date — ${FUNNEL_ENGINE_LABEL[top]} carries the largest share.`,
+      context: ctxAll,
+      caseData: volumePacingCase({ delivered: fmt(volume), target: fmt(target), pacePct, topChannel: FUNNEL_ENGINE_LABEL[top], unit }),
+    };
+  };
+
+  const shiftInsight = (
+    id: string,
+    score: (x: Totals) => number,
+    fmt: (n: number) => string,
+    metric: string | undefined,
+    verb: string,
+    eligible?: (x: Totals) => boolean,
+  ): CardInsight | undefined => {
+    const s = budgetShift(db, scope, score, eligible);
+    if (!s) return undefined;
+    const from = FUNNEL_ENGINE_LABEL[s.from];
+    const to = FUNNEL_ENGINE_LABEL[s.to];
+    return {
+      id,
+      kind: 'recommendation',
+      subject: `Shift ${s.amount} from ${from.toLowerCase()} to ${to.toLowerCase()}`,
+      preview: `${to} is ${verb} ${fmt(score(s.toTotals))} against ${from}'s ${fmt(score(s.fromTotals))} in this plan — the same spend can buy more there.`,
+      context: s.plan,
+      caseData: budgetRecommendationCase({ from, to, amount: s.amount, roasFrom: fmt(score(s.fromTotals)), roasTo: fmt(score(s.toTotals)), metric }),
+    };
+  };
+
+  const roasOf = (x: Totals) => ratesOf(x).roas;
+  const ctrOf = (x: Totals) => ratesOf(x).ctr;
+  const conversionsPerK = (x: Totals) => (x.spend > 0 ? (x.conversions / x.spend) * 1000 : 0);
+  const keep = (list: (CardInsight | undefined)[]) => list.filter((x): x is CardInsight => !!x);
+
+  // CTR and ROAS hold to the propositions' own targets, weighted by spend.
+  const weighted = (engs: EngineId[], k: 'ctr' | 'roas') => {
+    const spend = engs.reduce((s, e) => s + by[e].spend, 0);
+    return spend > 0 ? engs.reduce((s, e) => s + BENCHMARKS[e][k] * by[e].spend, 0) / spend : 0;
+  };
+  const clickEngines = (['sponsored-products', 'display'] as EngineId[]).filter((e) => by[e].impressions > 0);
+  const ctrClicks = clickEngines.reduce((s, e) => s + by[e].clicks, 0);
+  const ctrImps = clickEngines.reduce((s, e) => s + by[e].impressions, 0);
+  const ctrNow = ctrImps > 0 ? ctrClicks / ctrImps : 0;
+  const ctrTarget = weighted(clickEngines, 'ctr');
+  const roasNow = ratesOf(t).roas;
+  const roasTarget = weighted(engines, 'roas');
+
+  const ctr: CardInsight[] = ctrNow > 0 && ctrTarget > 0 ? [{
     id: 'INS-ctr-pace',
     kind: 'insight',
-    subject: 'CTR is pacing 15% ahead of plan',
-    preview: 'The flight is running at 2.3% CTR against a 2% target, running 15% ahead of where it should be at this point.',
-    context: 'Sponsored products · Display',
-    caseData: volumePacingCase({ delivered: '2.3%', target: '2%', pacePct: 115, topChannel: 'Sponsored products', unit: 'CTR' }),
-  },
-];
+    subject: `CTR is running ${Math.abs(Math.round((ctrNow / ctrTarget - 1) * 100))}% ${ctrNow >= ctrTarget ? 'ahead of' : 'behind'} target`,
+    preview: `The period is running at ${pctOf(ctrNow, 1)} CTR against a ${pctOf(ctrTarget, 1)} target, weighted by each proposition's spend.`,
+    context: clickEngines.map((e) => FUNNEL_ENGINE_LABEL[e]).join(' · '),
+    caseData: volumePacingCase({ delivered: pctOf(ctrNow, 1), target: pctOf(ctrTarget, 1), pacePct: Math.round((ctrNow / ctrTarget) * 100), topChannel: FUNNEL_ENGINE_LABEL[clickEngines.reduce((a, b) => (ctrOf(by[b]) > ctrOf(by[a]) ? b : a))], unit: 'CTR' }),
+  }] : [];
 
-/** Revenue by product SKU — named products, each tagged with the
- *  proposition that drove the sale. Sums to the Sales SKU (14 days) figure
- *  shown at the top of the dashboard, so the two never disagree. */
-const revenueByProductData: { name: string; value: number; engine: EngineId; color: string }[] = (
-  [
-    { name: 'Irish Spring 3C Soap', value: 18200, engine: 'sponsored-products' as EngineId },
-    { name: 'SS AB Cln Prt Liq HD', value: 15050, engine: 'sponsored-products' as EngineId },
-    { name: 'SFTSP Coco Btr Scrb', value: 14600, engine: 'display' as EngineId },
-    { name: 'SFTSP Ktchn Frsh Hnd', value: 13950, engine: 'sponsored-products' as EngineId },
-    { name: 'SFTSP Frsh Sprs Wtr', value: 8200, engine: 'display' as EngineId },
-  ]
-).map((p) => ({ ...p, color: propositionColor(p.engine) }));
-
-/** The bottom of the same catalogue — long-tail SKUs barely moving,
- *  candidates to drop from the plan or re-target. */
-const leastPerformingProductData: { name: string; value: number; engine: EngineId; color: string }[] = (
-  [
-    { name: 'SFTSP Lvndr Fld Wsh', value: 2100, engine: 'sponsored-products' as EngineId },
-    { name: 'SS AB Frsh Ctrs Spry', value: 1800, engine: 'display' as EngineId },
-    { name: 'SFTSP Ocn Brz Btl', value: 1450, engine: 'sponsored-products' as EngineId },
-    { name: 'SS AB Wht Musk Rfl', value: 1100, engine: 'display' as EngineId },
-    { name: 'SFTSP Mnt Euclptus', value: 780, engine: 'sponsored-products' as EngineId },
-  ]
-).map((p) => ({ ...p, color: propositionColor(p.engine) }));
-
-const roasCardInsights: CardInsight[] = [
-  {
+  const roas: CardInsight[] = roasNow > 0 && roasTarget > 0 ? [{
     id: 'INS-roas-pace',
     kind: 'insight',
-    subject: 'ROAS is pacing 28% ahead of plan',
-    preview: 'The flight is returning 510% against a 400% target, running 28% ahead of where it should be at this point.',
-    context: 'Sponsored products · Display · Digital in-store · Offline in-store',
-    caseData: volumePacingCase({ delivered: '510%', target: '400%', pacePct: 128, topChannel: 'Sponsored products', unit: 'ROAS' }),
-  },
-];
+    subject: `ROAS is running ${Math.abs(Math.round((roasNow / roasTarget - 1) * 100))}% ${roasNow >= roasTarget ? 'ahead of' : 'behind'} target`,
+    preview: `The period is returning ${pctOf(roasNow)} against a ${pctOf(roasTarget)} target, weighted by each proposition's spend.`,
+    context: engines.map((e) => FUNNEL_ENGINE_LABEL[e]).join(' · '),
+    caseData: volumePacingCase({ delivered: pctOf(roasNow), target: pctOf(roasTarget), pacePct: Math.round((roasNow / roasTarget) * 100), topChannel: FUNNEL_ENGINE_LABEL[lead(roasOf)], unit: 'ROAS' }),
+  }] : [];
 
-const topProductsCardInsights: CardInsight[] = [
-  {
+  // Products — the best and the weakest sellers in scope.
+  const top = products.slice(0, 5);
+  const low = products.length > 1 ? products.slice(Math.max(1, products.length - 5)) : [];
+  const topSum = top.reduce((s, p) => s + p.value, 0);
+  const lowSum = low.reduce((s, p) => s + p.value, 0);
+  const allSum = products.reduce((s, p) => s + p.value, 0);
+  const best = products[0];
+  const worst = products[products.length - 1];
+  const topProducts: CardInsight[] = best ? [{
     id: 'INS-products-lead',
     kind: 'insight',
-    subject: 'Irish Spring 3C Soap carries a quarter of SKU sales',
-    preview: 'The top five SKUs brought in €70K in 14 days against a €60K target — Irish Spring 3C Soap alone €18.2K, the largest share of any product.',
-    context: 'Sponsored products · Display · last 14 days',
-    caseData: volumePacingCase({ delivered: '€70K', target: '€60K', pacePct: 117, topChannel: 'Irish Spring 3C Soap', unit: 'SKU revenue' }),
-  },
-  {
-    id: 'INS-products-keywords',
-    kind: 'recommendation',
-    subject: 'Add 3 keywords Irish Spring 3C Soap is missing',
-    preview: '9.6K monthly searches for bar soap in your category run without your top SKU’s sponsored placement — competitors take the slot on every one.',
-    context: 'Sponsored products · Irish Spring 3C Soap',
-    caseData: keywordRecommendationCase({ keywords: ['bar soap 3 pack', 'irish spring soap', 'deodorant soap bar'], volume: '9.6K', estClicks: '410' }),
-  },
-];
+    subject: `${best.name} carries ${Math.round((best.value / Math.max(1, allSum)) * 100)}% of product sales`,
+    preview: `The top ${top.length} products brought in ${fmtEuro(topSum)} in the period — ${best.name} alone ${fmtEuro(best.value)}, the largest share of any product.`,
+    context: `${[...new Set(top.map((p) => FUNNEL_ENGINE_LABEL[p.engine]))].join(' · ')} · this period`,
+    caseData: volumePacingCase({ delivered: fmtEuro(topSum), target: fmtEuro(pace > 0 ? topSum / pace : topSum), pacePct, topChannel: best.name, unit: 'product revenue' }),
+  }] : [];
+  const lowProducts: CardInsight[] = low.length && worst && best && worst.id !== best.id ? [
+    {
+      id: 'INS-products-tail',
+      kind: 'insight',
+      subject: `${low.length} product${low.length === 1 ? '' : 's'} sold ${fmtEuro(Math.max(...low.map((p) => p.value)))} or less each`,
+      preview: `The bottom ${low.length} made ${fmtEuro(lowSum)} together — ${Math.round((lowSum / Math.max(1, topSum)) * 100)}% of what the top ${top.length} did — with ${worst.name} at ${fmtEuro(worst.value)} the weakest in scope.`,
+      context: `${[...new Set(low.map((p) => FUNNEL_ENGINE_LABEL[p.engine]))].join(' · ')} · this period`,
+      caseData: volumePacingCase({ delivered: fmtEuro(lowSum), target: fmtEuro(pace > 0 ? lowSum / pace : lowSum), pacePct, topChannel: worst.name, unit: 'product revenue' }),
+    },
+    {
+      id: 'INS-products-drop',
+      kind: 'recommendation',
+      subject: `Move ${fmtEuro(Math.max(100, Math.round(worst.spend / 100) * 100))} from ${worst.name} to ${best.name}`,
+      preview: `${worst.name} returned ${fmtEuro(worst.value)} on its placements; the same budget on your top product would ride one already selling ${fmtEuro(best.value)}.`,
+      context: `${FUNNEL_ENGINE_LABEL[worst.engine]} · this period`,
+      caseData: budgetRecommendationCase({ from: worst.name, to: best.name, amount: fmtEuro(Math.max(100, Math.round(worst.spend / 100) * 100)), roasFrom: fmtEuro(worst.value), roasTo: fmtEuro(best.value), metric: 'revenue' }),
+    },
+  ] : [];
 
-const lowProductsCardInsights: CardInsight[] = [
-  {
-    id: 'INS-products-tail',
-    kind: 'insight',
-    subject: 'Five SKUs sold under €2.2K each in 14 days',
-    preview: 'The bottom five SKUs made €7.2K together — a tenth of what the top five did — with SFTSP Mnt Euclptus at €780 the weakest on the plan.',
-    context: 'Sponsored products · Display · last 14 days',
-    caseData: volumePacingCase({ delivered: '€7.2K', target: '€10K', pacePct: 72, topChannel: 'SFTSP Lvndr Fld Wsh', unit: 'SKU revenue' }),
-  },
-  {
-    id: 'INS-products-drop',
-    kind: 'recommendation',
-    subject: 'Move €800 from SFTSP Mnt Euclptus to Irish Spring 3C Soap',
-    preview: 'SFTSP Mnt Euclptus returned €780 on its placements; the same budget on your top SKU would ride a product already selling €18.2K.',
-    context: 'Sponsored products · last 14 days',
-    caseData: budgetRecommendationCase({ from: 'SFTSP Mnt Euclptus', to: 'Irish Spring 3C Soap', amount: '€800', roasFrom: '€780', roasTo: '€18.2K', metric: 'revenue' }),
-  },
-];
+  // Buyers.
+  const split = buyerSplit(t);
+  const newPct = split.buyers > 0 ? Math.round((split.newToBrand / split.buyers) * 100) : 0;
+  const lapsedPct = split.buyers > 0 ? Math.round((split.lapsed / split.buyers) * 100) : 0;
+  const existingPct = 100 - newPct - lapsedPct;
+  const topCategory = (() => {
+    const cats = new Map<string, number>();
+    for (const p of products) {
+      const cat = db.retailProducts.find((r) => r.id === p.id)?.category;
+      if (cat) cats.set(cat, (cats.get(cat) ?? 0) + p.value);
+    }
+    return [...cats.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  })();
+  const buyerEngine = lead((x) => buyerSplit(x).buyers);
+  const buyerShare = (e: EngineId) => (split.buyers > 0 ? Math.round((buyerSplit(by[e]).buyers / split.buyers) * 100) : 0);
+  const secondBuyerEngine = [...engines].sort((a, b) => buyerSplit(by[b]).buyers - buyerSplit(by[a]).buyers)[1];
+  const screens = by['digital-instore'];
+  const offline = by['offline-instore'];
+  const newPerK = (x: Totals) => (x.spend > 0 ? (buyerSplit(x).newToBrand / x.spend) * 1000 : 0);
 
-const buyerPropositionCardInsights: CardInsight[] = [
-  {
-    id: 'INS-buyers-spa',
-    kind: 'insight',
-    subject: 'Sponsored Products wins 39% of buyers',
-    preview: 'Sponsored Products won 448 of this month’s 1,148 buyers — 39%, against a 35% target — with Display next at 23%.',
-    context: 'All propositions · this month',
-    caseData: volumePacingCase({ delivered: '448', target: '400', pacePct: 112, topChannel: 'Sponsored products', unit: 'buyers' }),
-  },
-  {
-    id: 'INS-buyers-offsite',
-    kind: 'recommendation',
-    subject: 'Shift €1,000 from display offsite to sponsored products',
-    preview: 'Display Offsite wins 9% of buyers for its share of spend; Sponsored Products wins 39% — the same budget recruits more customers there.',
-    context: 'Holiday Sale Plan',
-    caseData: budgetRecommendationCase({ from: 'Display Offsite', to: 'Sponsored products', amount: '€1,000', roasFrom: '9%', roasTo: '39%', metric: 'buyer share' }),
-  },
-];
+  const buyer: CardInsight[] = keep([
+    split.buyers > 0 ? {
+      id: 'INS-buyer-new',
+      kind: 'insight',
+      subject: `${newPct}% of buyers are new to the brand`,
+      preview: `${newPct}% of buyers reached had never bought you before, against ${lapsedPct}% won back from lapsed and ${existingPct}% repeat buyers.`,
+      context: `${engines.length > 1 ? 'All propositions' : FUNNEL_ENGINE_LABEL[engines[0]]}${topCategory ? ` · Category: ${topCategory.toLowerCase()}` : ''}`,
+      caseData: buyerMixCase({ newToBrand: newPct, lapsed: lapsedPct, existing: existingPct, category: (topCategory ?? 'all categories').toLowerCase() }),
+    } : undefined,
+    screens.spend > 0 && offline.spend > 0 ? (() => {
+      const s = newPerK(screens);
+      const o = newPerK(offline);
+      const ss = buyerSplit(screens);
+      const pct = (n: number) => (ss.buyers > 0 ? Math.round((n / ss.buyers) * 100) : 0);
+      return {
+        id: 'INS-buyer-instore',
+        kind: 'insight' as const,
+        subject: `In-store screens recruit ${s >= o ? (s / Math.max(o, 1e-9)).toFixed(1) + '×' : Math.round((s / Math.max(o, 1e-9)) * 100) + '% of'} the new buyers per euro`,
+        preview: `Digital in-store wins ${s.toFixed(1)} new-to-brand buyers per €1K against ${o.toFixed(1)} for offline in-store media.`,
+        context: 'Digital in-store · Offline in-store · this period',
+        caseData: buyerMixCase({ newToBrand: pct(ss.newToBrand), lapsed: pct(ss.lapsed), existing: 100 - pct(ss.newToBrand) - pct(ss.lapsed), category: 'in-store screens' }),
+      };
+    })() : undefined,
+  ]);
 
-const buyerCardInsights: CardInsight[] = [
-  {
-    id: 'INS-buyer-new',
-    kind: 'insight',
-    subject: 'Almost half of buyers are new to the brand',
-    preview: '48% of buyers reached had never bought you before, against 22% won back from lapsed and 30% repeat buyers.',
-    context: 'All propositions · Category: soft drinks',
-    caseData: buyerMixCase({ newToBrand: 48, lapsed: 22, existing: 30, category: 'soft drinks' }),
-  },
-  {
-    id: 'INS-buyer-instore',
-    kind: 'insight',
-    subject: 'In-store screens recruit twice the new customers',
-    preview: 'The neighbours A/B test drew +243% new customers on in-store screens against +123% at the entrance.',
-    context: 'Digital in-store · A/B test, week 12',
-    caseData: salesUpliftTestCase({
-      test: 'Neighbours A/B test',
-      a: { label: 'Entrance DOOH', uplift: 40, newCustomers: 123, base: '€35K', perStore: '€139' },
-      b: { label: 'In-store screens', uplift: 59, newCustomers: 243, base: '€29K', perStore: '€173' },
-    }),
-  },
-];
+  const buyerProposition: CardInsight[] = keep([
+    buyerEngine && split.buyers > 0 ? {
+      id: 'INS-buyers-lead',
+      kind: 'insight',
+      subject: `${FUNNEL_ENGINE_LABEL[buyerEngine]} wins ${buyerShare(buyerEngine)}% of buyers`,
+      preview: `${FUNNEL_ENGINE_LABEL[buyerEngine]} won ${fmtCount(buyerSplit(by[buyerEngine]).buyers)} of the period's ${fmtCount(split.buyers)} buyers — ${buyerShare(buyerEngine)}%${secondBuyerEngine ? `, with ${FUNNEL_ENGINE_LABEL[secondBuyerEngine]} next at ${buyerShare(secondBuyerEngine)}%` : ''}.`,
+      context: ctxAll,
+      caseData: volumePacingCase({ delivered: fmtCount(buyerSplit(by[buyerEngine]).buyers), target: fmtCount(pace > 0 ? buyerSplit(by[buyerEngine]).buyers / pace : buyerSplit(by[buyerEngine]).buyers), pacePct, topChannel: FUNNEL_ENGINE_LABEL[buyerEngine], unit: 'buyers' }),
+    } : undefined,
+    shiftInsight('INS-buyers-shift', newPerK, (n) => `${n.toFixed(1)} per €1K`, 'new buyers', 'recruiting'),
+  ]);
+
+  return {
+    volume: keep([
+      pacing('INS-volume-pace', 'impressions', 'Impressions', t.impressions, lead((x) => x.impressions), fmtCount),
+      shiftInsight('INS-volume-budget', roasOf, (n) => pctOf(n), undefined, 'returning'),
+    ]),
+    engagement: keep([
+      pacing('INS-engagement-pace', 'clicks', 'Engagements', t.clicks, lead((x) => x.clicks), fmtCount),
+      shiftInsight('INS-engagement-ctr', ctrOf, (n) => pctOf(n, 2), 'CTR', 'converting at', (x) => x.spend > 0 && x.clicks > 0),
+    ]),
+    units: keep([
+      pacing('INS-units-pace', 'conversions', 'Conversions', t.conversions, lead((x) => x.conversions), fmtCount),
+      shiftInsight('INS-units-cpa', conversionsPerK, (n) => `${n.toFixed(1)} per €1K`, 'conversions', 'winning'),
+    ]),
+    ctr,
+    roas,
+    topProducts,
+    lowProducts,
+    buyer,
+    buyerProposition,
+  };
+}
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Insights Dashboard',
@@ -2704,154 +2881,188 @@ export const ProductReportView: Story = {
     const [engineFilter, setEngineFilter] = useState<string[]>([]);
     const [searchValue, setSearchValue] = useState('');
     const [activeTab, setActiveTab] = useState('product-report');
+    // The year so far by default, the same window the insights dashboard
+    // opens on — both read the prototype's clock, never the machine's.
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(prototypeToday().getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      from: new Date(prototypeToday().getFullYear(), 0, 1),
       to: prototypeToday(),
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
 
-    // Report data for all tabs
-    const productReportData = [
-      {
-        id: 'PRD-001',
-        productName: 'Dove Body Wash Original',
-        brand: 'Dove',
-        category: 'Personal Care',
-        advertiser: 'Unilever',
-        sku: 'DV-BW-250ML-ORG',
-        impressions: 4850000,
-        clicks: 14550,
-        spend: 8950.75,
-        addToCart: 2847,
-        purchases: 634,
-        revenue: 31750.40,
-        units: 1268,
-        roas: '355%',
-        ctr: '0.30%',
-        cpc: '€0.62',
-        cartRate: '19.6%',
-        conversionRate: '4.4%',
-        cpa: '€14.12',
-        aov: '€50.08',
-        status: 'Active',
-        stockLevel: 'High',
-        margin: '42%'
-      },
-      {
-        id: 'PRD-002',
-        productName: 'Hellmanns Real Mayonnaise 400g',
-        brand: 'Hellmanns',
-        category: 'Food & Beverage',
-        advertiser: 'Unilever',
-        sku: 'HM-MAYO-400G-REAL',
-        impressions: 3800000,
-        clicks: 13680,
-        spend: 7234.60,
-        addToCart: 2634,
-        purchases: 789,
-        revenue: 23670.60,
-        units: 1578,
-        roas: '327%',
-        ctr: '0.36%',
-        cpc: '€0.53',
-        cartRate: '19.2%',
-        conversionRate: '5.8%',
-        cpa: '€9.17',
-        aov: '€30.00',
-        status: 'Active',
-        stockLevel: 'Medium',
-        margin: '38%'
-      },
-      {
-        id: 'PRD-003',
-        productName: 'Ben & Jerrys Cookie Dough 465ml',
-        brand: 'Ben & Jerrys',
-        category: 'Food & Beverage',
-        advertiser: 'Unilever',
-        sku: 'BJ-CD-465ML',
-        impressions: 3200000,
-        clicks: 11520,
-        spend: 6890.25,
-        addToCart: 2291,
-        purchases: 573,
-        revenue: 22920.00,
-        units: 573,
-        roas: '333%',
-        ctr: '0.36%',
-        cpc: '€0.60',
-        cartRate: '19.9%',
-        conversionRate: '5.0%',
-        cpa: '€12.02',
-        aov: '€40.00',
-        status: 'Active',
-        stockLevel: 'Low',
-        margin: '45%'
-      },
-      {
-        id: 'PRD-004',
-        productName: 'Axe Dark Temptation Body Spray',
-        brand: 'Axe',
-        category: 'Personal Care',
-        advertiser: 'Unilever',
-        sku: 'AX-DT-150ML',
-        impressions: 2800000,
-        clicks: 9520,
-        spend: 5456.80,
-        addToCart: 1923,
-        purchases: 385,
-        revenue: 15015.00,
-        units: 1155,
-        roas: '275%',
-        ctr: '0.34%',
-        cpc: '€0.57',
-        cartRate: '20.2%',
-        conversionRate: '4.0%',
-        cpa: '€14.17',
-        aov: '€39.00',
-        status: 'Active',
-        stockLevel: 'High',
-        margin: '40%'
-      },
-      {
-        id: 'PRD-005',
-        productName: 'Lipton Yellow Label Tea 100bags',
-        brand: 'Lipton',
-        category: 'Food & Beverage',
-        advertiser: 'Unilever',
-        sku: 'LP-YL-100BAG',
-        impressions: 2200000,
-        clicks: 8580,
-        spend: 4567.40,
-        addToCart: 1756,
-        purchases: 439,
-        revenue: 10536.00,
-        units: 1317,
-        roas: '231%',
-        ctr: '0.39%',
-        cpc: '€0.53',
-        cartRate: '20.5%',
-        conversionRate: '5.1%',
-        cpa: '€10.40',
-        aov: '€24.00',
-        status: 'Active',
-        stockLevel: 'High',
-        margin: '35%'
+    // ── What the reports cover ─────────────────────────────────────────
+    // One scope for every tab: the picked range, narrowed by Status (the
+    // campaigns in that state), Brand and Category (the retail products
+    // in them). Proposition sums the scope per selected proposition.
+    const db = useDb();
+    const isoOfLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const reportFrom = dateRange?.from ? isoOfLocal(dateRange.from) : INSIGHTS_FROM;
+    const reportTo = dateRange?.to ? isoOfLocal(dateRange.to) : PROTOTYPE_TODAY;
+
+    // A campaign's status in the report's words.
+    const STATUS_VALUE: Record<string, string> = { running: 'active', paused: 'paused', completed: 'completed', 'in-option': 'in-option' };
+    const STATUS_LABEL: Record<string, string> = { active: 'Active', paused: 'Paused', completed: 'Completed', 'in-option': 'In option' };
+
+    const categoryOptions = [...new Set(db.retailProducts.map((p) => p.category))].sort().map((c) => ({ label: c, value: c }));
+    const brandOptions = db.advertisers
+      .flatMap((a) => a.brands)
+      .filter((b) => db.retailProducts.some((p) => p.brandId === b.id))
+      .map((b) => ({ label: b.name, value: b.id }));
+    const engineOptions = ENGINE_ORDER.map((e) => ({ label: REPORT_ENGINE_LABEL[e], value: e }));
+
+    const report = React.useMemo(() => {
+      const productIds = db.retailProducts
+        .filter((p) => (!categoryFilter.length || categoryFilter.includes(p.category)) && (!brandFilter.length || brandFilter.includes(p.brandId)))
+        .map((p) => p.id);
+      const campaignIds = statusFilter.length
+        ? db.campaigns.filter((c) => statusFilter.includes(STATUS_VALUE[c.status] ?? c.status)).map((c) => c.id)
+        : undefined;
+      const scope: PerformanceScope = {
+        from: reportFrom,
+        to: reportTo,
+        campaignIds,
+        brandIds: brandFilter.length ? brandFilter : undefined,
+        retailProductIds: categoryFilter.length || brandFilter.length ? productIds : undefined,
+      };
+      const engines = (engineFilter.length ? engineFilter : ENGINE_ORDER) as EngineId[];
+      const engineRows = engines
+        .map((e) => ({ engine: e, totals: totalsFor(db, { ...scope, engine: e }), campaigns: breakdown(db, { ...scope, engine: e }, 'campaign').length }))
+        .filter((r) => r.totals.spend > 0 || r.totals.impressions > 0);
+      const total = engineRows.reduce((t, r) => add(t, r.totals), EMPTY);
+
+      // Products: the scope's delivery per retail product (a campaign's
+      // split evenly over the products it advertises), within the picked
+      // categories and brands.
+      const q = searchValue.trim().toLowerCase();
+      const productRows = mergeRows(engines.map((e) => breakdown(db, { ...scope, engine: e }, 'retailProduct')))
+        .map((r) => ({ row: r, product: db.retailProducts.find((p) => p.id === r.id) }))
+        .filter(({ product }) => !!product && productIds.includes(product.id))
+        .map(({ row, product }) => {
+          const p = product!;
+          const brand = db.advertisers.flatMap((a) => a.brands).find((b) => b.id === p.brandId);
+          const advertiser = db.advertisers.find((a) => a.brands.some((b) => b.id === p.brandId));
+          const t = row.totals;
+          const r = ratesOf(t);
+          const addToCart = t.clicks * ADD_TO_CART_PER_CLICK;
+          // The product's status is its liveliest campaign's in scope.
+          const statuses = db.campaigns
+            .filter((c) => c.retailProductIds?.includes(p.id) && engines.includes(c.engine) && (!campaignIds || campaignIds.includes(c.id)))
+            .map((c) => STATUS_VALUE[c.status] ?? c.status);
+          const status = (['active', 'paused', 'in-option', 'completed'] as const).find((s) => statuses.includes(s)) ?? 'completed';
+          return {
+            id: p.id,
+            productName: p.name,
+            brand: brand?.name ?? '—',
+            category: p.category,
+            advertiser: advertiser?.name ?? '—',
+            sku: p.gtin,
+            impressions: Math.round(t.impressions),
+            clicks: Math.round(t.clicks),
+            spend: Math.round(t.spend * 100) / 100,
+            addToCart: Math.round(addToCart),
+            purchases: Math.round(t.conversions),
+            revenue: Math.round(t.sales * 100) / 100,
+            units: Math.round(t.units),
+            roas: pctOf(r.roas),
+            ctr: t.clicks > 0 ? pctOf(r.ctr, 2) : '—',
+            cpc: t.clicks > 0 ? euro2(r.cpc) : '—',
+            cartRate: t.clicks > 0 ? pctOf(addToCart / t.clicks, 1) : '—',
+            conversionRate: t.clicks > 0 ? pctOf(r.cvr, 1) : '—',
+            cpa: t.conversions > 0 ? euro2(t.spend / t.conversions) : '—',
+            aov: t.conversions > 0 ? euro2(t.sales / t.conversions) : '—',
+            status: STATUS_LABEL[status],
+            statusValue: status,
+            // Stock and margin are the retailer's master data, which the
+            // prototype does not hold — shown empty rather than invented.
+            stockLevel: '—',
+            margin: '—',
+            totals: t,
+          };
+        })
+        .filter((row) => !q || [row.productName, row.brand, row.sku, row.category].some((v) => v.toLowerCase().includes(q)))
+        .sort((a, b) => b.revenue - a.revenue);
+
+      // Sales over time for the products in view: each campaign's series,
+      // weighted by the share of its products in view — the same even
+      // split the product rows use, so the line adds up to the table.
+      const visible = new Set(productRows.map((r) => r.id));
+      const grain = grainFor(reportFrom, reportTo);
+      let series: { month: string; revenue: number; units: number }[] = seriesFor(db, { from: reportFrom, to: reportTo, campaignIds: [] }, grain)
+        .map((p) => ({ month: p.label, revenue: 0, units: 0 }));
+      const campaignsInScope = [...new Set(bookingsIn(db, scope).map((b) => b.campaignId))]
+        .map((id) => db.campaigns.find((c) => c.id === id))
+        .filter((c): c is NonNullable<typeof c> => !!c && engines.includes(c.engine));
+      for (const c of campaignsInScope) {
+        const ids = c.retailProductIds ?? [];
+        const share = ids.length ? ids.filter((id) => visible.has(id)).length / ids.length : 0;
+        if (share <= 0) continue;
+        const s = seriesFor(db, { ...scope, campaignIds: [c.id], retailProductIds: undefined }, grain);
+        series = series.map((p, i) => ({ ...p, revenue: p.revenue + (s[i]?.totals.sales ?? 0) * share, units: p.units + (s[i]?.totals.units ?? 0) * share }));
       }
-    ];
+      series = series.map((p) => ({ ...p, revenue: Math.round(p.revenue), units: Math.round(p.units) }));
 
-    const audienceReportData = [
-      { id: 'AUD-001', segment: 'New-to-brand', impressions: 1850000, clicks: 7200, spend: 4250.50, revenue: 18750.40, roas: '441%', percentage: '35%', age: 'All', gender: 'Mixed' },
-      { id: 'AUD-002', segment: 'Lapsed', impressions: 1320000, clicks: 5400, spend: 3200.25, revenue: 12870.80, roas: '402%', percentage: '25%', age: 'All', gender: 'Mixed' },
-      { id: 'AUD-003', segment: 'Existing', impressions: 2115000, clicks: 8200, spend: 4850.50, revenue: 22890.60, roas: '472%', percentage: '40%', age: 'All', gender: 'Mixed' }
-    ];
+      return { total, engineRows, productRows, series };
+    }, [db, reportFrom, reportTo, statusFilter, categoryFilter, brandFilter, engineFilter, searchValue]);
 
+    const productReportData = report.productRows;
+
+    // Audience: the scope's buyers by type. Spend, impressions, clicks and
+    // revenue are shared out by each type's share of buyers — the model
+    // does not yet tell one buyer type's basket from another's.
+    const audience = buyerSplit(report.total);
+    const audienceReportData = ([
+      ['AUD-001', 'New-to-brand', audience.newToBrand],
+      ['AUD-002', 'Lapsed', audience.lapsed],
+      ['AUD-003', 'Existing', audience.existing],
+    ] as const).map(([id, segment, buyers]) => {
+      const share = audience.buyers > 0 ? buyers / audience.buyers : 0;
+      return {
+        id,
+        segment,
+        impressions: Math.round(report.total.impressions * share),
+        clicks: Math.round(report.total.clicks * share),
+        spend: Math.round(report.total.spend * share * 100) / 100,
+        revenue: Math.round(report.total.sales * share * 100) / 100,
+        roas: pctOf(ratesOf(report.total).roas),
+        percentage: `${Math.round(share * 100)}%`,
+        age: 'All',
+        gender: 'Mixed',
+      };
+    });
+
+    // iROAS: incremental sales over spend, overall and per proposition.
+    // "Organic" is the attributed sales that would have happened anyway.
+    const iroasRow = (id: string, engine: string, t: Totals) => ({
+      id,
+      engine,
+      incrementalRevenue: Math.round(t.incrementalSales),
+      mediaSpend: Math.round(t.spend),
+      iroas: pctOf(ratesOf(t).iroas),
+      organicRevenue: Math.round(t.sales - t.incrementalSales),
+      totalRevenue: Math.round(t.sales),
+    });
     const iroasReportData = [
-      { id: 'ENG-001', engine: 'Overall', incrementalRevenue: 2400000, mediaSpend: 650000, iroas: '365%', organicRevenue: 980000, totalRevenue: 3380000 },
-      { id: 'ENG-002', engine: 'Display', incrementalRevenue: 680000, mediaSpend: 180000, iroas: '378%', organicRevenue: 280000, totalRevenue: 960000 },
-      { id: 'ENG-003', engine: 'Sponsored Products', incrementalRevenue: 950000, mediaSpend: 245000, iroas: '388%', organicRevenue: 410000, totalRevenue: 1360000 },
-      { id: 'ENG-004', engine: 'Digital In-store', incrementalRevenue: 420000, mediaSpend: 125000, iroas: '336%', organicRevenue: 160000, totalRevenue: 580000 },
-      { id: 'ENG-005', engine: 'Offline In-store', incrementalRevenue: 350000, mediaSpend: 100000, iroas: '350%', organicRevenue: 130000, totalRevenue: 480000 }
+      iroasRow('ENG-overall', 'Overall', report.total),
+      ...report.engineRows.map((r) => iroasRow(`ENG-${r.engine}`, REPORT_ENGINE_LABEL[r.engine], r.totals)),
     ];
+
+    // New report: the scope per proposition.
+    const newReportData = report.engineRows.map((r) => {
+      const rates = ratesOf(r.totals);
+      return {
+        id: `NR-${r.engine}`,
+        proposition: REPORT_ENGINE_LABEL[r.engine],
+        campaigns: r.campaigns,
+        impressions: Math.round(r.totals.impressions),
+        clicks: Math.round(r.totals.clicks),
+        // In-store media has nothing to click: no CTR rather than 0%.
+        ctr: r.totals.clicks > 0 ? pctOf(rates.ctr, 2) : '—',
+        spend: Math.round(r.totals.spend),
+        revenue: Math.round(r.totals.sales),
+        roas: pctOf(rates.roas),
+        conversions: Math.round(r.totals.conversions),
+        cpa: r.totals.conversions > 0 ? euro2(r.totals.spend / r.totals.conversions) : '—',
+      };
+    });
 
     const getStatusBadgeVariant = (status: string) => {
       switch (status.toLowerCase()) {
@@ -2879,33 +3090,18 @@ export const ProductReportView: Story = {
       }
     };
 
-    // Per-tab chart data
-    const productChartTopProducts = productReportData.slice(0, 5).map((p, i) => {
-      // Vary the new/lapsed/existing split per product for visual interest
-      const splits = [
-        { n: 0.30, l: 0.25, e: 0.45 },
-        { n: 0.40, l: 0.20, e: 0.40 },
-        { n: 0.25, l: 0.30, e: 0.45 },
-        { n: 0.35, l: 0.30, e: 0.35 },
-        { n: 0.20, l: 0.35, e: 0.45 },
-      ];
-      const split = splits[i] ?? splits[0];
+    // Per-tab chart data — the same rows the tables show.
+    const productChartTopProducts = productReportData.slice(0, 5).map((p) => {
+      const split = buyerSplit(p.totals);
       return {
         name: p.productName.length > 18 ? p.productName.slice(0, 18) + '…' : p.productName,
         revenue: Math.round(p.revenue),
-        newToBrand: Math.round(p.purchases * split.n),
-        lapsed: Math.round(p.purchases * split.l),
-        existing: Math.round(p.purchases * split.e),
+        newToBrand: Math.round(split.newToBrand),
+        lapsed: Math.round(split.lapsed),
+        existing: Math.round(split.existing),
       };
     });
-    const productSalesOverTime = [
-      { month: 'Jan', revenue: 18200, units: 412 },
-      { month: 'Feb', revenue: 24600, units: 538 },
-      { month: 'Mar', revenue: 22100, units: 491 },
-      { month: 'Apr', revenue: 31800, units: 680 },
-      { month: 'May', revenue: 35400, units: 752 },
-      { month: 'Jun', revenue: 42100, units: 894 },
-    ];
+    const productSalesOverTime = report.series;
 
     const audienceShareData = audienceReportData.map(a => ({
       name: a.segment,
@@ -3028,35 +3224,19 @@ export const ProductReportView: Story = {
                           },
                           {
                             name: "Category",
-                            options: [
-                              { label: "Personal Care", value: "personal-care" },
-                              { label: "Food & Beverage", value: "food-beverage" },
-                              { label: "Home Care", value: "home-care" },
-                            ],
+                            options: categoryOptions,
                             selectedValues: categoryFilter,
                             onChange: setCategoryFilter,
                           },
                           {
                             name: "Brand",
-                            options: [
-                              { label: "Dove", value: "dove" },
-                              { label: "Hellmanns", value: "hellmanns" },
-                              { label: "Ben & Jerrys", value: "ben-jerrys" },
-                              { label: "Axe", value: "axe" },
-                              { label: "Lipton", value: "lipton" },
-                            ],
+                            options: brandOptions,
                             selectedValues: brandFilter,
                             onChange: setBrandFilter,
                           },
                           {
                             name: "Proposition",
-                            options: [
-                              { label: "Display", value: "display" },
-                              { label: "Sponsored Products", value: "sponsored-products" },
-                              { label: "Digital In-store", value: "digital-instore" },
-                              { label: "Offline In-store", value: "offline-instore" },
-                              { label: "Display Offsite", value: "display-offsite" },
-                            ],
+                            options: engineOptions,
                             selectedValues: engineFilter,
                             onChange: setEngineFilter,
                           },
@@ -3077,7 +3257,7 @@ export const ProductReportView: Story = {
                             {row.status}
                           </Badge>
                         )},
-                        { key: 'stockLevel', header: 'Stock', render: row => (
+                        { key: 'stockLevel', header: 'Stock', render: row => row.stockLevel === '—' ? row.stockLevel : (
                           <Badge variant={getStockBadgeVariant(row.stockLevel)}>
                             {row.stockLevel}
                           </Badge>
@@ -3175,35 +3355,19 @@ export const ProductReportView: Story = {
                           },
                           {
                             name: "Category",
-                            options: [
-                              { label: "Personal Care", value: "personal-care" },
-                              { label: "Food & Beverage", value: "food-beverage" },
-                              { label: "Home Care", value: "home-care" },
-                            ],
+                            options: categoryOptions,
                             selectedValues: categoryFilter,
                             onChange: setCategoryFilter,
                           },
                           {
                             name: "Brand",
-                            options: [
-                              { label: "Dove", value: "dove" },
-                              { label: "Hellmanns", value: "hellmanns" },
-                              { label: "Ben & Jerrys", value: "ben-jerrys" },
-                              { label: "Axe", value: "axe" },
-                              { label: "Lipton", value: "lipton" },
-                            ],
+                            options: brandOptions,
                             selectedValues: brandFilter,
                             onChange: setBrandFilter,
                           },
                           {
                             name: "Proposition",
-                            options: [
-                              { label: "Display", value: "display" },
-                              { label: "Sponsored Products", value: "sponsored-products" },
-                              { label: "Digital In-store", value: "digital-instore" },
-                              { label: "Offline In-store", value: "offline-instore" },
-                              { label: "Display Offsite", value: "display-offsite" },
-                            ],
+                            options: engineOptions,
                             selectedValues: engineFilter,
                             onChange: setEngineFilter,
                           },
@@ -3297,35 +3461,19 @@ export const ProductReportView: Story = {
                           },
                           {
                             name: "Category",
-                            options: [
-                              { label: "Personal Care", value: "personal-care" },
-                              { label: "Food & Beverage", value: "food-beverage" },
-                              { label: "Home Care", value: "home-care" },
-                            ],
+                            options: categoryOptions,
                             selectedValues: categoryFilter,
                             onChange: setCategoryFilter,
                           },
                           {
                             name: "Brand",
-                            options: [
-                              { label: "Dove", value: "dove" },
-                              { label: "Hellmanns", value: "hellmanns" },
-                              { label: "Ben & Jerrys", value: "ben-jerrys" },
-                              { label: "Axe", value: "axe" },
-                              { label: "Lipton", value: "lipton" },
-                            ],
+                            options: brandOptions,
                             selectedValues: brandFilter,
                             onChange: setBrandFilter,
                           },
                           {
                             name: "Proposition",
-                            options: [
-                              { label: "Display", value: "display" },
-                              { label: "Sponsored Products", value: "sponsored-products" },
-                              { label: "Digital In-store", value: "digital-instore" },
-                              { label: "Offline In-store", value: "offline-instore" },
-                              { label: "Display Offsite", value: "display-offsite" },
-                            ],
+                            options: engineOptions,
                             selectedValues: engineFilter,
                             onChange: setEngineFilter,
                           },
@@ -3372,25 +3520,13 @@ export const ProductReportView: Story = {
                           },
                           {
                             name: "Brand",
-                            options: [
-                              { label: "Dove", value: "dove" },
-                              { label: "Hellmanns", value: "hellmanns" },
-                              { label: "Ben & Jerrys", value: "ben-jerrys" },
-                              { label: "Axe", value: "axe" },
-                              { label: "Lipton", value: "lipton" },
-                            ],
+                            options: brandOptions,
                             selectedValues: brandFilter,
                             onChange: setBrandFilter,
                           },
                           {
                             name: "Proposition",
-                            options: [
-                              { label: "Display", value: "display" },
-                              { label: "Sponsored Products", value: "sponsored-products" },
-                              { label: "Digital In-store", value: "digital-instore" },
-                              { label: "Offline In-store", value: "offline-instore" },
-                              { label: "Display Offsite", value: "display-offsite" },
-                            ],
+                            options: engineOptions,
                             selectedValues: engineFilter,
                             onChange: setEngineFilter,
                           },
@@ -3413,13 +3549,7 @@ export const ProductReportView: Story = {
                           { key: 'conversions', header: 'Conversions', render: (row: { conversions: number }) => row.conversions.toLocaleString() },
                           { key: 'cpa', header: 'CPA' },
                         ]}
-                        data={[
-                          { id: 'NR-001', proposition: 'Sponsored Products', campaigns: 12, impressions: 6200000, clicks: 24800, ctr: '0.40%', spend: 15200, revenue: 58400, roas: '384%', conversions: 11680, cpa: '€1.30' },
-                          { id: 'NR-002', proposition: 'Display', campaigns: 8, impressions: 4100000, clicks: 12300, ctr: '0.30%', spend: 9800, revenue: 32600, roas: '333%', conversions: 6150, cpa: '€1.59' },
-                          { id: 'NR-003', proposition: 'Digital In-store', campaigns: 6, impressions: 2800000, clicks: 8400, ctr: '0.30%', spend: 7100, revenue: 24500, roas: '345%', conversions: 4200, cpa: '€1.69' },
-                          { id: 'NR-004', proposition: 'Offline In-store', campaigns: 5, impressions: 1900000, clicks: 3800, ctr: '0.20%', spend: 4950, revenue: 18900, roas: '382%', conversions: 1900, cpa: '€2.61' },
-                          { id: 'NR-005', proposition: 'Display Offsite', campaigns: 3, impressions: 980000, clicks: 2940, ctr: '0.30%', spend: 1400, revenue: 8430, roas: '602%', conversions: 710, cpa: '€1.97' },
-                        ]}
+                        data={newReportData}
                         rowKey={(row: { id: string }) => row.id}
                         rowClassName={() => 'cursor-pointer hover:bg-neutral-50'}
                         onRowClick={(row: { proposition: string }) => console.log('Navigate to proposition details for', row.proposition)}
@@ -3482,13 +3612,6 @@ export const FunnelView: Story = {
     const [purchaseMetrics, setPurchaseMetrics] = useState<string[]>(['roas', 'iroas', 'purchaseBehavior', 'customerSegmentation']);
     const [loyaltyMetrics, setLoyaltyMetrics] = useState<string[]>(['repeatPurchaseRate', 'customerLifetimeValue', 'churnRate']);
 
-    // Customer segmentation data for Purchase card
-    const customerSegmentationData = [
-      { name: 'First-time', value: 35 },
-      { name: 'Returning', value: 42 },
-      { name: 'Loyal', value: 23 }
-    ];
-
     // Which of the nine top metrics show by default — the rest wait in the
     // Edit metrics picker. Impressions and Spend, then a Sales/ROAS pair at
     // the same (SKU) granularity so the default four read as one story.
@@ -3527,122 +3650,76 @@ export const FunnelView: Story = {
       setCustomReportOpen(false);
     };
 
-    // Sample data for charts
+    // ── What the numbers cover ─────────────────────────────────────────
+    // One scope for the whole page: the session's date range (the year so
+    // far when none is set) narrowed by the Advertiser, Brand and Campaign
+    // filters. Every card, chart, funnel band and insight below reads it.
+    const db = useDb();
+    const session = useSessionFilters();
+    const period = insightsWindow(session);
+    const scope: PerformanceScope = React.useMemo(() => ({
+      ...period,
+      advertiserIds: advertiserFilter.length ? advertiserFilter : undefined,
+      brandIds: brandFilter.length ? brandFilter : undefined,
+      campaignIds: campaignFilter.length ? campaignFilter : undefined,
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }), [period.from, period.to, advertiserFilter, brandFilter, campaignFilter]);
+    const grain = grainFor(scope.from!, scope.to!);
+
+    // Filter options come from the database: the advertisers, their brands
+    // (narrowed to the advertisers picked) and their campaigns (narrowed to
+    // the advertisers and brands picked).
+    const advertiserOptions = db.advertisers.map((a) => ({ label: a.name, value: a.id }));
+    const brandOptions = db.advertisers
+      .filter((a) => !advertiserFilter.length || advertiserFilter.includes(a.id))
+      .flatMap((a) => a.brands.map((b) => ({ label: b.name, value: b.id, description: a.name })));
+    const campaignOptions = db.campaigns
+      .filter((c) => {
+        const plan = db.mediaPlans.find((p) => p.id === c.mediaPlanId);
+        if (!plan) return false;
+        if (advertiserFilter.length && !advertiserFilter.includes(plan.advertiserId)) return false;
+        if (brandFilter.length && !plan.brandIds.some((id) => brandFilter.includes(id))) return false;
+        return true;
+      })
+      .map((c) => ({ label: c.name, value: c.id, description: runLabel(c.startDate, c.endDate) }));
+
+    // The period per month (week, day for a short range), whole and per
+    // proposition, plus the window's totals and the period before.
+    const model = React.useMemo(() => {
+      const total = seriesFor(db, scope, grain);
+      const perEngine = Object.fromEntries(ENGINE_ORDER.map((e) => [e, seriesFor(db, { ...scope, engine: e }, grain)])) as Record<EngineId, ReturnType<typeof seriesFor>>;
+      const buckets = total.map((p, i) => ({
+        month: p.label,
+        total: p.totals,
+        by: Object.fromEntries(ENGINE_ORDER.map((e) => [e, perEngine[e][i]?.totals ?? EMPTY])) as Record<EngineId, Totals>,
+      }));
+      const prevScope = previousPeriod(scope);
+      const products = productSales(db, scope);
+      const planned = plannedSpendInWindow(db, scope);
+      return {
+        buckets,
+        totals: totalsFor(db, scope),
+        byEngine: totalsByEngine(db, scope),
+        prev: prevScope ? totalsFor(db, prevScope) : undefined,
+        prevByEngine: prevScope ? totalsByEngine(db, prevScope) : undefined,
+        products,
+        planned,
+        insights: funnelInsights(db, scope, products),
+      };
+    }, [db, scope, grain]);
+    const { buckets, totals, byEngine, prev, prevByEngine, planned, insights } = model;
+    const SP: EngineId = 'sponsored-products';
+    // Delivery at the plan's pace: what the booked budgets should have
+    // bought by now. A chart's target line is that, per bucket.
+    const pace = planned > 0 ? totals.spend / planned : 0;
+    const perBucketTarget = (volume: number) => (pace > 0 && buckets.length ? volume / pace / buckets.length : undefined);
+    const targetLine = (volume: number) => {
+      const v = perBucketTarget(volume);
+      return v !== undefined && v > 0 ? { value: Math.round(v), label: `Target ${fmtCount(v)}` } : undefined;
+    };
+
     const impressionKeys = ['spaImpressions', 'impressions', 'omiDots', 'doohSpots', 'offsiteImpressions'] as const;
     const selectedImpressionKeys = impressionKeys.filter(k => awarenessMetrics.includes(k));
-
-    // A flight, start to finish: two quiet months before it opens, one climb
-    // to a single peak, two quiet months after it closes — so both ends read
-    // as genuinely flat at zero, not just a single low point either side of
-    // the ramp. Each channel still has its own shape within that window (an
-    // early riser, a late one, a channel that only runs mid-flight) so the
-    // stack keeps its texture.
-    const awarenessDataRaw = [
-      { month: 'Dec', spend: 400,   spaImpressions: 2000,   impressions: 1500,   sov: 2,  salesUplift: 0,  omiDots: 1000,   doohSpots: 1500,   offsiteImpressions: 1500 },
-      { month: 'Jan', spend: 600,   spaImpressions: 3000,   impressions: 2000,   sov: 3,  salesUplift: 1,  omiDots: 1500,   doohSpots: 2000,   offsiteImpressions: 2000 },
-      { month: 'Feb', spend: 12600, spaImpressions: 40000,  impressions: 30000,  sov: 18, salesUplift: 8,  omiDots: 3000,   doohSpots: 60000,  offsiteImpressions: 35000 },
-      { month: 'Mar', spend: 24800, spaImpressions: 110000, impressions: 150000, sov: 32, salesUplift: 16, omiDots: 3000,   doohSpots: 25000,  offsiteImpressions: 90000 },
-      { month: 'Apr', spend: 34500, spaImpressions: 150000, impressions: 210000, sov: 44, salesUplift: 24, omiDots: 195000, doohSpots: 7000,   offsiteImpressions: 160000 },
-      { month: 'May', spend: 22100, spaImpressions: 70000,  impressions: 90000,  sov: 30, salesUplift: 15, omiDots: 150000, doohSpots: 100000, offsiteImpressions: 110000 },
-      { month: 'Jun', spend: 1300,  spaImpressions: 8000,   impressions: 6000,   sov: 5,  salesUplift: 2,  omiDots: 5000,   doohSpots: 4000,   offsiteImpressions: 7000 },
-      { month: 'Jul', spend: 400,   spaImpressions: 2000,   impressions: 1500,   sov: 2,  salesUplift: 0,  omiDots: 1000,   doohSpots: 1500,   offsiteImpressions: 1500 }
-    ];
-
-    // Sales rides the same chart as a second euro line, next to Spend — read
-    // off the campaign's own blended ROAS (420%, the figure already shown
-    // elsewhere on this page) rather than a separate, disagreeing number.
-    const AWARENESS_ROAS = 4.2;
-    const awarenessData = awarenessDataRaw.map(d => ({
-      ...d,
-      totalVolume: selectedImpressionKeys.reduce((sum, key) => sum + (d[key] as number), 0),
-      revenue: Math.round(d.spend * AWARENESS_ROAS),
-    }));
-
-    // A flighted campaign ends near zero by design, so "the number" for the
-    // period is what it delivered start to finish, not a snapshot of
-    // whichever month happens to be last.
-    const totalVolumeLabel = `${Math.round(awarenessData.reduce((sum, d) => sum + d.totalVolume, 0) / 1000)}K`;
-
-    const buyerReachData = [
-      { month: 'Jan', newToBrand: 12500, lapsed: 8200, existing: 15800 },
-      { month: 'Feb', newToBrand: 16800, lapsed: 9500, existing: 18200 },
-      { month: 'Mar', newToBrand: 14900, lapsed: 8900, existing: 17100 },
-      { month: 'Apr', newToBrand: 19200, lapsed: 11200, existing: 20500 },
-      { month: 'May', newToBrand: 21500, lapsed: 12800, existing: 22100 },
-      { month: 'Jun', newToBrand: 24200, lapsed: 14500, existing: 24800 }
-    ];
-
-    const buyerReachConfig = {
-      newToBrand: { label: "New-to-brand reach", color: "hsl(var(--chart-1))" },
-      lapsed: { label: "Lapsed brand reach", color: "hsl(var(--chart-2))" },
-      existing: { label: "Existing brand reach", color: "hsl(var(--chart-3))" }
-    };
-
-    // Type of Buyer donut - current month snapshot
-    const buyerReachLatest = buyerReachData[buyerReachData.length - 1];
-    const buyerReachPieData = [
-      { name: "New-to-brand", value: buyerReachLatest.newToBrand },
-      { name: "Lapsed", value: buyerReachLatest.lapsed },
-      { name: "Existing", value: buyerReachLatest.existing },
-    ];
-    const buyerReachPieConfig = {
-      "New-to-brand": { label: "New-to-brand", color: "hsl(var(--chart-1))" },
-      "Lapsed": { label: "Lapsed", color: "hsl(var(--chart-2))" },
-      "Existing": { label: "Existing", color: "hsl(var(--chart-3))" },
-    };
-
-    // Per-channel SOV data
-    const sovChannelData = {
-      spaImpressions: { label: "SPA SOV", value: 52, pieData: [{ name: "Your Brand", value: 52 }, { name: "Competitors", value: 48 }] },
-      impressions: { label: "Display SOV", value: 38, pieData: [{ name: "Your Brand", value: 38 }, { name: "Competitors", value: 62 }] },
-      omiDots: { label: "OMI otS SOV", value: 41, pieData: [{ name: "Your Brand", value: 41 }, { name: "Competitors", value: 59 }] },
-      doohSpots: { label: "DooH DotS SOV", value: 48, pieData: [{ name: "Your Brand", value: 48 }, { name: "Competitors", value: 52 }] },
-      offsiteImpressions: { label: "Display Offsite SOV", value: 33, pieData: [{ name: "Your Brand", value: 33 }, { name: "Competitors", value: 67 }] },
-    };
-
-    // Per-channel buyer reach data
-    const buyerReachChannelData = {
-      spaImpressions: [
-        { month: 'Jan', newToBrand: 4200, lapsed: 2800, existing: 5300 },
-        { month: 'Feb', newToBrand: 5600, lapsed: 3200, existing: 6100 },
-        { month: 'Mar', newToBrand: 5000, lapsed: 3000, existing: 5700 },
-        { month: 'Apr', newToBrand: 6400, lapsed: 3700, existing: 6800 },
-        { month: 'May', newToBrand: 7200, lapsed: 4300, existing: 7400 },
-        { month: 'Jun', newToBrand: 8100, lapsed: 4800, existing: 8300 },
-      ],
-      impressions: [
-        { month: 'Jan', newToBrand: 3100, lapsed: 2100, existing: 3900 },
-        { month: 'Feb', newToBrand: 4200, lapsed: 2400, existing: 4500 },
-        { month: 'Mar', newToBrand: 3700, lapsed: 2200, existing: 4300 },
-        { month: 'Apr', newToBrand: 4800, lapsed: 2800, existing: 5100 },
-        { month: 'May', newToBrand: 5400, lapsed: 3200, existing: 5500 },
-        { month: 'Jun', newToBrand: 6100, lapsed: 3600, existing: 6200 },
-      ],
-      omiDots: [
-        { month: 'Jan', newToBrand: 2800, lapsed: 1800, existing: 3500 },
-        { month: 'Feb', newToBrand: 3800, lapsed: 2100, existing: 4100 },
-        { month: 'Mar', newToBrand: 3400, lapsed: 1900, existing: 3800 },
-        { month: 'Apr', newToBrand: 4300, lapsed: 2500, existing: 4600 },
-        { month: 'May', newToBrand: 4800, lapsed: 2800, existing: 5000 },
-        { month: 'Jun', newToBrand: 5400, lapsed: 3200, existing: 5600 },
-      ],
-      doohSpots: [
-        { month: 'Jan', newToBrand: 2400, lapsed: 1500, existing: 3100 },
-        { month: 'Feb', newToBrand: 3200, lapsed: 1800, existing: 3500 },
-        { month: 'Mar', newToBrand: 2800, lapsed: 1800, existing: 3300 },
-        { month: 'Apr', newToBrand: 3700, lapsed: 2200, existing: 4000 },
-        { month: 'May', newToBrand: 4100, lapsed: 2500, existing: 4200 },
-        { month: 'Jun', newToBrand: 4600, lapsed: 2900, existing: 4700 },
-      ],
-      offsiteImpressions: [
-        { month: 'Jan', newToBrand: 1800, lapsed: 1200, existing: 2400 },
-        { month: 'Feb', newToBrand: 2400, lapsed: 1600, existing: 3100 },
-        { month: 'Mar', newToBrand: 2100, lapsed: 1400, existing: 2800 },
-        { month: 'Apr', newToBrand: 2900, lapsed: 1900, existing: 3500 },
-        { month: 'May', newToBrand: 3300, lapsed: 2100, existing: 3900 },
-        { month: 'Jun', newToBrand: 3700, lapsed: 2400, existing: 4300 },
-      ],
-    };
 
     const channelLabels: Record<string, string> = {
       spaImpressions: 'Sponsored Products',
@@ -3665,12 +3742,21 @@ export const FunnelView: Story = {
       Object.entries(channelEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
     );
 
-    const channelTooltips: Record<string, string> = {
-      spaImpressions: 'Impressions from Sponsored Product Ads shown in search results and product pages',
-      impressions: 'Impressions from display advertising such as banners and rich media placements',
-      omiDots: 'Digital media impressions delivered on in-store screens and digital signage',
-      doohSpots: 'Offline media impressions from digital out-of-home screens in and around stores',
-      offsiteImpressions: 'Impressions from display advertising served across external websites, apps, and open web placements',
+    // Awareness: impressions per proposition per bucket, with Spend and
+    // Sales riding along as euro lines.
+    const awarenessData = buckets.map((b) => {
+      const row: Record<string, number | string> = { month: b.month, spend: Math.round(b.total.spend), revenue: Math.round(b.total.sales) };
+      for (const k of impressionKeys) row[k] = Math.round(b.by[channelEngines[k]].impressions);
+      return { ...row, totalVolume: selectedImpressionKeys.reduce((sum, k) => sum + (row[k] as number), 0) };
+    });
+    const impressionsTotal = selectedImpressionKeys.reduce((sum, k) => sum + byEngine[channelEngines[k]].impressions, 0);
+    // The period's number is what it delivered start to finish.
+    const totalVolumeLabel = fmtCount(impressionsTotal);
+
+    const titleTooltips = {
+      totalVolume: 'Total number of impressions across all selected channels. The sum of Sponsored Products, Display, Digital Media In-store and Offline Media In-store impressions.',
+      totalSov: 'Weighted average share of voice across all selected channels. Indicates your brand visibility relative to competitors.',
+      totalBuyerReach: 'Total unique buyers reached across all campaigns, segmented by new-to-brand, lapsed and existing customers.',
     };
 
     const engagementLabels: Record<string, string> = {
@@ -3737,81 +3823,33 @@ export const FunnelView: Story = {
       Object.entries(ctrEngines).map(([k, e]) => [k, PROPOSITION_PATTERNS[e].ink]),
     );
 
-    const channelSovTooltips: Record<string, string> = {
-      spaImpressions: 'Number of positions won / all possible positions — SUM(wonAnyPosition) / SUM(numberOfPositions)',
-      impressions: 'Overall visibility relative to competitors — (impressions / adsServed) × 100%',
-      omiDots: 'Share of digital in-store screen time compared to competitors',
-      doohSpots: 'Share of offline in-store media placements compared to competitors',
-      offsiteImpressions: 'Share of display offsite impressions relative to total available inventory — your brand visibility on the open web',
-    };
-
-    const titleTooltips = {
-      totalVolume: 'Total number of impressions across all selected channels. The sum of Sponsored Products, Display, Digital Media In-store and Offline Media In-store impressions.',
-      totalSov: 'Weighted average share of voice across all selected channels. Indicates your brand visibility relative to competitors.',
-      totalBuyerReach: 'Total unique buyers reached across all campaigns, segmented by new-to-brand, lapsed and existing customers.',
-    };
-
-    // Consideration data - engagements by channel
-    const considerationDataRaw = [
-      { month: 'Jan', spend: 14200, spaClicks: 20800, displayClicks: 12400, doohClicks: 7200, omiClicks: 4400, offsiteClicks: 3280, spaCtr: 1.8, displayCtr: 1.2, pdpViews: 8200, spaPdpViews: 5100, displayPdpViews: 3100, reachClicks: 4800, newBrandReach: 1200, lapsedReach: 1800, existingReach: 1800 },
-      { month: 'Feb', spend: 19800, spaClicks: 29600, displayClicks: 17600, doohClicks: 10400, omiClicks: 5600, offsiteClicks: 4720, spaCtr: 2.1, displayCtr: 1.4, pdpViews: 11500, spaPdpViews: 7200, displayPdpViews: 4300, reachClicks: 6800, newBrandReach: 1700, lapsedReach: 2500, existingReach: 2600 },
-      { month: 'Mar', spend: 17600, spaClicks: 26000, displayClicks: 15200, doohClicks: 8800, omiClicks: 5600, offsiteClicks: 4160, spaCtr: 1.9, displayCtr: 1.3, pdpViews: 10100, spaPdpViews: 6300, displayPdpViews: 3800, reachClicks: 5900, newBrandReach: 1500, lapsedReach: 2200, existingReach: 2200 },
-      { month: 'Apr', spend: 25400, spaClicks: 34400, displayClicks: 20400, doohClicks: 12000, omiClicks: 6800, offsiteClicks: 5520, spaCtr: 2.4, displayCtr: 1.6, pdpViews: 13400, spaPdpViews: 8400, displayPdpViews: 5000, reachClicks: 7900, newBrandReach: 2000, lapsedReach: 3000, existingReach: 2900 },
-      { month: 'May', spend: 30100, spaClicks: 37200, displayClicks: 22000, doohClicks: 12800, omiClicks: 7200, offsiteClicks: 5960, spaCtr: 2.6, displayCtr: 1.7, pdpViews: 14500, spaPdpViews: 9100, displayPdpViews: 5400, reachClicks: 8500, newBrandReach: 2100, lapsedReach: 3200, existingReach: 3200 },
-      { month: 'Jun', spend: 34200, spaClicks: 40400, displayClicks: 23600, doohClicks: 14000, omiClicks: 8000, offsiteClicks: 6480, spaCtr: 2.8, displayCtr: 1.9, pdpViews: 15700, spaPdpViews: 9800, displayPdpViews: 5900, reachClicks: 9200, newBrandReach: 2300, lapsedReach: 3500, existingReach: 3400 }
-    ];
-
+    // Consideration: clicks per proposition, CTR on the clickable ones.
     const considerationEngagementKeys = ['spaClicks', 'displayClicks', 'doohClicks', 'omiClicks', 'offsiteClicks'] as const;
-    const considerationData = considerationDataRaw.map(d => ({
-      ...d,
-      totalEngagements: considerationEngagementKeys.reduce((sum, key) => sum + d[key], 0),
-      totalCtr: parseFloat(((d.spaCtr + d.displayCtr) / 2).toFixed(1)),
-      totalPdpViewsPerUser: parseFloat((d.pdpViews / d.reachClicks).toFixed(2)),
-      spaPdpViewsPerUser: parseFloat((d.spaPdpViews / d.reachClicks).toFixed(2)),
-      displayPdpViewsPerUser: parseFloat((d.displayPdpViews / d.reachClicks).toFixed(2)),
-    }));
-
-    const totalEngagementsLabel = `${Math.round(considerationData[considerationData.length - 1].totalEngagements / 1000)}K`;
-
-    // Purchase data - revenue and conversions by channel
-    const purchaseDataRaw = [
-      { month: 'Jan', spend: 14200, spaRevenue: 32000, displayRevenue: 18000, dmiRevenue: 12000, omiRevenue: 8000, offsiteRevenue: 6000, roas: 280, spaRoas: 320, displayRoas: 240, dmiRoas: 260, omiRoas: 210, iroas: 240, addToCartRate: 3.2, spaUnitsSold: 3120, displayUnitsSold: 1860, dmiUnitsSold: 1320, omiUnitsSold: 900, offsiteUnitsSold: 720, conversions: 680, conversionRate: 1.8, cpa: 38, adspend: 25800 },
-      { month: 'Feb', spend: 19800, spaRevenue: 48000, displayRevenue: 27000, dmiRevenue: 18000, omiRevenue: 12000, offsiteRevenue: 9000, roas: 390, spaRoas: 450, displayRoas: 330, dmiRoas: 360, omiRoas: 290, iroas: 340, addToCartRate: 3.8, spaUnitsSold: 4680, displayUnitsSold: 2760, dmiUnitsSold: 1980, omiUnitsSold: 1380, offsiteUnitsSold: 1080, conversions: 920, conversionRate: 2.2, cpa: 32, adspend: 29400 },
-      { month: 'Mar', spend: 17600, spaRevenue: 42000, displayRevenue: 24000, dmiRevenue: 15000, omiRevenue: 10000, offsiteRevenue: 8000, roas: 350, spaRoas: 400, displayRoas: 300, dmiRoas: 320, omiRoas: 250, iroas: 300, addToCartRate: 3.5, spaUnitsSold: 4020, displayUnitsSold: 2400, dmiUnitsSold: 1680, omiUnitsSold: 1200, offsiteUnitsSold: 930, conversions: 810, conversionRate: 2.0, cpa: 35, adspend: 28400 },
-      { month: 'Apr', spend: 25400, spaRevenue: 58000, displayRevenue: 33000, dmiRevenue: 22000, omiRevenue: 15000, offsiteRevenue: 12000, roas: 430, spaRoas: 500, displayRoas: 370, dmiRoas: 400, omiRoas: 320, iroas: 380, addToCartRate: 4.2, spaUnitsSold: 5700, displayUnitsSold: 3360, dmiUnitsSold: 2400, omiUnitsSold: 1740, offsiteUnitsSold: 1320, conversions: 1100, conversionRate: 2.6, cpa: 27, adspend: 29800 },
-      { month: 'May', spend: 30100, spaRevenue: 63000, displayRevenue: 36000, dmiRevenue: 24000, omiRevenue: 16000, offsiteRevenue: 13000, roas: 460, spaRoas: 530, displayRoas: 390, dmiRoas: 430, omiRoas: 340, iroas: 410, addToCartRate: 4.5, spaUnitsSold: 6240, displayUnitsSold: 3660, dmiUnitsSold: 2580, omiUnitsSold: 1920, offsiteUnitsSold: 1440, conversions: 1200, conversionRate: 2.8, cpa: 25, adspend: 30200 },
-      { month: 'Jun', spend: 34200, spaRevenue: 70000, displayRevenue: 40000, dmiRevenue: 27000, omiRevenue: 18000, offsiteRevenue: 15000, roas: 510, spaRoas: 580, displayRoas: 420, dmiRoas: 470, omiRoas: 370, iroas: 450, addToCartRate: 4.8, spaUnitsSold: 7020, displayUnitsSold: 4140, dmiUnitsSold: 2940, omiUnitsSold: 2100, offsiteUnitsSold: 1620, conversions: 1350, conversionRate: 3.1, cpa: 23, adspend: 31050 }
-    ];
-
-    const purchaseUnitKeys = ['spaUnitsSold', 'displayUnitsSold', 'dmiUnitsSold', 'omiUnitsSold', 'offsiteUnitsSold'] as const;
-
-    const purchaseData = purchaseDataRaw.map(d => {
-      const totalUnitsSold = purchaseUnitKeys.reduce((sum, key) => sum + d[key], 0);
-      const totalRevenue = d.spaRevenue + d.displayRevenue + d.dmiRevenue + d.omiRevenue + d.offsiteRevenue;
-      const totalBuyers = Math.round(d.conversions * 0.85);
-      const newBuyers = Math.round(d.conversions * 0.3);
-      return {
-        ...d,
-        totalUnitsSold,
-        totalRevenue,
-        totalBuyers,
-        newBuyers,
-        lapsedBuyers: Math.round(d.conversions * 0.25),
-        existingBuyers: Math.round(d.conversions * 0.3),
-        // New-to-brand's share of the month's revenue, in proportion to
-        // its share of buyers — the count alone doesn't say what those
-        // buyers were worth.
-        newBuyerRevenue: Math.round((newBuyers / totalBuyers) * totalRevenue),
-        // Buyers per proposition, in proportion to each one's share of
-        // units sold — the same split the conversions chart shows.
-        spaBuyers: Math.round(totalBuyers * (d.spaUnitsSold / totalUnitsSold)),
-        displayBuyers: Math.round(totalBuyers * (d.displayUnitsSold / totalUnitsSold)),
-        dmiBuyers: Math.round(totalBuyers * (d.dmiUnitsSold / totalUnitsSold)),
-        omiBuyers: Math.round(totalBuyers * (d.omiUnitsSold / totalUnitsSold)),
-        offsiteBuyers: Math.round(totalBuyers * (d.offsiteUnitsSold / totalUnitsSold)),
-      };
+    // A rate in a bucket with nothing served is no rate: a gap, not a zero.
+    const ratePct = (num: number, den: number, digits = 2) => (den > 0 ? Number(((num / den) * 100).toFixed(digits)) : null);
+    const considerationData = buckets.map((b) => {
+      const row: Record<string, number | string | null> = { month: b.month, spend: Math.round(b.total.spend), revenue: Math.round(b.total.sales) };
+      for (const k of considerationEngagementKeys) row[k] = Math.round(b.by[engagementEngines[k]].clicks);
+      row.spaCtr = ratePct(b.by[SP].clicks, b.by[SP].impressions);
+      row.displayCtr = ratePct(b.by.display.clicks, b.by.display.impressions);
+      return { ...row, totalEngagements: considerationEngagementKeys.reduce((sum, k) => sum + (row[k] as number), 0) };
     });
+    const totalEngagementsLabel = fmtCount(totals.clicks);
+    // The CTR card's number: Sponsored Products and Display, blended.
+    const ctrEngineList: EngineId[] = [SP, 'display'];
+    const ctrClicks = ctrEngineList.reduce((s, e) => s + byEngine[e].clicks, 0);
+    const ctrImpressions = ctrEngineList.reduce((s, e) => s + byEngine[e].impressions, 0);
+    const totalCtr = ctrImpressions > 0 ? Number(((ctrClicks / ctrImpressions) * 100).toFixed(2)) : 0;
+    const spendWeighted = (engines: EngineId[], k: 'ctr' | 'roas') => {
+      const spend = engines.reduce((s, e) => s + byEngine[e].spend, 0);
+      return spend > 0 ? engines.reduce((s, e) => s + BENCHMARKS[e][k] * byEngine[e].spend, 0) / spend : 0;
+    };
+    const ctrTargetPct = Number((spendWeighted(ctrEngineList, 'ctr') * 100).toFixed(2));
+    const roasTargetPct = Math.round(spendWeighted(ENGINE_ORDER, 'roas') * 100);
 
+    // Purchase: conversions and sales per proposition, ROAS per
+    // proposition and blended, buyers by type and by proposition.
+    const purchaseUnitKeys = ['spaUnitsSold', 'displayUnitsSold', 'dmiUnitsSold', 'omiUnitsSold', 'offsiteUnitsSold'] as const;
     const buyerLabels: Record<string, string> = {
       spaBuyers: 'Sponsored Products',
       displayBuyers: 'Display',
@@ -3828,234 +3866,142 @@ export const FunnelView: Story = {
     };
     const buyerKeys = Object.keys(buyerLabels);
 
-    // Loyalty data
-    const loyaltyData = [
-      { month: 'Jan', spend: 14200, clv: 265, churnRate: 9.2, retentionRate: 68, frequency: 2.1, existingBuyers: 3200, lapsedBuyers: 890 },
-      { month: 'Feb', spend: 19800, clv: 305, churnRate: 7.5, retentionRate: 72, frequency: 2.4, existingBuyers: 3500, lapsedBuyers: 820 },
-      { month: 'Mar', spend: 17600, clv: 290, churnRate: 8.1, retentionRate: 70, frequency: 2.3, existingBuyers: 3400, lapsedBuyers: 850 },
-      { month: 'Apr', spend: 25400, clv: 335, churnRate: 6.3, retentionRate: 76, frequency: 2.7, existingBuyers: 3900, lapsedBuyers: 740 },
-      { month: 'May', spend: 30100, clv: 350, churnRate: 5.8, retentionRate: 78, frequency: 2.9, existingBuyers: 4100, lapsedBuyers: 690 },
-      { month: 'Jun', spend: 34200, clv: 375, churnRate: 4.9, retentionRate: 82, frequency: 3.2, existingBuyers: 4400, lapsedBuyers: 620 }
-    ];
+    const purchaseData = buckets.map((b) => {
+      const row: Record<string, number | string | null> = {
+        month: b.month,
+        spend: Math.round(b.total.spend),
+        totalRevenue: Math.round(b.total.sales),
+        roas: ratePct(b.total.sales, b.total.spend, 0),
+        iroas: ratePct(b.total.incrementalSales, b.total.spend, 0),
+        conversions: Math.round(b.total.conversions),
+      };
+      for (const k of purchaseUnitKeys) row[k] = Math.round(b.by[unitEngines[k]].conversions);
+      for (const k of Object.keys(roasEngines)) row[k] = ratePct(b.by[roasEngines[k]].sales, b.by[roasEngines[k]].spend, 0);
+      const split = buyerSplit(b.total);
+      row.totalUnitsSold = purchaseUnitKeys.reduce((sum, k) => sum + (row[k] as number), 0);
+      row.totalBuyers = Math.round(split.buyers);
+      row.newBuyers = Math.round(split.newToBrand);
+      row.lapsedBuyers = Math.round(split.lapsed);
+      row.existingBuyers = Math.round(split.existing);
+      // New-to-brand's share of the bucket's sales, in proportion to its
+      // share of buyers — the count alone doesn't say what they were worth.
+      row.newBuyerRevenue = split.buyers > 0 ? Math.round((split.newToBrand / split.buyers) * b.total.sales) : 0;
+      for (const k of buyerKeys) row[k] = Math.round(buyerSplit(b.by[buyerEngines[k]]).buyers);
+      return row;
+    });
+    const totalBuyers = buyerSplit(totals);
+    const buyerTarget = targetLine(totalBuyers.buyers);
 
-    // Data for top metric cards
-    const topMetricsData = [
-      { month: 'Jan', newToBrand: 38, sales: 95, salesUplift: 12, avgRevenuePerCustomer: 42, customerLifetimeValue: 265, spend: 38, costPerAcquisition: 32, costPerClick: 2.4, budgetUtilization: 58, roas: 250, roasEuro: 95, iroas: 220, conversionRate: 2.1, clickThroughRate: 3.2, reach: 420 },
-      { month: 'Feb', newToBrand: 40, sales: 142, salesUplift: 15, avgRevenuePerCustomer: 51, customerLifetimeValue: 295, spend: 41, costPerAcquisition: 27, costPerClick: 2.1, budgetUtilization: 68, roas: 350, roasEuro: 142, iroas: 310, conversionRate: 2.9, clickThroughRate: 4.1, reach: 580 },
-      { month: 'Mar', newToBrand: 41, sales: 128, salesUplift: 18, avgRevenuePerCustomer: 48, customerLifetimeValue: 285, spend: 39, costPerAcquisition: 29, costPerClick: 2.0, budgetUtilization: 72, roas: 330, roasEuro: 128, iroas: 290, conversionRate: 2.6, clickThroughRate: 3.9, reach: 540 },
-      { month: 'Apr', newToBrand: 43, sales: 175, salesUplift: 21, avgRevenuePerCustomer: 56, customerLifetimeValue: 330, spend: 43, costPerAcquisition: 23, costPerClick: 1.8, budgetUtilization: 79, roas: 410, roasEuro: 175, iroas: 370, conversionRate: 3.5, clickThroughRate: 5.2, reach: 720 },
-      { month: 'May', newToBrand: 44, sales: 188, salesUplift: 24, avgRevenuePerCustomer: 58, customerLifetimeValue: 345, spend: 42, costPerAcquisition: 21, costPerClick: 1.7, budgetUtilization: 83, roas: 450, roasEuro: 188, iroas: 400, conversionRate: 3.8, clickThroughRate: 5.5, reach: 780 },
-      { month: 'Jun', newToBrand: 45, sales: 210, salesUplift: 27, avgRevenuePerCustomer: 62, customerLifetimeValue: 365, spend: 45, costPerAcquisition: 19, costPerClick: 1.6, budgetUtilization: 87, roas: 470, roasEuro: 210, iroas: 420, conversionRate: 4.1, clickThroughRate: 5.9, reach: 850 }
-    ];
+    // Revenue by product: the best and the weakest sellers in scope, each
+    // tagged with the proposition that sold most of it.
+    const revenueByProductData = model.products.slice(0, 5);
+    const leastPerformingProductData = model.products.length > 1 ? model.products.slice(Math.max(1, model.products.length - 5)) : [];
 
-    // Metric definitions for top cards
     // The nine metrics this dashboard tracks, at a locked 14-day
-    // attribution window — the picker below only adds among these, it
-    // never offers a different window. Sponsored Products (spa*) is the
-    // proposition that targets specific SKUs, so it stands in for
-    // SKU-level reporting; the blended totals across every proposition
-    // stand in for brand-level. Both the headline number and the chart a
-    // click opens read the same months of purchaseData, so the two never
-    // disagree.
-    const formatEur = (v: number) => `€${v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : v.toLocaleString()}`;
-    const formatCount = (v: number) => (v >= 1000 ? `${Math.round(v / 1000)}K` : v.toLocaleString());
-    const pctChange = (first: number, last: number) => Math.round(((last - first) / first) * 100);
-    const lastPurchase = purchaseData[purchaseData.length - 1];
-    const firstPurchase = purchaseData[0];
-    const firstTotalUnits = purchaseUnitKeys.reduce((sum, key) => sum + firstPurchase[key], 0);
-    const firstTotalRevenue = firstPurchase.spaRevenue + firstPurchase.displayRevenue + firstPurchase.dmiRevenue + firstPurchase.omiRevenue + firstPurchase.offsiteRevenue;
-    const impressionsTotal = awarenessData.reduce((sum, d) => sum + d.totalVolume, 0);
-    const lastConsideration = considerationDataRaw[considerationDataRaw.length - 1];
-    const firstConsideration = considerationDataRaw[0];
-    const displaySpaClicks = (d: typeof lastConsideration) => d.spaClicks + d.displayClicks;
-
+    // attribution window — the picker only adds among these. Sponsored
+    // Products is the proposition that targets specific SKUs, so it stands
+    // in for SKU-level reporting; the blended totals across every
+    // proposition stand in for brand-level. Each card's number is the
+    // window's total, its badge the change on the period before, its chart
+    // the same buckets the stage charts below plot.
+    const formatEur = fmtEuro;
+    const prevSp = prevByEngine?.[SP];
+    const clicksDisplaySpa = (by: Record<EngineId, Totals>) => by[SP].clicks + by.display.clicks;
+    const roasPct = (t: Totals) => `${Math.round(ratesOf(t).roas * 100)}%`;
     const topMetrics: MetricDefinition[] = [
       {
         key: 'impressions',
         label: 'Impressions',
-        value: formatCount(impressionsTotal),
-        chartData: awarenessData.map(d => ({ day: d.month, value: d.totalVolume })),
+        value: fmtCount(totals.impressions),
+        ...changeBadge(totals.impressions, prev?.impressions),
+        chartData: buckets.map(b => ({ day: b.month, value: Math.round(b.total.impressions) })),
       },
       {
         key: 'clicks',
         label: 'Clicks (Display & SPA)',
-        value: formatCount(displaySpaClicks(lastConsideration)),
-        badgeValue: `+${pctChange(displaySpaClicks(firstConsideration), displaySpaClicks(lastConsideration))}%`,
-        badgeVariant: 'success',
-        chartData: considerationDataRaw.map(d => ({ day: d.month, value: displaySpaClicks(d) })),
+        value: fmtCount(clicksDisplaySpa(byEngine)),
+        ...changeBadge(clicksDisplaySpa(byEngine), prevByEngine ? clicksDisplaySpa(prevByEngine) : undefined),
+        chartData: buckets.map(b => ({ day: b.month, value: Math.round(clicksDisplaySpa(b.by)) })),
       },
       {
         key: 'spend',
         label: 'Spend',
-        value: formatEur(lastPurchase.spend),
-        badgeValue: `+${pctChange(firstPurchase.spend, lastPurchase.spend)}%`,
-        chartData: purchaseData.map(d => ({ day: d.month, value: d.spend })),
+        value: formatEur(totals.spend),
+        ...changeBadge(totals.spend, prev?.spend),
+        chartData: buckets.map(b => ({ day: b.month, value: Math.round(b.total.spend) })),
       },
       {
         key: 'salesSku',
         label: 'Sales SKU',
         subMetric: '14 days',
-        value: formatEur(lastPurchase.spaRevenue),
-        badgeValue: `+${pctChange(firstPurchase.spaRevenue, lastPurchase.spaRevenue)}%`,
-        badgeVariant: 'success',
-        chartData: purchaseData.map(d => ({ day: d.month, value: d.spaRevenue })),
+        value: formatEur(byEngine[SP].sales),
+        ...changeBadge(byEngine[SP].sales, prevSp?.sales),
+        chartData: buckets.map(b => ({ day: b.month, value: Math.round(b.by[SP].sales) })),
       },
       {
         key: 'salesBrand',
         label: 'Sales brand',
         subMetric: '14 days',
-        value: formatEur(lastPurchase.totalRevenue),
-        badgeValue: `+${pctChange(firstTotalRevenue, lastPurchase.totalRevenue)}%`,
-        badgeVariant: 'success',
-        chartData: purchaseData.map(d => ({ day: d.month, value: d.totalRevenue })),
+        value: formatEur(totals.sales),
+        ...changeBadge(totals.sales, prev?.sales),
+        chartData: buckets.map(b => ({ day: b.month, value: Math.round(b.total.sales) })),
       },
       {
         key: 'unitsSku',
         label: 'Units sold SKU',
         subMetric: '14 days',
-        value: formatCount(lastPurchase.spaUnitsSold),
-        badgeValue: `+${pctChange(firstPurchase.spaUnitsSold, lastPurchase.spaUnitsSold)}%`,
-        badgeVariant: 'success',
-        chartData: purchaseData.map(d => ({ day: d.month, value: d.spaUnitsSold })),
+        value: fmtCount(byEngine[SP].units),
+        ...changeBadge(byEngine[SP].units, prevSp?.units),
+        chartData: buckets.map(b => ({ day: b.month, value: Math.round(b.by[SP].units) })),
       },
       {
         key: 'unitsBrand',
         label: 'Units sold brand',
         subMetric: '14 days',
-        value: formatCount(lastPurchase.totalUnitsSold),
-        badgeValue: `+${pctChange(firstTotalUnits, lastPurchase.totalUnitsSold)}%`,
-        badgeVariant: 'success',
-        chartData: purchaseData.map(d => ({ day: d.month, value: d.totalUnitsSold })),
+        value: fmtCount(totals.units),
+        ...changeBadge(totals.units, prev?.units),
+        chartData: buckets.map(b => ({ day: b.month, value: Math.round(b.total.units) })),
       },
       {
         key: 'roasSku',
         label: 'ROAS SKU',
         subMetric: '14 days',
-        value: `${lastPurchase.spaRoas}%`,
-        badgeValue: `+${pctChange(firstPurchase.spaRoas, lastPurchase.spaRoas)}%`,
-        badgeVariant: 'success',
-        chartData: purchaseData.map(d => ({ day: d.month, value: d.spaRoas })),
+        value: roasPct(byEngine[SP]),
+        ...changeBadge(ratesOf(byEngine[SP]).roas, prevSp ? ratesOf(prevSp).roas : undefined),
+        chartData: buckets.map(b => ({ day: b.month, value: Math.round(ratesOf(b.by[SP]).roas * 100) })),
       },
       {
         key: 'roasBrand',
         label: 'ROAS Brand',
         subMetric: '14 days',
-        value: `${lastPurchase.roas}%`,
-        badgeValue: `+${pctChange(firstPurchase.roas, lastPurchase.roas)}%`,
-        badgeVariant: 'success',
-        chartData: purchaseData.map(d => ({ day: d.month, value: d.roas })),
+        value: roasPct(totals),
+        ...changeBadge(ratesOf(totals).roas, prev ? ratesOf(prev).roas : undefined),
+        chartData: buckets.map(b => ({ day: b.month, value: Math.round(ratesOf(b.total).roas * 100) })),
       },
     ];
 
-    const awarenessConfig = {
-      impressions: { label: "Impressions", color: "hsl(var(--chart-1))" },
-      reach: { label: "Reach", color: "hsl(var(--chart-2))" }
-    };
-
-    const sovConfig = {
-      sov: { label: "SOV %", color: "hsl(var(--chart-3))" }
-    };
-
-    // Share of Voice pie chart data — the 45% "Your Brand" wins split across
-    // the propositions that won it, each in its own pattern, so the donut
-    // shows the same composition the volume chart above it does. Reads the
-    // period's impression mix, the same numbers Total Volume is built from.
-    const engineLabel: Record<EngineId, string> = Object.fromEntries(
-      Object.entries(channelEngines).map(([key, engine]) => [engine, channelLabels[key]]),
-    ) as Record<EngineId, string>;
-    const sovEngineTotals = Object.fromEntries(
-      Object.entries(channelEngines).map(([key, engine]) => [
-        engine,
-        awarenessDataRaw.reduce((sum, d) => sum + ((d as any)[key] ?? 0), 0),
-      ]),
-    ) as Record<EngineId, number>;
-    const sovEngineGrandTotal = Object.values(sovEngineTotals).reduce((s, v) => s + v, 0) || 1;
-    const sovBrandShare = 45;
-    const sovPieData = [
-      ...ENGINE_ORDER.map((engine) => ({
-        name: engineLabel[engine],
-        value: Math.round(sovBrandShare * (sovEngineTotals[engine] / sovEngineGrandTotal) * 10) / 10,
-      })),
-      { name: "Competitors", value: 100 - sovBrandShare },
-    ];
-
-    const sovPieConfig: ChartConfig = {
-      ...Object.fromEntries(
-        ENGINE_ORDER.map((engine) => [engineLabel[engine], { label: engineLabel[engine], engine }]),
-      ),
-      "Competitors": {
-        label: "Competitors",
-        color: "hsl(0, 0%, 85%)"
-      }
-    };
-
-    const considerationConfig = {
-      clicks: { label: "Clicks", color: "hsl(var(--chart-1))" },
-      dots: { label: "DooH Dots", color: "hsl(var(--chart-2))" },
-      displayClicks: { label: "Display Clicks", color: "hsl(var(--chart-3))" }
-    };
-
-    const viewabilityConfig = {
-      viewability: { label: "Viewability %", color: "hsl(var(--chart-4))" }
-    };
-
-    const purchaseConfig = {
-      roas: { label: "ROAS", color: "hsl(var(--chart-1))" },
-      iroas: { label: "iROAS", color: "hsl(var(--chart-2))" }
-    };
-
-    const purchaseBehaviorConfig = {
-      purchaseBehavior: { label: "Purchase Behavior %", color: "hsl(var(--chart-5))" }
-    };
-
-    const customerSegmentationConfig = {
-      "First-time": { label: "First-time Customers", color: "hsl(var(--chart-1))" },
-      "Returning": { label: "Returning Customers", color: "hsl(var(--chart-2))" },
-      "Loyal": { label: "Loyal Customers", color: "hsl(var(--chart-3))" }
-    };
-
-    // Each stage's mix of propositions, read from the same rows the charts
-    // below already use — so the funnel's bands and the chart's series agree.
-    const breakdownFrom = (row: Record<string, number>, engines: Record<string, EngineId>): Partial<Record<EngineId, number>> => {
-      const out: Partial<Record<EngineId, number>> = {};
-      for (const [key, engine] of Object.entries(engines)) out[engine] = (out[engine] ?? 0) + (row[key] ?? 0);
-      return out;
-    };
-    // Awareness reads near zero at both ends of the flight by design, so its
-    // breakdown is what the whole period delivered, summed — the same
-    // change the Total Volume card's own number just made.
-    const awarenessTotalsRow = Object.fromEntries(
-      Object.keys(channelEngines).map((key) => [key, awarenessDataRaw.reduce((sum, d) => sum + ((d as any)[key] ?? 0), 0)]),
-    );
-    const awarenessBreakdown = breakdownFrom(awarenessTotalsRow, channelEngines);
-    const considerationBreakdown = breakdownFrom(considerationDataRaw[considerationDataRaw.length - 1] as any, engagementEngines);
-    const purchaseBreakdown = breakdownFrom(purchaseDataRaw[purchaseDataRaw.length - 1] as any, unitEngines);
-    // Loyalty has no per-channel field of its own — repeat buyers carry
-    // roughly the same channel mix as the purchases that won them.
-    const purchaseTotal = Object.values(purchaseBreakdown).reduce((s, v) => s + (v ?? 0), 0) || 1;
-    const loyaltyBreakdown = Object.fromEntries(
-      Object.entries(purchaseBreakdown).map(([e, v]) => [e, ((v ?? 0) / purchaseTotal) * loyaltyData[loyaltyData.length - 1].existingBuyers]),
-    ) as Partial<Record<EngineId, number>>;
-
-    // Conversion funnel breakdown - drives stage tab selection
+    // Conversion funnel: impressions → clicks → conversions, each band
+    // split by the propositions that delivered it over the window.
+    const stageBreakdown = (value: (t: Totals) => number, engines: EngineId[] = ENGINE_ORDER) =>
+      Object.fromEntries(engines.map((e) => [e, Math.round(value(byEngine[e]))])) as Partial<Record<EngineId, number>>;
     const funnelStages = [
       {
         key: 'awareness',
         label: 'Awareness',
-        value: awarenessData.reduce((sum, d) => sum + d.totalVolume, 0),
-        breakdown: awarenessBreakdown,
+        value: Math.round(impressionsTotal),
+        breakdown: stageBreakdown((t) => t.impressions, selectedImpressionKeys.map((k) => channelEngines[k])),
       },
       {
         key: 'consideration',
         label: 'Consideration',
-        value: considerationData[considerationData.length - 1].totalEngagements,
-        breakdown: considerationBreakdown,
+        value: Math.round(totals.clicks),
+        breakdown: stageBreakdown((t) => t.clicks),
       },
       {
         key: 'purchase',
         label: 'Purchase',
-        value: purchaseData[purchaseData.length - 1].totalUnitsSold,
-        breakdown: purchaseBreakdown,
+        value: Math.round(totals.conversions),
+        breakdown: stageBreakdown((t) => t.conversions),
       },
       // Loyalty is hidden for now — there's no real reporting behind it yet.
     ];
@@ -4157,50 +4103,19 @@ export const FunnelView: Story = {
                       // and in as a filter like the rest of what the
                       // numbers cover — multi-select, same as Brand.
                       name: 'Advertiser',
-                      options: [
-                        { label: 'Coca-Cola', value: 'coca-cola' },
-                        { label: 'Unilever', value: 'unilever' },
-                        { label: 'Procter & Gamble', value: 'procter-gamble' },
-                        { label: 'Nestlé', value: 'nestle' },
-                        { label: 'PepsiCo', value: 'pepsico' },
-                      ],
+                      options: advertiserOptions,
                       selectedValues: advertiserFilter,
                       onChange: setAdvertiserFilter
                     },
                     {
                       name: 'Brand',
-                      options: [
-                        { label: 'Unilever', value: 'unilever', description: 'Parent brand' },
-                        { label: "Ben & Jerry's", value: 'ben-jerrys', description: 'Ice cream & frozen' },
-                        { label: 'Dove', value: 'dove', description: 'Personal care' },
-                        { label: 'Axe', value: 'axe', description: 'Personal care' },
-                        { label: 'Hellmann\'s', value: 'hellmanns', description: 'Food & condiments' },
-                        { label: 'Knorr', value: 'knorr', description: 'Food & cooking' },
-                        { label: 'Lipton', value: 'lipton', description: 'Beverages' },
-                        { label: 'Magnum', value: 'magnum', description: 'Ice cream & frozen' },
-                        { label: 'Vaseline', value: 'vaseline', description: 'Personal care' },
-                        { label: 'Rexona', value: 'rexona', description: 'Personal care' },
-                        { label: 'Omo', value: 'omo', description: 'Home care' },
-                        { label: 'Domestos', value: 'domestos', description: 'Home care' },
-                      ],
+                      options: brandOptions,
                       selectedValues: brandFilter,
                       onChange: setBrandFilter
                     },
                     {
                       name: 'Campaign',
-                      options: [
-                        { label: 'Summer Sale 2024', value: 'summer-2024', description: 'Jun – Aug 2024' },
-                        { label: 'Spring Collection 2024', value: 'spring-2024', description: 'Mar – May 2024' },
-                        { label: 'Holiday Special 2024', value: 'holiday-2024', description: 'Nov – Dec 2024' },
-                        { label: 'Back to School 2024', value: 'bts-2024', description: 'Aug – Sep 2024' },
-                        { label: 'Black Friday 2024', value: 'bf-2024', description: 'Nov 2024' },
-                        { label: 'Valentine\'s Day 2025', value: 'vday-2025', description: 'Jan – Feb 2025' },
-                        { label: 'Easter Campaign 2025', value: 'easter-2025', description: 'Mar – Apr 2025' },
-                        { label: 'Summer Sale 2025', value: 'summer-2025', description: 'Jun – Aug 2025' },
-                        { label: 'New Year Launch 2025', value: 'ny-2025', description: 'Jan 2025' },
-                        { label: 'Brand Awareness Q1', value: 'awareness-q1', description: 'Jan – Mar 2025' },
-                        { label: 'Loyalty Rewards 2025', value: 'loyalty-2025', description: 'Ongoing' },
-                      ],
+                      options: campaignOptions,
                       selectedValues: campaignFilter,
                       onChange: setCampaignFilter
                     },
@@ -4328,11 +4243,11 @@ export const FunnelView: Story = {
                       showXAxis={true}
                       showYAxis={true}
                       showRightYAxis={true}
-                      benchmark={{ value: 700000, label: "Target 700K" }}
+                      benchmark={targetLine(impressionsTotal)}
                       className="h-[320px] w-full"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
-                    <CardInsightList insights={volumeCardInsights} variant="compact" className="mt-4" />
+                    <CardInsightList insights={insights.volume} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
 
@@ -4378,7 +4293,7 @@ export const FunnelView: Story = {
                       // Sales rides alongside Spend, read from the same
                       // months of purchaseData Purchase itself uses — the
                       // two tabs never disagree on what the period sold.
-                      data={considerationData.map((d, i) => ({ ...d, revenue: purchaseData[i]?.totalRevenue ?? 0 }))}
+                      data={considerationData}
                       config={{
                         ...Object.fromEntries(
                           considerationEngagementKeys.map(k => [k, { label: engagementLabels[k], color: engagementColors[k], engine: engagementEngines[k] }])
@@ -4395,11 +4310,11 @@ export const FunnelView: Story = {
                       showXAxis={true}
                       showYAxis={true}
                       showRightYAxis={true}
-                      benchmark={{ value: 80000, label: "Target 80K" }}
+                      benchmark={targetLine(totals.clicks)}
                       className="h-[320px] w-full"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
-                    <CardInsightList insights={engagementCardInsights} variant="compact" className="mt-4" />
+                    <CardInsightList insights={insights.engagement} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
 
@@ -4407,7 +4322,7 @@ export const FunnelView: Story = {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Total CTR {considerationData[5].totalCtr}%
+                      Total CTR {totalCtr}%
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -4438,12 +4353,12 @@ export const FunnelView: Story = {
                       showXAxis={true}
                       showYAxis={true}
                       showDots={true}
-                      benchmark={{ value: 2, label: "Target 2%" }}
+                      benchmark={ctrTargetPct > 0 ? { value: ctrTargetPct, label: `Target ${ctrTargetPct}%` } : undefined}
                       className="h-[320px] w-full"
                       xAxisDataKey="month"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
-                    <CardInsightList insights={ctrCardInsights} variant="compact" className="mt-4" />
+                    <CardInsightList insights={insights.ctr} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
               </div>
@@ -4460,13 +4375,13 @@ export const FunnelView: Story = {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Total Conversions {purchaseData[purchaseData.length - 1].totalUnitsSold.toLocaleString()}
+                      Total Conversions {Math.round(totals.conversions).toLocaleString('en-GB')}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
-                          <TooltipContent>Total units sold across all proposition channels</TooltipContent>
+                          <TooltipContent>Total purchases attributed across all proposition channels</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </CardTitle>
@@ -4494,11 +4409,11 @@ export const FunnelView: Story = {
                       showXAxis={true}
                       showYAxis={true}
                       showRightYAxis={true}
-                      benchmark={{ value: 15000, label: "Target 15K" }}
+                      benchmark={targetLine(totals.conversions)}
                       className="h-[320px] w-full"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
-                    <CardInsightList insights={unitsCardInsights} variant="compact" className="mt-4" />
+                    <CardInsightList insights={insights.units} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
 
@@ -4534,7 +4449,7 @@ export const FunnelView: Story = {
                         className="h-[220px] w-full"
                       />
                       {/* What this chart is saying — cases open in the drawer. */}
-                      <CardInsightList insights={topProductsCardInsights} variant="compact" className="mt-4" />
+                      <CardInsightList insights={insights.topProducts} variant="compact" className="mt-4" />
                     </CardContent>
                   </Card>
 
@@ -4568,7 +4483,7 @@ export const FunnelView: Story = {
                         className="h-[220px] w-full"
                       />
                       {/* What this chart is saying — cases open in the drawer. */}
-                      <CardInsightList insights={lowProductsCardInsights} variant="compact" className="mt-4" />
+                      <CardInsightList insights={insights.lowProducts} variant="compact" className="mt-4" />
                     </CardContent>
                   </Card>
                 </div>
@@ -4577,7 +4492,7 @@ export const FunnelView: Story = {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      ROAS {purchaseData[purchaseData.length - 1].roas}%
+                      ROAS {roasPct(totals)}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -4608,12 +4523,12 @@ export const FunnelView: Story = {
                       showXAxis={true}
                       showYAxis={true}
                       showDots={true}
-                      benchmark={{ value: 400, label: "Target 400%" }}
+                      benchmark={roasTargetPct > 0 ? { value: roasTargetPct, label: `Target ${roasTargetPct}%` } : undefined}
                       className="h-[320px] w-full"
                       xAxisDataKey="month"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
-                    <CardInsightList insights={roasCardInsights} variant="compact" className="mt-4" />
+                    <CardInsightList insights={insights.roas} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
 
@@ -4622,7 +4537,7 @@ export const FunnelView: Story = {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Purchase Users {purchaseData[purchaseData.length - 1].totalBuyers.toLocaleString()}
+                      Purchase Users {Math.round(totalBuyers.buyers).toLocaleString('en-GB')}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -4658,18 +4573,18 @@ export const FunnelView: Story = {
                       showXAxis={true}
                       showYAxis={true}
                       showRightYAxis={true}
-                      benchmark={{ value: 1000, label: "Target 1K" }}
+                      benchmark={buyerTarget}
                       className="h-[320px] w-full"
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
-                    <CardInsightList insights={buyerCardInsights} variant="compact" className="mt-4" />
+                    <CardInsightList insights={insights.buyer} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-1.5">
-                      Purchase Users by Proposition {purchaseData[purchaseData.length - 1].totalBuyers.toLocaleString()}
+                      Purchase Users by Proposition {Math.round(totalBuyers.buyers).toLocaleString('en-GB')}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -4689,9 +4604,8 @@ export const FunnelView: Story = {
                       // Each slice is labelled with its share; the count
                       // itself is in the tooltip, and the total in the title.
                       data={buyerKeys.map(k => {
-                        const last = purchaseData[purchaseData.length - 1] as any;
-                        const value = last[k] as number;
-                        return { name: buyerLabels[k], value, label: `${Math.round((value / last.totalBuyers) * 100)}%` };
+                        const value = Math.round(buyerSplit(byEngine[buyerEngines[k]]).buyers);
+                        return { name: buyerLabels[k], value, label: totalBuyers.buyers > 0 ? `${Math.round((value / totalBuyers.buyers) * 100)}%` : '0%' };
                       })}
                       config={Object.fromEntries(
                         buyerKeys.map(k => [buyerLabels[k], { label: buyerLabels[k], engine: buyerEngines[k] }])
@@ -4709,7 +4623,7 @@ export const FunnelView: Story = {
                       endAngle={-270}
                     />
                     {/* What this chart is saying — cases open in the drawer. */}
-                    <CardInsightList insights={buyerPropositionCardInsights} variant="compact" className="mt-4" />
+                    <CardInsightList insights={insights.buyerProposition} variant="compact" className="mt-4" />
                   </CardContent>
                 </Card>
                 </div>

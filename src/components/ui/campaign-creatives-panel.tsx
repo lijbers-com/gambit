@@ -5,7 +5,8 @@ import { Eye } from 'lucide-react';
 import { useDb, useRouteCampaign, type Creative, type EngineId } from '@/lib/db';
 import { Button } from './button';
 import { FilterBar } from './filter-bar';
-import { Table, parseTableNumber, formatTableNumber } from './table';
+import { Table } from './table';
+import { EMPTY, add, bookingTotals, ratesOf, type Totals } from '@/lib/db/performance';
 import { CreativePreviewThumb } from './creative-preview';
 import { CreativePreviewDialog } from './creative-preview-dialog';
 import { CreativeStatusBadge } from './creative-builder';
@@ -26,13 +27,22 @@ const STATUS_LABEL: Record<Creative['status'], string> = {
   rejected: 'Rejected',
 };
 
-/** Deterministic demo delivery numbers per creative, for running campaigns. */
-const seeded = (id: string) => {
-  let h = 0;
-  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return (min: number, max: number, salt: number) => {
-    const x = ((h ^ (salt * 2654435761)) >>> 0) / 4294967295;
-    return min + Math.round(x * (max - min));
+/** A booking's share of a total, split evenly between the creatives on it. */
+const share = (t: Totals, n: number): Totals => {
+  const out = { ...t };
+  (Object.keys(EMPTY) as (keyof Totals)[]).forEach((k) => { out[k] = t[k] / n; });
+  return out;
+};
+
+const fmtInt = (n: number) => Math.round(n).toLocaleString('en-GB');
+const fmtPerf = (t: Totals) => {
+  const r = ratesOf(t);
+  return {
+    impressions: fmtInt(t.impressions),
+    clicks: fmtInt(t.clicks),
+    ctr: t.impressions > 0 ? `${(r.ctr * 100).toFixed(2)}%` : '—',
+    revenue: `€${fmtInt(t.sales)}`,
+    roas: t.spend > 0 ? `${Math.round(r.roas * 100)}%` : '—',
   };
 };
 
@@ -66,27 +76,25 @@ export const CampaignCreativesPanel: React.FC<{
     );
   });
 
-  /** A sum or average of formatted figures, written back the same way. */
-  const totalOf = (values: string[], mode: 'sum' | 'avg' = 'sum') => {
-    const parsed = values.map(parseTableNumber).filter((v): v is NonNullable<typeof v> => !!v);
-    if (parsed.length === 0) return null;
-    const total = parsed.reduce((acc, v) => acc + v.value, 0);
-    return formatTableNumber(mode === 'avg' ? total / parsed.length : total, parsed[0]);
-  };
-
-  const perf = (c: Creative) => {
-    const r = seeded(c.id);
-    const impressions = r(120_000, 900_000, 1);
-    const clicks = Math.round(impressions * r(6, 18, 2) / 1000);
-    const revenue = r(8_000, 60_000, 3);
-    return {
-      impressions: impressions.toLocaleString('en-GB'),
-      clicks: clicks.toLocaleString('en-GB'),
-      ctr: `${((clicks / impressions) * 100).toFixed(2)}%`,
-      revenue: `€${revenue.toLocaleString('en-GB')}`,
-      roas: `${r(22, 52, 4) * 10}%`,
-    };
-  };
+  // What each creative delivered, from the performance model: a booking's
+  // delivery (lib/db/performance.ts) split evenly between the creatives
+  // linked to it, summed over the creative's bookings in this campaign. The
+  // creatives' rows therefore add back up to the campaign's own totals.
+  const totalsByCreative = React.useMemo(() => {
+    const out = new Map<string, Totals>();
+    for (const b of bookings) {
+      const linked = db.creatives.filter((c) => c.bookingIds.includes(b.id));
+      if (!linked.length) continue;
+      const part = share(bookingTotals(db, b), linked.length);
+      linked.forEach((c) => out.set(c.id, add(out.get(c.id) ?? EMPTY, part)));
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- bookings follow from db and id
+  }, [db, id]);
+  const totalsOf = (c: Creative) => totalsByCreative.get(c.id) ?? EMPTY;
+  const perf = (c: Creative) => fmtPerf(totalsOf(c));
+  /** The summary row: volumes summed, rates from the sums (not averaged). */
+  const sumOf = (rows: Creative[]) => fmtPerf(rows.reduce((t, c) => add(t, totalsOf(c)), EMPTY));
 
   return (
     <div className={className}>
@@ -133,13 +141,13 @@ export const CampaignCreativesPanel: React.FC<{
               { key: 'template', header: 'Template', render: (c: Creative) => templatesById.get(c.templateId)?.name ?? '—' },
               ...(showPerformance
                 ? [
-                    // The figures are derived per creative, so the totals are
-                    // derived the same way and summed as the table would.
-                    { key: 'impressions', header: 'Impressions', render: (c: Creative) => perf(c).impressions, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).impressions)) },
-                    { key: 'clicks', header: 'Clicks', render: (c: Creative) => perf(c).clicks, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).clicks)) },
-                    { key: 'ctr', header: 'CTR', render: (c: Creative) => perf(c).ctr, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).ctr), 'avg') },
-                    { key: 'revenue', header: 'Total SKU revenue', render: (c: Creative) => perf(c).revenue, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).revenue)) },
-                    { key: 'roas', header: 'ROAS', render: (c: Creative) => perf(c).roas, summary: (rows: Creative[]) => totalOf(rows.map((c) => perf(c).roas), 'avg') },
+                    // The totals row sums the creatives' delivery and derives
+                    // CTR and ROAS from those sums.
+                    { key: 'impressions', header: 'Impressions', render: (c: Creative) => perf(c).impressions, summary: (rows: Creative[]) => sumOf(rows).impressions },
+                    { key: 'clicks', header: 'Clicks', render: (c: Creative) => perf(c).clicks, summary: (rows: Creative[]) => sumOf(rows).clicks },
+                    { key: 'ctr', header: 'CTR', render: (c: Creative) => perf(c).ctr, summary: (rows: Creative[]) => sumOf(rows).ctr },
+                    { key: 'revenue', header: 'Total SKU revenue', render: (c: Creative) => perf(c).revenue, summary: (rows: Creative[]) => sumOf(rows).revenue },
+                    { key: 'roas', header: 'ROAS', render: (c: Creative) => perf(c).roas, summary: (rows: Creative[]) => sumOf(rows).roas },
                   ]
                 : []),
               { key: 'updated', header: 'Updated', render: (c: Creative) => c.updatedAt.slice(0, 10) },

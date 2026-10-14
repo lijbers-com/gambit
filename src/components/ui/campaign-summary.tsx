@@ -33,9 +33,11 @@ import { NotificationItem } from './notification-item';
 import { OptimisationCard, budgetOptimisationExplain, ctrTargetingExplain, budgetPacingExplain, healthConfig, adviceKind, type Advice, type HealthNotification, type NotificationKind } from './optimisation-card';
 import { useDb, derivePlanHealth, deriveTasksForPlan, deriveMessages, useInboxState, planHealth } from '@/lib/db';
 import { HealthCell } from './control-cells';
-import { DollarSign, ChevronDown, ChevronUp, Sparkles, Bell, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
+import { Euro, ChevronDown, ChevronUp, Sparkles, Bell, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
 import { prototypeToday } from '@/lib/clock';
+import { EMPTY, breakdown, ratesOf, totalsFor, type Totals } from '@/lib/db/performance';
+import { engineYield, planForecast } from '@/lib/forecast';
 
 export interface CampaignEngine {
   id: string;
@@ -193,7 +195,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const [engineBudgets, setEngineBudgets] = React.useState<{ [key: string]: string }>(() => {
       const seed: { [key: string]: string } = {};
       engines.forEach(e => {
-        if (typeof e.budget === 'number') seed[e.id] = `$${e.budget}`;
+        if (typeof e.budget === 'number') seed[e.id] = `€${e.budget}`;
       });
       return seed;
     });
@@ -381,15 +383,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       const newBudgets: { [key: string]: string } = {};
       currentEngines.forEach(engine => {
         if (engine.id === 'offline') {
-          newBudgets[engine.id] = '$0';
+          newBudgets[engine.id] = '€0';
         } else if (engine.enabled) {
-          newBudgets[engine.id] = `$${Math.round(perEngine)}`;
+          newBudgets[engine.id] = `€${Math.round(perEngine)}`;
         } else {
-          newBudgets[engine.id] = '$0';
+          newBudgets[engine.id] = '€0';
         }
       });
       setEngineBudgets(newBudgets);
-      onBudgetChange?.(`$${value}`);
+      onBudgetChange?.(`€${value}`);
     }, [currentEngines, onBudgetChange]);
 
     // Calculate actual budget usage percentage
@@ -437,7 +439,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       const maxAllowed = Math.max(totalBudgetVal - otherEnginesTotal, 0);
       const cappedVal = totalBudgetVal > 0 ? Math.min(requestedVal, maxAllowed) : requestedVal;
 
-      const newBudget = `$${cappedVal}`;
+      const newBudget = `€${cappedVal}`;
       setEngineBudgets(prev => ({
         ...prev,
         [engineId]: newBudget
@@ -450,30 +452,37 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
 
     // Get current budget for an engine
     const getEngineBudget = (engineId: string) => {
-      return engineBudgets[engineId] || '$0';
+      return engineBudgets[engineId] || '€0';
     };
 
-    // Calculate ROAS based on budget (higher budget = higher ROAS with some variation)
-    const calculateEngineROAS = (engineId: string) => {
-      if (engineId === 'offline') return '0%';
-
-      const budget = parseFloat(getEngineBudget(engineId).replace(/[^0-9.]/g, '')) || 0;
-
-      if (budget === 0) return '0%';
-
-      // Engine-specific base ROAS values (distinct for demo purposes)
-      const engineBaseROAS: Record<string, number> = {
-        'display': 2.5,
-        'sponsored': 4.8,
-        'digital': 3.2,
-        'offline': 0,
-        'offsite': 2.1,
-      };
-
-      const baseROAS = engineBaseROAS[engineId as keyof typeof engineBaseROAS] || 3.0;
-
-      return `${Math.round(baseROAS * 100)}%`;
+    // ── Performance ────────────────────────────────────────────────────
+    // The plan this card summarises, and what its bookings delivered — the
+    // performance model (lib/db/performance.ts), the same numbers the plan
+    // page, the campaign pages and Insights read. Before a proposition has
+    // delivered anything, its figures are the forecast (lib/forecast.ts):
+    // the same model applied to the budget at the rate card's prices.
+    const parseAmount = (v: string) => parseFloat(v.replace(/[^0-9.]/g, '')) || 0;
+    const summaryPlanId = db.mediaPlans.find((p) => p.id === campaignIdProp || p.id === mediaExperienceId)?.id;
+    const planTotals: Totals = summaryPlanId ? totalsFor(db, { mediaPlanId: summaryPlanId }) : EMPTY;
+    const planEngineTotals = summaryPlanId ? breakdown(db, { mediaPlanId: summaryPlanId }, 'engine') : [];
+    /** The card's engine ids are short ('sponsored', 'display-3'). */
+    const engineIdOfCard = (id: string): EngineId | undefined =>
+      engineIdFromShort[id] ?? engineIdFromShort[id.replace(/-\d+$/, '')];
+    const engineActuals = (id: string): Totals | undefined => {
+      const e = engineIdOfCard(id);
+      return e ? planEngineTotals.find((r) => r.id === e)?.totals : undefined;
     };
+    /** The plan has delivered: the cards show actuals, not the forecast. */
+    const hasActuals = planTotals.spend > 0;
+
+    /** A proposition's ROAS: delivered when it has spent, else forecast. */
+    const engineRoasValue = (engineId: string): number => {
+      const actual = engineActuals(engineId);
+      if (actual && actual.spend > 0) return ratesOf(actual).roas;
+      const e = engineIdOfCard(engineId);
+      return e && parseAmount(getEngineBudget(engineId)) > 0 ? engineYield(e, db).roas : 0;
+    };
+    const calculateEngineROAS = (engineId: string) => `${Math.round(engineRoasValue(engineId) * 100)}%`;
 
     // Calculate total budget from all engines
     const calculateTotalBudget = () => {
@@ -482,32 +491,28 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         const amount = parseFloat(budget.replace(/[^0-9.]/g, '')) || 0;
         return sum + amount;
       }, 0);
-      return `$${total.toLocaleString()}`;
+      return `€${total.toLocaleString()}`;
     };
 
-    // Calculate weighted average ROAS across all engines
+    // The plan's ROAS: delivered once it has spent; before that the
+    // budget-weighted forecast of its propositions.
     const calculateTotalROAS = () => {
+      if (hasActuals) return `${Math.round(ratesOf(planTotals).roas * 100)}%`;
       let totalBudget = 0;
       let weightedROAS = 0;
-      
       currentEngines.forEach(engine => {
-        const budget = parseFloat(getEngineBudget(engine.id).replace(/[^0-9.]/g, '')) || 0;
-        const roas = parseFloat(calculateEngineROAS(engine.id).replace('%', '')) || 0;
-        
+        const budget = parseAmount(getEngineBudget(engine.id));
         totalBudget += budget;
-        weightedROAS += budget * roas;
+        weightedROAS += budget * engineRoasValue(engine.id);
       });
-      
       if (totalBudget === 0) return '0%';
-      
-      const averageROAS = weightedROAS / totalBudget;
-      return `${Math.round(averageROAS)}%`;
+      return `${Math.round((weightedROAS / totalBudget) * 100)}%`;
     };
 
     // Notify parent when engine budgets change (without overwriting total budget)
     React.useEffect(() => {
       if (onBudgetChange && totalBudgetInput) {
-        onBudgetChange(`$${totalBudgetInput}`);
+        onBudgetChange(`€${totalBudgetInput}`);
       }
     }, [engineBudgets]);
 
@@ -547,11 +552,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
           const newBudgets: { [key: string]: string } = {};
           currentEngines.forEach(engine => {
             if (engine.id === 'offline') {
-              newBudgets[engine.id] = '$0';
+              newBudgets[engine.id] = '€0';
             } else {
               const roasWeight = roasValues[engine.id] / totalRoasWeight;
               const allocatedBudget = Math.round(total * roasWeight);
-              newBudgets[engine.id] = `$${allocatedBudget}`;
+              newBudgets[engine.id] = `€${allocatedBudget}`;
             }
           });
           setEngineBudgets(newBudgets);
@@ -570,11 +575,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         const newBudgets: { [key: string]: string } = {};
         currentEngines.forEach(engine => {
           if (engine.id === 'offline') {
-            newBudgets[engine.id] = '$0';
+            newBudgets[engine.id] = '€0';
           } else if (engine.enabled) {
-            newBudgets[engine.id] = `$${Math.round(perEngine)}`;
+            newBudgets[engine.id] = `€${Math.round(perEngine)}`;
           } else {
-            newBudgets[engine.id] = '$0';
+            newBudgets[engine.id] = '€0';
           }
         });
 
@@ -585,11 +590,6 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     // ── Dynamic estimated metrics for horizontal layout ──
     const budgetNumForMetrics = parseFloat(budget.replace(/[^0-9.]/g, '')) || 0;
     const hasBudget = budgetNumForMetrics > 0;
-    const enabledEngineCount = currentEngines.filter(e => e.enabled).length;
-
-    // Progress bars only show when there is actual spend data (campaign is running)
-    const usedBudgetNum = parseFloat((usedBudget || '$0').replace(/[^0-9.]/g, '')) || 0;
-    const hasProgress = hasBudget && usedBudgetNum > 0;
 
     const fmtNumber = (num: number): string => {
       if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -597,46 +597,25 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
       return `${Math.round(num)}`;
     };
     const fmtCurrency = (num: number): string => {
-      if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;
-      if (num >= 1000) return `$${(num / 1000).toFixed(1)}K`;
-      return `$${Math.round(num)}`;
+      if (num >= 1000000) return `€${(num / 1000000).toFixed(1)}M`;
+      if (num >= 1000) return `€${(num / 1000).toFixed(1)}K`;
+      return `€${Math.round(num)}`;
     };
 
-    // Reach: ~170 impressions per dollar, boosted by toggles
-    const reachMult = autoBudgetOptimization && autoTargeting ? 250 :
-      autoTargeting ? 215 : autoBudgetOptimization ? 185 : 170;
-    const estReach = hasBudget ? fmtNumber(budgetNumForMetrics * reachMult) : '—';
-    const estReachCurrent = hasProgress ? `Current: ${fmtNumber(budgetNumForMetrics * reachMult * 0.64)}` : undefined;
-    const reachProgress = hasProgress ? (
-      autoBudgetOptimization && autoTargeting ? 95 :
-      autoTargeting ? 82 : autoBudgetOptimization ? 72 : 64
-    ) : undefined;
-
-    // ROAS: base 320% + engine bonus, boosted by toggles
-    const engBonus = Math.min(enabledEngineCount * 0.2, 1.0);
-    const baseRoasEst = 3.2 + engBonus;
-    const roasMult = autoBudgetOptimization && autoTargeting ? 1.4 :
-      autoBudgetOptimization ? 1.22 : autoTargeting ? 1.1 : 1.0;
-    const estRoasNum = baseRoasEst * roasMult;
-    const estRoas = hasBudget ? `${Math.round(estRoasNum * 100)}%` : '—';
-    const estRoasCurrent = hasProgress ? `Current: ${Math.round(estRoasNum * 0.78 * 100)}%` : undefined;
-    const roasProgress = hasProgress ? (
-      autoBudgetOptimization && autoTargeting ? 88 :
-      autoBudgetOptimization ? 78 : autoTargeting ? 70 : 64
-    ) : undefined;
-
-    // Sales: budget × ROAS
-    const estSalesNum = budgetNumForMetrics * estRoasNum;
-    const estSales = hasBudget ? fmtCurrency(estSalesNum) : '—';
-    const estSalesCurrent = hasProgress ? `Current: ${fmtCurrency(estSalesNum * 0.64)}` : undefined;
-    const estSalesGrowth = hasProgress ? (
-      autoBudgetOptimization && autoTargeting ? '+42%' :
-      autoBudgetOptimization ? '+30%' : autoTargeting ? '+22%' : '+15%'
-    ) : undefined;
-    const salesProgress = hasProgress ? (
-      autoBudgetOptimization && autoTargeting ? 95 :
-      autoBudgetOptimization ? 82 : autoTargeting ? 73 : 64
-    ) : undefined;
+    // Impressions, conversions and ROAS: the plan's delivery once it has
+    // spent; before that, the forecast of its budget split over its
+    // propositions. The optimisation toggles change how the budget is split
+    // (and so the forecast), never a multiplier on the numbers.
+    const forecastSplit = currentEngines
+      .filter(e => e.enabled)
+      .map(e => ({ engine: engineIdOfCard(e.id), budget: parseAmount(getEngineBudget(e.id)) }));
+    const planFc = planForecast(budgetNumForMetrics, forecastSplit, db);
+    const estImpressionsNum = hasActuals ? planTotals.impressions : planFc.impressions.mid;
+    const estConversionsNum = hasActuals ? planTotals.conversions : planFc.conversions.mid;
+    const estRoasNum = hasActuals ? ratesOf(planTotals).roas : planFc.roas.mid;
+    const showEstimates = hasActuals || hasBudget;
+    const estReach = showEstimates ? fmtNumber(estImpressionsNum) : '—';
+    const estRoas = showEstimates ? `${Math.round(estRoasNum * 100)}%` : '—';
 
     // Per-proposition budget vs spend — drives both the collapsed-card budget bar
     // and (recomputed) the Budget metric card below. Kept in sync via the same palette.
@@ -652,9 +631,11 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const collapsedCampaignSpend = parseFloat((totalPrice || '0').replace(/[^0-9.]/g, '')) || 0;
     const collapsedBudgetData = collapsedEnabledEngines.map((engine, i) => ({
       name: engine.name,
-      spent: typeof engine.spend === 'number'
-        ? engine.spend
-        : Math.round((collapsedBudgetByEngine[i].value / collapsedTotalEngineBudget) * collapsedCampaignSpend),
+      // What the proposition's bookings spent, per the performance model.
+      spent: engineActuals(engine.id)?.spend
+        ?? (typeof engine.spend === 'number'
+          ? engine.spend
+          : Math.round((collapsedBudgetByEngine[i].value / collapsedTotalEngineBudget) * collapsedCampaignSpend)),
       budget: collapsedBudgetByEngine[i].value,
       color: collapsedPropColor(engine.id),
       engine: collapsedPatternKeyById(engine.id),
@@ -754,7 +735,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
     const detailsRow = (
       <div className="flex flex-nowrap items-center gap-x-5 text-sm overflow-hidden">
         <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <Euro className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground">Budget:</span>
           <span className="font-medium text-foreground">{budgetLine}</span>
         </span>
@@ -1108,7 +1089,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 <div className="space-y-2">
                   <Label className="text-sm text-muted-foreground">Total budget</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                       type="number"
                       value={totalBudgetInput}
@@ -1124,16 +1105,16 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                         const newBudgets: { [key: string]: string } = {};
                         currentEngines.forEach(engine => {
                           if (engine.id === 'offline') {
-                            newBudgets[engine.id] = '$0';
+                            newBudgets[engine.id] = '€0';
                           } else if (engine.enabled) {
-                            newBudgets[engine.id] = `$${Math.round(perEngine)}`;
+                            newBudgets[engine.id] = `€${Math.round(perEngine)}`;
                           } else {
-                            newBudgets[engine.id] = '$0';
+                            newBudgets[engine.id] = '€0';
                           }
                         });
 
                         setEngineBudgets(newBudgets);
-                        onBudgetChange?.(`$${e.target.value}`);
+                        onBudgetChange?.(`€${e.target.value}`);
                       }}
                       className="w-full h-9 bg-muted/50 border border-border pl-10 py-1 rounded-md focus:outline-none focus:border-ring [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                       placeholder="Enter budget amount"
@@ -1206,7 +1187,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           </div>
                           {engine.enabled && (
                             <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                              <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                              <Euro className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                               <input
                                 type="number"
                                 value={budgetVal || ''}
@@ -1333,15 +1314,14 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 const campaignSpendNum = parseFloat((totalPrice || '0').replace(/[^0-9.]/g, '')) || 0;
                 const spendByEngine = enabledEngines.map((engine, i) => ({
                   name: engine.name,
-                  value: typeof engine.spend === 'number'
-                    ? engine.spend
-                    : Math.round((budgetByEngine[i].value / totalEngineBudget) * campaignSpendNum),
+                  value: engineActuals(engine.id)?.spend
+                    ?? (typeof engine.spend === 'number'
+                      ? engine.spend
+                      : Math.round((budgetByEngine[i].value / totalEngineBudget) * campaignSpendNum)),
                 }));
                 // Total spend follows the per-engine breakdown so the card value matches the bars.
                 const totalSpendNum = spendByEngine.reduce((sum, e) => sum + e.value, 0);
-                // Synthetic conversions: 4% of budget as a stand-in for a real conversion
-                // count until the data model carries one through.
-                const conversionsNum = budgetNumForMetrics * 0.04;
+                const conversionsNum = estConversionsNum;
 
                 // Combined budget chart: spent vs total budget per proposition.
                 const budgetVsSpendData = enabledEngines.map((engine, i) => ({
@@ -1350,18 +1330,30 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   budget: budgetByEngine[i].value,
                   color: propColor(engine.id),
                 }));
-                // Per-proposition breakdowns for the donut/comparison cards.
-                const impressionsByEngine = budgetByEngine.map(e => ({
-                  name: e.name,
-                  value: Math.round(e.value * reachMult),
+                // Per-proposition breakdowns for the donut/comparison cards:
+                // delivered once the plan has spent, else each proposition's
+                // forecast at its own rate-card yield.
+                const perEngine = (engine: { id: string }, i: number, key: 'impressions' | 'conversions') => {
+                  if (hasActuals) return Math.round(engineActuals(engine.id)?.[key] ?? 0);
+                  const e = engineIdOfCard(engine.id);
+                  const y = e ? engineYield(e, db) : undefined;
+                  // The proposition's share of the plan budget — the same
+                  // scaling planForecast applies, so the slices sum to the headline.
+                  const splitTotal = budgetByEngine.reduce((sum, b) => sum + b.value, 0);
+                  const share = splitTotal > 0 ? budgetByEngine[i].value * (budgetNumForMetrics / splitTotal) : 0;
+                  return Math.round(share * (key === 'impressions' ? y?.impressionsPerEuro ?? 0 : y?.conversionsPerEuro ?? 0));
+                };
+                const impressionsByEngine = enabledEngines.map((engine, i) => ({
+                  name: engine.name,
+                  value: perEngine(engine, i, 'impressions'),
                 }));
-                const conversionsByEngine = budgetByEngine.map(e => ({
-                  name: e.name,
-                  value: Math.round((e.value / totalEngineBudget) * conversionsNum),
+                const conversionsByEngine = enabledEngines.map((engine, i) => ({
+                  name: engine.name,
+                  value: perEngine(engine, i, 'conversions'),
                 }));
                 const roasByEngine = enabledEngines.map(engine => ({
                   name: engine.name,
-                  value: parseFloat(calculateEngineROAS(engine.id).replace('%', '')) || 0,
+                  value: Math.round(engineRoasValue(engine.id) * 100),
                   color: propColor(engine.id),
                 }));
                 // Parallel colour array for the donut legends so each proposition
@@ -1378,11 +1370,15 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                 const totalBudgetNum = budgetVsSpendData.reduce((s, d) => s + d.budget, 0);
                 const spentPct = totalBudgetNum > 0 ? Math.round((totalSpendNum / totalBudgetNum) * 100) : 0;
 
+                // Until the plan delivers these are the forecast — say so.
+                const forecastBadge = !hasActuals && hasBudget ? { badgeValue: 'Forecast', badgeVariant: 'secondary' as const } : {};
+
                 const metricsForRow: MetricDefinition[] = [
                   {
                     key: 'impressions',
                     label: 'Impressions',
                     value: estReach,
+                    ...forecastBadge,
                     // Pie per engine, under the headline figure — the number says
                     // how much, the donut says where it came from.
                     variant: 'donut',
@@ -1402,7 +1398,8 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                   {
                     key: 'conversions',
                     label: 'Conversions',
-                    value: hasBudget ? fmtNumber(conversionsNum) : '—',
+                    value: showEstimates ? fmtNumber(conversionsNum) : '—',
+                    ...forecastBadge,
                     variant: 'donutLegend',
                     donutData: conversionsByEngine,
                     donutColors: propositionColors,
@@ -1427,17 +1424,18 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                     key: 'roas',
                     label: 'ROAS',
                     value: estRoas,
+                    ...forecastBadge,
                     // Weighted-average ROAS at the Media-plan level isn't quite right;
                     // the per-proposition breakdown lives in the expand-on-click panel.
                     variant: 'barHorizontal',
                     productData: roasByEngine,
-                    totalRow: { label: 'Media plan', value: estRoasNum },
+                    totalRow: { label: 'Media plan', value: estRoasNum * 100 },
                     valueFormatter: fmtRoas,
                     chart: <BarVerticalMini productData={roasByEngine} valueFormatter={fmtRoas} />,
                     expandedContent: (
                       <BarHorizontalDetail
                         productData={roasByEngine}
-                        totalRow={{ label: 'Media plan', value: estRoasNum }}
+                        totalRow={{ label: 'Media plan', value: estRoasNum * 100 }}
                         valueFormatter={fmtRoas}
                       />
                     ),
@@ -1529,7 +1527,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                             <div className="space-y-2">
                               <Label className="text-sm text-muted-foreground">Total budget</Label>
                               <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+                                <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
                                 <Input
                                   type="number"
                                   value={draft.budget}
@@ -1692,7 +1690,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                               )}
                             </div>
                             <div className={cn("relative flex-shrink-0", !engine.enabled && "opacity-50")} onClick={(e) => e.stopPropagation()}>
-                              <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                              <Euro className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                               <input
                                 type="number"
                                 value={budgetVal || ''}
@@ -2002,7 +2000,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           <div className="space-y-2">
                             <Label className="text-sm text-muted-foreground">Total budget</Label>
                             <div className="relative">
-                              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                               <input
                                 type="number"
                                 value={!isGuidedSettingsPhase ? (pendingBudget ?? totalBudgetInput) : totalBudgetInput}
@@ -2052,7 +2050,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
                           const runTime = dateRange?.from && dateRange?.to
                             ? `${dateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${dateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                             : '—';
-                          const budgetLabel = totalBudgetInput ? `$${Number(totalBudgetInput).toLocaleString()}` : (hasBudget ? budget : '—');
+                          const budgetLabel = totalBudgetInput ? `€${Number(totalBudgetInput).toLocaleString()}` : (hasBudget ? budget : '—');
                           const SummaryField = ({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) => (
                             <div className={cn('space-y-0.5', className)}>
                               <div className="text-sm text-muted-foreground">{label}</div>

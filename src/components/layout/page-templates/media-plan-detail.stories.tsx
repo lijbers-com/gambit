@@ -41,6 +41,8 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { retailMoments } from '@/lib/retail-moments';
 import { buildForecastMetrics } from '@/components/ui/forecast-metrics';
+import { engineYield } from '@/lib/forecast';
+import { EMPTY, breakdown, ratesOf, totalsFor } from '@/lib/db/performance';
 import { stageForGoal, funnelKpis } from '@/lib/funnel';
 import { MiniSelect } from '@/components/ui/delivery-settings';
 import { ControlBar, ControlBarItem } from '@/components/ui/control-bar';
@@ -344,50 +346,48 @@ export const MediaPlanDetail: Story = {
       .filter((c) => plan && c.mediaPlanId === plan.id)
       .map((c) => ({ campaign: c, bookings: db.bookings.filter((b) => b.campaignId === c.id) }));
 
-    const planSpend = planCampaignRows.reduce((s, r) => s + r.campaign.spend, 0);
+    // The plan's actuals — one call into the performance model, the same
+    // numbers the Insights tab, the campaign pages and the plan card read.
+    const planTotals = plan ? totalsFor(db, { mediaPlanId: plan.id }) : EMPTY;
+    const planSpend = planTotals.spend;
     const spentPct = plan && plan.budget > 0 ? Math.round((planSpend / plan.budget) * 100) : 0;
-    const fmtK = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${n}`);
+    const fmtK = (n: number) => (n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n)}`);
 
-    // Per-proposition rollup — the plan's campaigns grouped by engine. Every
-    // metric card below splits on this, so the breakdowns always add up to the
-    // headline figure.
+    // Per-proposition rollup — the plan's delivery split by engine. Every
+    // metric card below splits on this, so the breakdowns add up to the
+    // headline figure. The budget is the plan's allocation per proposition
+    // (the campaign budgets); everything delivered comes from the model.
+    const engineTotals = plan ? breakdown(db, { mediaPlanId: plan.id }, 'engine') : [];
     const byEngine = (() => {
-      const acc = new Map<EngineId, { budget: number; spend: number }>();
-      planCampaignRows.forEach(({ campaign: c }) => {
-        const cur = acc.get(c.engine) ?? { budget: 0, spend: 0 };
-        acc.set(c.engine, { budget: cur.budget + c.budget, spend: cur.spend + c.spend });
+      const budgets = new Map<EngineId, number>();
+      planCampaignRows.forEach(({ campaign: c }) => budgets.set(c.engine, (budgets.get(c.engine) ?? 0) + c.budget));
+      return [...budgets.entries()].map(([engine, budget]) => {
+        const totals = engineTotals.find((r) => r.id === engine)?.totals ?? EMPTY;
+        return {
+          engine,
+          name: propositionLabel(engine),
+          color: propositionColor(engine),
+          budget,
+          spend: totals.spend,
+          totals,
+        };
       });
-      return [...acc.entries()].map(([engine, v]) => ({
-        engine,
-        name: propositionLabel(engine),
-        color: propositionColor(engine),
-        ...v,
-      }));
     })();
 
-    // Impressions, conversions and ROAS are not in the prototype database yet,
-    // so they are derived from real spend with fixed factors. That keeps the
-    // breakdowns internally consistent and moving with the data, rather than
-    // being fixed strings that never change.
-    const IMPRESSIONS_PER_EURO = 120;
-    const CONVERSIONS_PER_EURO = 0.04;
-    const impressionsByEngine = byEngine.map((e) => ({ name: e.name, value: Math.round(e.spend * IMPRESSIONS_PER_EURO) }));
-    const conversionsByEngine = byEngine.map((e) => ({ name: e.name, value: Math.round(e.spend * CONVERSIONS_PER_EURO) }));
+    const impressionsByEngine = byEngine.map((e) => ({ name: e.name, value: Math.round(e.totals.impressions) }));
+    const conversionsByEngine = byEngine.map((e) => ({ name: e.name, value: Math.round(e.totals.conversions) }));
     const roasByEngine = byEngine.map((e) => ({
       name: e.name,
-      value: e.spend > 0 && e.budget > 0 ? Math.round((2.4 + (e.spend / e.budget) * 2.2) * 10) / 10 : 0,
+      value: Math.round(ratesOf(e.totals).roas * 100) / 100,
       color: e.color,
       engine: e.engine,
     }));
     const budgetVsSpend = byEngine.map((e) => ({ name: e.name, spent: e.spend, budget: e.budget, color: e.color, engine: e.engine }));
     const propositionColors = byEngine.map((e) => e.color);
 
-    const impressionsTotal = impressionsByEngine.reduce((s, e) => s + e.value, 0);
-    const conversionsTotal = conversionsByEngine.reduce((s, e) => s + e.value, 0);
-    const roasWeighted = planSpend > 0
-      ? Math.round((byEngine.reduce((s, e, i) => s + roasByEngine[i].value * e.spend, 0) / planSpend) * 10) / 10
-      : 0;
-
+    const impressionsTotal = Math.round(planTotals.impressions);
+    const conversionsTotal = Math.round(planTotals.conversions);
+    const roasWeighted = Math.round(ratesOf(planTotals).roas * 100) / 100;
 
     const fmtNumberCompact = (n: number) =>
       n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n));
@@ -416,6 +416,7 @@ export const MediaPlanDetail: Story = {
       // The control panel already states the budget, so the row leads with
       // what has actually been spent against it.
       spend: planSpend,
+      db,
     });
 
     // The same cards the media plan card shows, each expanding in place to its
@@ -531,9 +532,10 @@ export const MediaPlanDetail: Story = {
       const shares = allocateBudget({
         planBudget,
         campaigns: planCampaigns,
-        // Weight by what each proposition returns, using the same per-engine
-        // ROAS the metric row shows.
-        roasFor: (c) => roasByEngine.find((r) => r.name === propositionMeta[c.engine].label)?.value ?? 1,
+        // Weight by what each proposition returns: the per-engine ROAS the
+        // metric row shows, or — for a proposition that has not delivered
+        // yet — the forecast's ROAS for it (the same model applied to budget).
+        roasFor: (c) => roasByEngine.find((r) => r.engine === c.engine && r.value > 0)?.value || engineYield(c.engine, db).roas || 1,
       });
       Object.entries(shares).forEach(([id, budget]) => updateCampaign(id, { budget }));
     };
@@ -1552,7 +1554,7 @@ export const MediaPlanDetail: Story = {
               ...(inSetup ? [] : [{
                 label: 'Insights',
                 value: 'insights',
-                content: <InsightsTab engineType="all" scope="campaign" mediaPlanId={plan?.id} />,
+                content: <InsightsTab engineType="all" scope="campaign" mediaPlanId={plan?.id} performanceScope={plan ? { mediaPlanId: plan.id } : undefined} />,
               }]),
               // Billing, once something on the plan has been bought.
               ...(inSetup || !plan ? [] : [{

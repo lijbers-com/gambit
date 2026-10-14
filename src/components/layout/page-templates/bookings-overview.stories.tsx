@@ -7,7 +7,9 @@ import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { MetricRow } from '@/components/ui/metric-row';
-import { getPropositionMetrics, scaleMetricsToSelection } from '@/lib/proposition-metrics';
+import { propositionMetrics, fmtCount } from '@/lib/proposition-metrics';
+import { useDb, deriveMessages, workflowFor, type DbData, type EngineId } from '@/lib/db';
+import { bookingTotalsIn } from '@/lib/db/performance';
 import { Button } from '@/components/ui/button';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
 import { SessionAdvertiserSelect } from '@/components/ui/session-advertiser-select';
@@ -49,102 +51,76 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // Booking row shape. Engine is the proposition the booking belongs to —
-// each per-proposition story filters down by this field.
+// each per-proposition story filters down by this field. Every row is a
+// booking in the prototype database; spend and impressions are what the
+// performance model says it delivered (lib/db/performance.ts).
 type BookingRow = {
   id: string;
-  status: 'In review' | 'Live' | 'Paused' | 'Stopped' | 'Ready';
-  engine: 'sponsored-products' | 'display' | 'digital-instore' | 'offline-instore' | 'offsite';
+  status: string;
+  engine: EngineId;
   advertiser: string;
   campaign: string;
   campaignId: string;
+  mediaPlan: string;
   name: string;
   placement: string;
   start: string;
   end: string;
+  budget: number;
   spend: number;
   impressions: number;
-  aiRecommendation: 'Optimize Budget' | 'Increase Spend' | 'Pause' | 'Extend' | 'No action';
+  conversions: number;
+  sales: number;
+  /** Open notifications (recommendations, to-dos, health) on the booking. */
+  notifications: number;
   /** Offline in-store only: a physical booking is filtered by what it
    *  promotes, where it hangs, and whether the print is ready in time. */
   brand?: string;
   retailProduct?: string;
-  location?: string;
   readiness?: 'Ready' | 'Creative missing' | 'Awaiting approval';
   /** ISO date the print creative has to be in by. */
   creativeDeadline?: string;
 };
 
-// Shared dataset — covers every proposition with a realistic spread of
-// statuses, advertisers, and ai recommendations. Per-proposition stories
-// filter this by `engine`.
-const bookingData: BookingRow[] = [
-  // Sponsored products
-  { id: 'LI-101', status: 'Live',   engine: 'sponsored-products', advertiser: 'Acme Media',  campaign: 'Holiday Top Picks',     campaignId: 'C-001', name: 'Homepage hero',     placement: 'Search results top',  start: '2026-06-01', end: '2026-06-30', spend: 4200,  impressions: 240000,  aiRecommendation: 'Optimize Budget' },
-  { id: 'LI-102', status: 'Ready',     engine: 'sponsored-products', advertiser: 'BrandX',      campaign: 'Summer Featured',       campaignId: 'C-002', name: 'Category leaderboard', placement: 'Category page top', start: '2026-07-01', end: '2026-07-31', spend: 0,     impressions: 0,       aiRecommendation: 'Increase Spend' },
-  { id: 'LI-103', status: 'In review', engine: 'sponsored-products', advertiser: 'MediaWorks',  campaign: 'Back to School Promos', campaignId: 'C-003', name: 'Aisle endcaps',     placement: 'Product detail',      start: '2026-08-10', end: '2026-09-10', spend: 0,     impressions: 0,       aiRecommendation: 'No action' },
-  { id: 'LI-104', status: 'Paused',    engine: 'sponsored-products', advertiser: 'AdPartners',  campaign: 'BF Deal Listings',      campaignId: 'C-004', name: 'BF deals row',      placement: 'Homepage rail',       start: '2026-11-01', end: '2026-11-30', spend: 6800,  impressions: 380000,  aiRecommendation: 'Extend' },
+// Store statuses in the table's vocabulary — the same words the campaign
+// overview uses.
+const statusLabel: Record<string, string> = {
+  running: 'Live',
+  'in-option': 'In review',
+  draft: 'Draft',
+  paused: 'Paused',
+  completed: 'Completed',
+};
 
-  // Display
-  { id: 'LI-201', status: 'Live',   engine: 'display',            advertiser: 'Acme Media',  campaign: 'Holiday Banners',       campaignId: 'C-001', name: 'Homepage takeover', placement: 'Homepage top',        start: '2026-06-01', end: '2026-06-30', spend: 5400,  impressions: 720000,  aiRecommendation: 'Optimize Budget' },
-  { id: 'LI-202', status: 'Live',   engine: 'display',            advertiser: 'BrandX',      campaign: 'Summer Banners',        campaignId: 'C-002', name: 'Category banner',   placement: 'Category page',       start: '2026-07-01', end: '2026-07-31', spend: 2100,  impressions: 290000,  aiRecommendation: 'Increase Spend' },
-  { id: 'LI-203', status: 'Paused',    engine: 'display',            advertiser: 'AdPartners',  campaign: 'BF Homepage Takeover',  campaignId: 'C-004', name: 'BF homepage',       placement: 'Homepage hero',       start: '2026-11-01', end: '2026-11-30', spend: 7600,  impressions: 980000,  aiRecommendation: 'Extend' },
-  { id: 'LI-204', status: 'Ready',     engine: 'display',            advertiser: 'BrandX',      campaign: 'NY Retargeting Banners',campaignId: 'C-005', name: 'NY retargeting',    placement: 'Run of site',         start: '2026-01-01', end: '2026-01-31', spend: 700,   impressions: 110000,  aiRecommendation: 'No action' },
-
-  // Digital in-store
-  { id: 'LI-301', status: 'Live',   engine: 'digital-instore',    advertiser: 'Acme Media',  campaign: 'Holiday Screens',       campaignId: 'C-001', name: 'XL store loop',     placement: 'Aisle screens',       start: '2026-06-01', end: '2026-06-30', spend: 1200,  impressions: 84000,   aiRecommendation: 'No action' },
-  { id: 'LI-302', status: 'Ready',     engine: 'digital-instore',    advertiser: 'BrandX',      campaign: 'Summer Kiosks',         campaignId: 'C-002', name: 'Entry kiosks',      placement: 'Front of store',      start: '2026-07-01', end: '2026-07-31', spend: 625,   impressions: 41000,   aiRecommendation: 'Increase Spend' },
-  { id: 'LI-303', status: 'Paused',    engine: 'digital-instore',    advertiser: 'AdPartners',  campaign: 'BF Store Screens',      campaignId: 'C-004', name: 'BF aisle loop',     placement: 'Aisle endcaps',       start: '2026-11-01', end: '2026-11-30', spend: 4800,  impressions: 280000,  aiRecommendation: 'Pause' },
-
-  // Offline in-store
-  { id: 'LI-401', status: 'Live',   engine: 'offline-instore',    advertiser: 'Acme Media',  campaign: 'Holiday POS',           campaignId: 'C-001', name: 'Shelf talkers',     placement: 'Shelf strips',        start: '2026-06-01', end: '2026-06-30', spend: 380,   impressions: 12000,   aiRecommendation: 'Optimize Budget', brand: 'Dove',   retailProduct: 'Dove Body Wash 250ml',  location: 'Amsterdam Centrum',  readiness: 'Ready',             creativeDeadline: '2026-05-20' },
-  { id: 'LI-402', status: 'In review', engine: 'offline-instore',    advertiser: 'BrandX',      campaign: 'Summer POS',            campaignId: 'C-002', name: 'Floor decals',      placement: 'Aisle floor',         start: '2026-07-01', end: '2026-07-31', spend: 0,     impressions: 0,       aiRecommendation: 'No action',       brand: 'Knorr',  retailProduct: 'Knorr Stock Cubes',     location: 'Rotterdam Zuid',     readiness: 'Creative missing',  creativeDeadline: '2026-06-19' },
-  { id: 'LI-403', status: 'Paused',    engine: 'offline-instore',    advertiser: 'AdPartners',  campaign: 'BF Shelf Talkers',      campaignId: 'C-004', name: 'BF shelf strips',   placement: 'Shelf strips',        start: '2026-11-01', end: '2026-11-30', spend: 3850, impressions: 96000,    aiRecommendation: 'Extend',          brand: 'Lipton', retailProduct: 'Lipton Ice Tea 1.5L',   location: 'Utrecht Overvecht',  readiness: 'Awaiting approval', creativeDeadline: '2026-10-16' },
-
-  // Offsite
-  { id: 'LI-501', status: 'Live',   engine: 'offsite',            advertiser: 'Acme Media',  campaign: 'Holiday Open Web',      campaignId: 'C-001', name: 'Open web banners',  placement: 'Programmatic',        start: '2026-06-01', end: '2026-06-30', spend: 150,   impressions: 380000,  aiRecommendation: 'Increase Spend' },
-  { id: 'LI-502', status: 'Stopped',   engine: 'offsite',            advertiser: 'AdPartners',  campaign: 'BF Open Web',           campaignId: 'C-004', name: 'BF retargeting',    placement: 'Programmatic',        start: '2026-11-01', end: '2026-11-30', spend: 1240,  impressions: 1100000, aiRecommendation: 'Pause' },
-];
-
-const statusVariant = (status: BookingRow['status']) => {
+const statusVariant = (status: string) => {
   switch (status) {
-    case 'Live':   return 'success';
-    case 'Ready':     return 'info';
+    case 'Live':      return 'success';
+    case 'Completed': return 'secondary';
     case 'In review': return 'outline';
+    case 'Draft':     return 'outline';
     case 'Paused':    return 'warning';
-    case 'Stopped':   return 'destructive';
     default:          return 'outline';
   }
 };
 
-const aiVariant = (rec: BookingRow['aiRecommendation']) => {
-  switch (rec) {
-    case 'Optimize Budget': return 'secondary';
-    case 'Increase Spend':  return 'success';
-    case 'Pause':           return 'warning';
-    case 'Extend':          return 'info';
-    case 'No action':       return 'outline';
-    default:                return 'outline';
-  }
+const readinessOf: Record<string, BookingRow['readiness']> = {
+  approved: 'Ready',
+  submitted: 'Awaiting approval',
+  missing: 'Creative missing',
 };
-
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
 
 const formatCurrency = (n: number) =>
-  `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `€${n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const formatImpressions = (n: number) => {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(0)}K`;
-  return n.toLocaleString('en-US');
-};
+const formatImpressions = (n: number) => fmtCount(n);
+
+const slug = (s: string) => s.toLowerCase().replace(/ /g, '-');
 
 // Map an `engineType` string used everywhere on the campaign overview
 // (e.g. 'display', 'sponsored products', 'digital in-store') to the
-// canonical BookingRow.engine value.
-const normalizeEngine = (engineType: string): BookingRow['engine'] | 'all' => {
+// canonical engine id.
+const normalizeEngine = (engineType: string): EngineId | 'all' => {
   const e = engineType.toLowerCase().replace(/\s+/g, '-').replace(/in[-\s]?store/g, 'instore');
-  if (e === 'all') return 'all';
   if (e === 'sponsored-products') return 'sponsored-products';
   if (e === 'display') return 'display';
   if (e === 'digital-instore') return 'digital-instore';
@@ -152,6 +128,65 @@ const normalizeEngine = (engineType: string): BookingRow['engine'] | 'all' => {
   if (e === 'offsite') return 'offsite';
   return 'all';
 };
+
+/** The day a booking's creative is due: the engine workflow's creative step
+ *  (OMI: X-4) counted back from the flight start. */
+function creativeDeadlineOf(db: DbData, engine: EngineId, startDate: string): string | undefined {
+  const steps = workflowFor(db, engine)?.steps ?? [];
+  const step = steps.find((st) => st.setup === 'link-creatives' && st.dueDaysBeforeStart)
+    ?? steps.find((st) => /creative/i.test(st.name) && st.dueDaysBeforeStart);
+  if (!step?.dueDaysBeforeStart) return undefined;
+  const d = new Date(`${startDate}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - step.dueDaysBeforeStart);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Every booking of a proposition (or all), as table rows. Delivery is the
+ *  performance model's, inside the session's date range when one is set —
+ *  so the table's totals row and the metric cards above it agree. */
+function bookingRows(db: DbData, engine: EngineId | 'all', from?: string, to?: string): BookingRow[] {
+  const notes = new Map<string, number>();
+  deriveMessages(db, engine === 'all' ? {} : { engine })
+    .filter((m) => m.level === 'booking')
+    .forEach((m) => notes.set(m.entityId, (notes.get(m.entityId) ?? 0) + 1));
+  return db.bookings.flatMap((b): BookingRow[] => {
+    const c = db.campaigns.find((x) => x.id === b.campaignId);
+    if (!c || (engine !== 'all' && c.engine !== engine)) return [];
+    const plan = db.mediaPlans.find((p) => p.id === c.mediaPlanId);
+    const advertiser = db.advertisers.find((a) => a.id === plan?.advertiserId);
+    const brands = (plan?.brandIds ?? []).map((id) => advertiser?.brands.find((br) => br.id === id)?.name).filter((n): n is string => !!n);
+    const products = (c.retailProductIds ?? []).map((id) => db.retailProducts.find((r) => r.id === id)?.name).filter((n): n is string => !!n);
+    const positions = b.positionIds.map((id) => db.positions.find((p) => p.id === id)).filter((p): p is NonNullable<typeof p> => !!p);
+    const placements = [...new Set(positions.map((p) => db.placements.find((pl) => pl.id === p.placementId)?.name ?? p.name))];
+    const t = bookingTotalsIn(db, b, from, to);
+    return [{
+      id: b.id,
+      status: statusLabel[b.status] ?? b.status,
+      engine: c.engine,
+      advertiser: advertiser?.name ?? '',
+      campaign: c.name,
+      campaignId: c.id,
+      mediaPlan: plan?.name ?? '',
+      name: b.name,
+      placement: placements.join(', ') || '—',
+      start: b.startDate,
+      end: b.endDate,
+      budget: b.budget,
+      spend: t.spend,
+      impressions: t.impressions,
+      conversions: t.conversions,
+      sales: t.sales,
+      notifications: notes.get(b.id) ?? 0,
+      brand: brands[0],
+      retailProduct: products[0],
+      readiness: readinessOf[b.creativeStatus],
+      creativeDeadline: creativeDeadlineOf(db, c.engine, b.startDate),
+    }];
+  });
+}
+
+const optionsOf = (values: (string | undefined)[], value: (v: string) => string = (v) => v) =>
+  [...new Set(values.filter((v): v is string => !!v))].sort().map((v) => ({ label: v, value: value(v) }));
 
 const createBookingsOverviewStory = (engineType: string, engineTitle: string) => ({
   render: () => {
@@ -161,7 +196,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
 
     const [status, setStatus] = React.useState<string[]>([]);
     const [advertiser, setAdvertiser] = React.useState<string[]>([]);
-    const [aiRec, setAiRec] = React.useState<string[]>([]);
+    const [notified, setNotified] = React.useState<string[]>([]);
     const [headerAdvertiser, setHeaderAdvertiser] = React.useState<string>('coca-cola');
     const [activeTab, setActiveTab] = React.useState<string>('bookings');
     const [search, setSearch] = React.useState<string>('');
@@ -169,7 +204,6 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
     // where it hangs, and whether the print is ready in time.
     const [brand, setBrand] = React.useState<string[]>([]);
     const [retailProduct, setRetailProduct] = React.useState<string[]>([]);
-    const [location, setLocation] = React.useState<string[]>([]);
     const [placement, setPlacement] = React.useState<string[]>([]);
     const [creativeDeadline, setCreativeDeadline] = React.useState<string>('');
     const [readiness, setReadiness] = React.useState<string[]>([]);
@@ -177,14 +211,16 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
     // Same session-wide range the campaign overview uses, so the window a user
     // set there is still applied here (see lib/session-filters).
     const sessionFilters = useSessionFilters();
+    const db = useDb();
 
     const normalizedEngine = normalizeEngine(engineType);
-    const filteredBookingData = bookingData.filter((row) => {
-      const engineMatch = normalizedEngine === 'all' || row.engine === normalizedEngine;
-      const dateMatch = withinSessionRange(sessionFilters, row.start, row.end);
-      const statusMatch = status.length === 0 || status.includes(row.status.toLowerCase().replace(/ /g, '-'));
-      const advertiserMatch = advertiser.length === 0 || advertiser.includes(row.advertiser.toLowerCase().replace(/ /g, '-'));
-      const aiMatch = aiRec.length === 0 || aiRec.includes(row.aiRecommendation.toLowerCase().replace(/ /g, '-'));
+    // The proposition's bookings in the session's window.
+    const engineRows = bookingRows(db, normalizedEngine, sessionFilters.dateFrom, sessionFilters.dateTo)
+      .filter((row) => withinSessionRange(sessionFilters, row.start, row.end));
+    const filteredBookingData = engineRows.filter((row) => {
+      const statusMatch = status.length === 0 || status.includes(slug(row.status));
+      const advertiserMatch = advertiser.length === 0 || advertiser.includes(slug(row.advertiser));
+      const notifiedMatch = notified.length === 0 || notified.includes(row.notifications > 0 ? 'open' : 'none');
       const searchMatch =
         search.length === 0 ||
         row.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -192,30 +228,24 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
         row.campaign.toLowerCase().includes(search.toLowerCase());
       const brandMatch = brand.length === 0 || (!!row.brand && brand.includes(row.brand));
       const productMatch = retailProduct.length === 0 || (!!row.retailProduct && retailProduct.includes(row.retailProduct));
-      const locationMatch = location.length === 0 || (!!row.location && location.includes(row.location));
-      const placementMatch = placement.length === 0 || placement.includes(row.placement);
+      const placementMatch = placement.length === 0 || placement.some((p) => row.placement.split(', ').includes(p));
       const readinessMatch = readiness.length === 0 || (!!row.readiness && readiness.includes(row.readiness));
       // A deadline filter keeps what has to be in by that day.
       const deadlineMatch = creativeDeadline.length === 0 || (!!row.creativeDeadline && row.creativeDeadline <= creativeDeadline);
-      return engineMatch && dateMatch && statusMatch && advertiserMatch && aiMatch && searchMatch
-        && brandMatch && productMatch && locationMatch && placementMatch && readinessMatch && deadlineMatch;
+      return statusMatch && advertiserMatch && notifiedMatch && searchMatch
+        && brandMatch && productMatch && placementMatch && readinessMatch && deadlineMatch;
     });
 
-    // What the filters left in view, against the whole proposition.
-    const engineRows = bookingData.filter((row) => normalizedEngine === 'all' || row.engine === normalizedEngine);
-    const engineSpend = engineRows.reduce((sum, row) => sum + row.spend, 0);
     // The cards follow the table only while the table is in front of the
     // user: on any other tab they fall back to the proposition's totals, and
     // pick the filtered numbers back up when the bookings tab returns.
     const tableFiltersActive =
-      status.length > 0 || advertiser.length > 0 || aiRec.length > 0 || search.length > 0 ||
-      brand.length > 0 || retailProduct.length > 0 || location.length > 0 || placement.length > 0 ||
+      status.length > 0 || advertiser.length > 0 || notified.length > 0 || search.length > 0 ||
+      brand.length > 0 || retailProduct.length > 0 || placement.length > 0 ||
       readiness.length > 0 || creativeDeadline.length > 0;
     const followTable = activeTab === 'bookings' && tableFiltersActive;
-    const scopedRows = followTable ? filteredBookingData : engineRows;
-    const visibleSpend = scopedRows.reduce((sum, row) => sum + row.spend, 0);
-    const visibleBudget = Math.max(visibleSpend, Math.round(visibleSpend * 1.35));
     const metricRowId = `bookings:${engineType}`;
+    const bookingHref = (row: BookingRow) => `/campaigns/${row.engine}/booking/${row.id}`;
 
     return (
       <MenuContextProvider>
@@ -244,10 +274,10 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
           <div className="space-y-section">
             <MetricRow
               // Same rule as the campaign overview: the cards follow the rows.
-              metrics={scaleMetricsToSelection(getPropositionMetrics(engineType, 'overview'), {
-                spend: visibleSpend,
-                budget: visibleBudget,
-                share: engineSpend > 0 ? visibleSpend / engineSpend : 1,
+              metrics={propositionMetrics(db, engineType, {
+                ...(followTable ? { bookingIds: filteredBookingData.map((row) => row.id) } : {}),
+                from: sessionFilters.dateFrom,
+                to: sessionFilters.dateTo,
               })}
               filterNote={followTable ? `Filtered · ${filteredBookingData.length} of ${engineRows.length} bookings` : undefined}
               selectedKeys={sessionFilters.metricKeys?.[metricRowId]}
@@ -269,38 +299,24 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                         filters={[
                           {
                             name: 'Status',
-                            options: [
-                              { label: 'Live',   value: 'running' },
-                              { label: 'Ready',     value: 'ready' },
-                              { label: 'In review', value: 'in-option' },
-                              { label: 'Paused',    value: 'paused' },
-                              { label: 'Stopped',   value: 'stopped' },
-                            ],
+                            options: optionsOf(engineRows.map((r) => r.status), slug),
                             selectedValues: status,
                             onChange: setStatus,
                           },
                           {
                             name: 'Advertiser',
-                            options: [
-                              { label: 'Acme Media', value: 'acme-media' },
-                              { label: 'BrandX',     value: 'brandx' },
-                              { label: 'MediaWorks', value: 'mediaworks' },
-                              { label: 'AdPartners', value: 'adpartners' },
-                            ],
+                            options: optionsOf(engineRows.map((r) => r.advertiser), slug),
                             selectedValues: advertiser,
                             onChange: setAdvertiser,
                           },
                           {
-                            name: 'AI Recommendation',
+                            name: 'Notifications',
                             options: [
-                              { label: 'Optimize Budget', value: 'optimize-budget' },
-                              { label: 'Increase Spend',  value: 'increase-spend' },
-                              { label: 'Pause',           value: 'pause' },
-                              { label: 'Extend',          value: 'extend' },
-                              { label: 'No action',       value: 'no-action' },
+                              { label: 'Open notifications', value: 'open' },
+                              { label: 'None', value: 'none' },
                             ],
-                            selectedValues: aiRec,
-                            onChange: setAiRec,
+                            selectedValues: notified,
+                            onChange: setNotified,
                           },
                           // Offline in-store is the one proposition where a
                           // booking is a physical thing: it promotes a product
@@ -310,45 +326,19 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                             ? [
                                 {
                                   name: 'Brand',
-                                  options: [
-                                    { label: 'Dove', value: 'Dove' },
-                                    { label: 'Knorr', value: 'Knorr' },
-                                    { label: 'Lipton', value: 'Lipton' },
-                                    { label: 'Magnum', value: 'Magnum' },
-                                  ],
+                                  options: optionsOf(engineRows.map((r) => r.brand)),
                                   selectedValues: brand,
                                   onChange: setBrand,
                                 },
                                 {
                                   name: 'Retail product',
-                                  options: [
-                                    { label: 'Dove Body Wash 250ml', value: 'Dove Body Wash 250ml' },
-                                    { label: 'Knorr Stock Cubes', value: 'Knorr Stock Cubes' },
-                                    { label: 'Lipton Ice Tea 1.5L', value: 'Lipton Ice Tea 1.5L' },
-                                    { label: 'Magnum Classic 4-pack', value: 'Magnum Classic 4-pack' },
-                                  ],
+                                  options: optionsOf(engineRows.map((r) => r.retailProduct)),
                                   selectedValues: retailProduct,
                                   onChange: setRetailProduct,
                                 },
                                 {
-                                  name: 'Location',
-                                  options: [
-                                    { label: 'Amsterdam Centrum', value: 'Amsterdam Centrum' },
-                                    { label: 'Rotterdam Zuid', value: 'Rotterdam Zuid' },
-                                    { label: 'Utrecht Overvecht', value: 'Utrecht Overvecht' },
-                                    { label: 'Eindhoven Woensel', value: 'Eindhoven Woensel' },
-                                  ],
-                                  selectedValues: location,
-                                  onChange: setLocation,
-                                },
-                                {
                                   name: 'Placement',
-                                  options: [
-                                    { label: 'Shelf strips', value: 'Shelf strips' },
-                                    { label: 'Aisle floor', value: 'Aisle floor' },
-                                    { label: 'End cap', value: 'End cap' },
-                                    { label: 'Checkout', value: 'Checkout' },
-                                  ],
+                                  options: optionsOf(engineRows.flatMap((r) => r.placement.split(', ')).filter((p) => p !== '—')),
                                   selectedValues: placement,
                                   onChange: setPlacement,
                                 },
@@ -387,7 +377,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                           { key: 'id', header: 'ID' },
                           { key: 'status', header: 'Status', render: (row: BookingRow) => <Badge variant={statusVariant(row.status)}>{row.status}</Badge> },
                           { key: 'placement', header: 'Placement' },
-                          { key: 'aiRecommendation', header: 'Notifications', render: (row: BookingRow) => <Badge variant={aiVariant(row.aiRecommendation)}>{row.aiRecommendation}</Badge> },
+                          { key: 'notifications', header: 'Notifications', render: (row: BookingRow) => row.notifications > 0 ? <Badge variant="warning">{row.notifications} open</Badge> : <Badge variant="outline">None</Badge> },
                           { key: 'runtime', header: 'Run time', render: row => `${new Date(row.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} – ${new Date(row.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` },
                           { key: 'advertiser', header: 'Advertiser' },
                           { key: 'campaign', header: 'Campaign' },
@@ -396,7 +386,8 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                         ]}
                         data={filteredBookingData}
                         rowKey={(row: BookingRow) => row.id}
-                        onRowClick={(row: BookingRow) => console.log(`Navigating to booking: ${row.name} (${row.id})`)}
+                        // A booking opens its detail page in its proposition's section.
+                        onRowClick={(row: BookingRow) => { if (typeof window !== 'undefined') window.location.href = bookingHref(row); }}
                       />
                     </div>
                   ),

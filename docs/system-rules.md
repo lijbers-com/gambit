@@ -61,7 +61,9 @@ Data            src/lib/db (store + seed)    what is true     prototype-data-sch
    times) stay real time.
 8. **The seed is the world.** If a page looks empty, the seed has nothing
    there. Add bookings to the seed rather than faking the cells. Bump
-   `SEED_VERSION` when the seed changes.
+   `SEED_VERSION` when the seed changes. A campaign's spend is its
+   bookings' spend and a plan's budget holds its campaigns' (derived in the
+   seed); no flight is still running after its end date.
 
 ## The rules, per domain
 
@@ -75,15 +77,16 @@ Data            src/lib/db (store + seed)    what is true     prototype-data-sch
 | **Inbox** | Four kinds: Health · To do · Recommendation · Insight. Every message is derived and has no timestamp. Only read/done state is stored, per user. | `db/messages.ts`, `db/inbox-state.ts` | `inbox`, `notification-center` |
 | **Health** | Health reports concerns only; "nothing found" is not "healthy". Indicators have one of two severities (needs attention, at risk) and are detected per level, then rolled up. The score comes from the checks, blockers cap it, and every score shows its reason. Thresholds are configuration. | `db/health.ts` | — |
 | **Recommendations** | A recommendation is a template: a pure function from measured numbers to a proposal. It always has exactly two answers, accept or decline, and accept names the change it makes. Notifications only deliver it. | `lib/recommendations.ts`, `lib/case-templates.ts` | `recommendation-engine` |
-| **Media products & positions** | A proposition owns media products, and a product groups positions (optionally in placements). Positions are the smallest bookable unit, each with its capacity (store count for in-store). | `db/types.ts`, configuration pages | `media-products-pricing-engine` |
+| **Media products, placements & positions** | One hierarchy on every proposition, filled from Albert Heijn Retail Media Services' offering: **media product** (a line on the rate card: Homepage, Bonus, Sponsored Products, In-store screens, In-store POS, YouTube…) → **placement** (where it runs: a page, a store area or shelf type, a partner) → **position** (the bookable slot, with its capacity — store count in store, loop slots on screens). Every position sits in a placement of its own product. A position inherits its product's rate card unless the retailer prices it apart (app homepage €23 vs web €18). | `db/types.ts`, `db/seed.ts`, `/media-products` | `decision-one-hierarchy-ah-offering`, `media-products-pricing-engine` |
 | **Inventory** | Capacity is per position per ISO week, in the goal unit: stores (offline), clicks (sponsored products) or impressions (everything else). Each non-draft booking takes its volume (its goal, else budget at list price) over its run time. Booked, confirmed and reserved follow the booking's state. Fill rate, available stores, available time, impressions, revenue and booking counts all come from these same bookings. The calendars, the availability check, demand pricing and the media product page all read this one model. | `db/inventory.ts` | `decision-one-inventory-model`, `calendar-table` |
+| **Performance** | What bookings delivered — impressions, clicks, conversions, sales, reach, plays, store-weeks — follows from each booking's spend up to today at its positions' price, through ONE table of delivery rates per proposition (`DELIVERY_RATES`, with `BENCHMARKS` as targets). Every roll-up (booking, campaign, plan, proposition, advertiser, brand, retail product, media product, placement, position, day/week/month) is the sum of its bookings, so a plan's ROAS, its campaigns' and the insights dashboard agree. Metric cards, the Insights tab, campaign booking tables, dashboards and reports all read it; a card compares with the period before or the proposition's benchmark. Share of voice and available time come from the inventory model. | `db/performance.ts`, `lib/proposition-metrics.ts`, `lib/booking-rows.ts` | `decision-one-performance-model` |
 | **Pricing** | A price is the list price multiplied by every active rule that matches (scope, dates, conditions), in priority order. The build-up is shown with the number. The retailer manages indexes, not prices. Demand rules read fill rate from the inventory model. | `db/pricing.ts` | `media-products-pricing-engine` |
 | **Holds** | A booking in review holds units on a position at the price that stood when it was booked. The hold expires after the product's hold days (on the clock), is confirmed on approval and is released on cancel. | `db/pricing.ts` (`holdsFor`), `db/store.ts` | `media-products-pricing-engine` |
 | **Guaranteed bookings** | A guaranteed booking has a goal (in the proposition's unit), delivery against it, and a price that moves from indicative to quoted to agreed and then never moves again. The availability check reads the inventory model. | `db/guaranteed.ts` | — |
 | **Billing** | Edge owns what is billable; the billing service owns invoices. A completed booking is billable at its agreed price (guaranteed) or its spend (auction). Under-delivery is invoiced as delivered, with the shortfall as a credit beside the agreed price. | `db/billing.ts`, `lib/billing-service.ts` | — |
 | **Goals, objectives & KPIs** | One funnel measurement framework. The wizard picks from it, and the plan page reads the same maps back. Stored ids stay Dutch; the labels are English. | `lib/funnel.ts`, `lib/objective-kpi-copy.ts` | `decision-kpi-funnel-framework` |
 | **Metrics** | The per-proposition metric registry is the agreed metric set. Metric rows render from it, and card keys are identical at overview, campaign and booking scope. | `db` `metricDefinitions`, `lib/proposition-metrics.ts` | `prototype-data-schema` |
-| **Forecast** | One forecast model for the wizard and the plan page, shown as a ±8% band, never a point. | `lib/forecast.ts` | — |
+| **Forecast** | One forecast model for the wizard and the plan page — the performance model's rates applied to budget instead of spend — shown as a ±8% band, never a point. | `lib/forecast.ts` | `decision-one-performance-model` |
 | **Budget allocation** | Money follows return: each campaign's share is proportional to spend × ROAS. Campaigns that have not delivered yet get an even share. | `lib/budget-allocation.ts` | `auto-pacing` |
 | **Retail products** | Products sit under brands, and brands under organisations. Pickers narrow to the brands or advertiser in play, matched by name. | `db/retail-products.ts` | — |
 | **Creatives** | A booking links an existing creative from the advertiser's library and never invents one. Formats are per proposition. Approval runs in the engine. | `lib/creatives.ts` | `creative-portal` |
@@ -111,8 +114,13 @@ Data            src/lib/db (store + seed)    what is true     prototype-data-sch
 - `verify-db` still expects five to-dos from the old rule list (before the
   workflow boards). The expectations need updating to the workflow-driven
   to-dos.
-- Many template mocks (dashboard and insight charts, the yield overview)
-  still generate their own numbers instead of reading the store.
+- Delivery rates and benchmarks are prototype calibrations until the ad
+  server and loyalty-card attribution report; keywords are not stored on
+  a booking yet.
+- AH sells bundles (VSB + wobbler, Bereik Booster) that span positions;
+  the model has one product per position, so bundles are not modelled yet.
+- Some un-routed stories and the booking pages' own detail tables (keyword
+  lists, creative previews) still carry illustrative data.
 - Store-type shares and unit conversions in the inventory model are demo
   calibrations until the ad server and store master data supply them.
 - The publisher picker in the calendar header is not wired.

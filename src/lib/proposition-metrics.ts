@@ -1,305 +1,181 @@
+import * as React from 'react';
 import type { MetricDefinition } from '@/components/ui/metric-row';
+import { useDb } from '@/lib/db/hooks';
+import type { DbData, EngineId } from '@/lib/db/types';
+import {
+  BENCHMARKS,
+  activeWindow,
+  availableTime,
+  liveStores,
+  previousPeriod,
+  ratesOf,
+  seriesFor,
+  shareOfVoice,
+  totalsFor,
+  type PerformanceScope,
+  type Rates,
+  type Totals,
+} from '@/lib/db/performance';
 
 /**
- * Per-proposition metric cards shared across three navigation scopes:
+ * The metric cards of a proposition — the same keys and labels at every
+ * level (overview, campaign, booking) so a user drilling in sees the same
+ * row, with the values of what is in view.
  *
- *  - `overview` — the channel's campaign-overview page
- *    (e.g. /campaigns/display), aggregating every campaign in the
- *    proposition.
- *  - `campaign` — a single campaign detail page
- *    (e.g. /campaigns/display/C-001), scoped to one campaign within
- *    that proposition.
- *  - `booking` — a single booking / line-item page
- *    (e.g. /campaigns/display/booking/LI-001), scoped to one booking
- *    within that campaign.
- *
- * The KEYS and LABELS are identical across all three scopes so the user
- * always sees the same row of cards regardless of where they drill in.
- * Only the VALUES change: absolute counts (Spend, Impressions, Reach,
- * Sales, Stores …) scale down as the scope narrows; rates (CTR, ROAS,
- * Frequency, Viewability, Available time, SOV) stay roughly constant
- * because they don't depend on volume.
- *
- * The numbers are illustrative — production binds them to the
- * advertiser × media-plan × date-range scope.
+ * Every value comes from the performance model (lib/db/performance.ts): the
+ * sum of the bookings in scope, up to the prototype's today. A card compares
+ * with the period before when the scope has dates, else with the
+ * proposition's benchmark. Nothing here is a fixed figure.
  */
 
-export type PropositionScope = 'overview' | 'campaign' | 'booking';
+/** Engine type strings used at the call sites. Both "digital-instore" and
+ *  "digital in-store" are accepted; anything unknown reads as all. */
+export type EngineType = EngineId | 'all' | string;
 
-/** Engine type strings used at the call sites. We accept both the
- *  hyphenated form ("digital-instore") and the spaced form
- *  ("digital in-store") so callers don't have to normalise. */
-export type EngineType =
-  | 'all'
-  | 'sponsored products'
-  | 'sponsored-products'
-  | 'display'
-  | 'digital in-store'
-  | 'digital-instore'
-  | 'digital instore'
-  | 'offline instore'
-  | 'offline-instore'
-  | 'offsite'
-  | string;
-
-const normaliseEngine = (e: string): string =>
-  e
-    .toLowerCase()
-    // Collapse "in store" / "in-store" → "instore" so both the spaced
-    // ("digital in-store") and hyphenated ("digital-instore") forms map
-    // to the same definition key.
-    .replace(/in[-\s]?store/g, 'instore')
-    .replace(/[\s_]+/g, '-');
-
-/**
- * Per-channel × scope card definitions. Same label/key list per channel
- * so a user moving overview → campaign → booking sees the same row of
- * cards with scoped values, not a different set.
- */
-const definitions: Record<string, Record<PropositionScope, MetricDefinition[]>> = {
-  // ── Sponsored Products ────────────────────────────────────────────
-  'sponsored-products': {
-    overview: [
-      { key: 'spend',       label: 'Spend',       value: '$42.8K', subMetric: 'of $60K budget',   badgeValue: '71%',  badgeVariant: 'secondary' },
-      { key: 'roas',        label: 'ROAS',        value: '460%',   subMetric: 'vs. 350% target',  badgeValue: '+31%', badgeVariant: 'success'   },
-      { key: 'sales',       label: 'Sales',       value: '$197K',  subMetric: 'attributed',       badgeValue: '+18%', badgeVariant: 'success'   },
-      { key: 'clicks',      label: 'Clicks',      value: '128K',   subMetric: 'last 30d',         badgeValue: '+9%',  badgeVariant: 'success'   },
-      { key: 'conversions', label: 'Conversions', value: '6.4K',   subMetric: '5.0% CVR',         badgeValue: '+12%', badgeVariant: 'success'   },
-      { key: 'ctr',         label: 'CTR',         value: '2.34%',  subMetric: 'vs. 2.1% target',  badgeValue: '+11%', badgeVariant: 'success'   },
-      { key: 'cpc',         label: 'CPC',         value: '$0.33',  subMetric: 'vs. $0.40 target', badgeValue: '-17%', badgeVariant: 'success'   },
-    ],
-    campaign: [
-      { key: 'spend',       label: 'Spend',       value: '$9.5K',  subMetric: 'of $14K budget',   badgeValue: '68%',  badgeVariant: 'secondary' },
-      { key: 'roas',        label: 'ROAS',        value: '440%',   subMetric: 'vs. 350% target',  badgeValue: '+26%', badgeVariant: 'success'   },
-      { key: 'sales',       label: 'Sales',       value: '$42K',   subMetric: 'attributed',       badgeValue: '+14%', badgeVariant: 'success'   },
-      { key: 'clicks',      label: 'Clicks',      value: '28K',    subMetric: 'last 30d',         badgeValue: '+7%',  badgeVariant: 'success'   },
-      { key: 'conversions', label: 'Conversions', value: '1.4K',   subMetric: '5.0% CVR',         badgeValue: '+10%', badgeVariant: 'success'   },
-      { key: 'ctr',         label: 'CTR',         value: '2.20%',  subMetric: 'vs. 2.1% target',  badgeValue: '+5%',  badgeVariant: 'success'   },
-      { key: 'cpc',         label: 'CPC',         value: '$0.34',  subMetric: 'vs. $0.40 target', badgeValue: '-15%', badgeVariant: 'success'   },
-    ],
-    booking: [
-      { key: 'spend',       label: 'Spend',       value: '$2.1K',  subMetric: 'of $3.2K budget',  badgeValue: '66%',  badgeVariant: 'secondary' },
-      { key: 'roas',        label: 'ROAS',        value: '420%',   subMetric: 'vs. 350% target',  badgeValue: '+20%', badgeVariant: 'success'   },
-      { key: 'sales',       label: 'Sales',       value: '$8.8K',  subMetric: 'attributed',       badgeValue: '+8%',  badgeVariant: 'success'   },
-      { key: 'clicks',      label: 'Clicks',      value: '6.2K',   subMetric: 'last 30d',         badgeValue: '+5%',  badgeVariant: 'success'   },
-      { key: 'conversions', label: 'Conversions', value: '310',    subMetric: '5.0% CVR',         badgeValue: '+6%',  badgeVariant: 'success'   },
-      { key: 'ctr',         label: 'CTR',         value: '2.10%',  subMetric: 'vs. 2.1% target',  badgeValue: '0%',   badgeVariant: 'secondary' },
-      { key: 'cpc',         label: 'CPC',         value: '$0.34',  subMetric: 'vs. $0.40 target', badgeValue: '-15%', badgeVariant: 'success'   },
-    ],
-  },
-
-  // ── Display ───────────────────────────────────────────────────────
-  'display': {
-    overview: [
-      { key: 'spend',       label: 'Spend',       value: '$58.3K', subMetric: 'of $80K budget',  badgeValue: '73%',     badgeVariant: 'secondary' },
-      { key: 'impressions', label: 'Impressions', value: '12.4M',  subMetric: 'served',          badgeValue: '+14%',    badgeVariant: 'success'   },
-      { key: 'reach',       label: 'Reach',       value: '2.8M',   subMetric: 'unique users',    badgeValue: '+8%',     badgeVariant: 'success'   },
-      { key: 'ctr',         label: 'CTR',         value: '0.84%',  subMetric: 'vs. 0.7% target', badgeValue: '+20%',    badgeVariant: 'success'   },
-      { key: 'roas',        label: 'ROAS',        value: '320%',   subMetric: 'vs. 280% target', badgeValue: '+14%',    badgeVariant: 'success'   },
-      { key: 'frequency',   label: 'Frequency',   value: '4.4x',   subMetric: 'avg per user',    badgeValue: 'Optimal', badgeVariant: 'success'   },
-      { key: 'viewability', label: 'Viewability', value: '87.3%',  subMetric: 'above bench.',    badgeValue: '+5%',     badgeVariant: 'success'   },
-    ],
-    campaign: [
-      { key: 'spend',       label: 'Spend',       value: '$12.8K', subMetric: 'of $18K budget',  badgeValue: '71%',     badgeVariant: 'secondary' },
-      { key: 'impressions', label: 'Impressions', value: '2.7M',   subMetric: 'served',          badgeValue: '+11%',    badgeVariant: 'success'   },
-      { key: 'reach',       label: 'Reach',       value: '612K',   subMetric: 'unique users',    badgeValue: '+6%',     badgeVariant: 'success'   },
-      { key: 'ctr',         label: 'CTR',         value: '0.81%',  subMetric: 'vs. 0.7% target', badgeValue: '+16%',    badgeVariant: 'success'   },
-      { key: 'roas',        label: 'ROAS',        value: '310%',   subMetric: 'vs. 280% target', badgeValue: '+11%',    badgeVariant: 'success'   },
-      { key: 'frequency',   label: 'Frequency',   value: '4.4x',   subMetric: 'avg per user',    badgeValue: 'Optimal', badgeVariant: 'success'   },
-      { key: 'viewability', label: 'Viewability', value: '87.3%',  subMetric: 'above bench.',    badgeValue: '+5%',     badgeVariant: 'success'   },
-    ],
-    booking: [
-      { key: 'spend',       label: 'Spend',       value: '$2.8K',  subMetric: 'of $4K budget',   badgeValue: '70%',     badgeVariant: 'secondary' },
-      { key: 'impressions', label: 'Impressions', value: '596K',   subMetric: 'served',          badgeValue: '+8%',     badgeVariant: 'success'   },
-      { key: 'reach',       label: 'Reach',       value: '134K',   subMetric: 'unique users',    badgeValue: '+4%',     badgeVariant: 'success'   },
-      { key: 'ctr',         label: 'CTR',         value: '0.79%',  subMetric: 'vs. 0.7% target', badgeValue: '+13%',    badgeVariant: 'success'   },
-      { key: 'roas',        label: 'ROAS',        value: '300%',   subMetric: 'vs. 280% target', badgeValue: '+7%',     badgeVariant: 'success'   },
-      { key: 'frequency',   label: 'Frequency',   value: '4.4x',   subMetric: 'avg per user',    badgeValue: 'Optimal', badgeVariant: 'success'   },
-      { key: 'viewability', label: 'Viewability', value: '87.3%',  subMetric: 'above bench.',    badgeValue: '+5%',     badgeVariant: 'success'   },
-    ],
-  },
-
-  // ── Digital In-Store ──────────────────────────────────────────────
-  'digital-instore': {
-    overview: [
-      { key: 'spend',         label: 'Spend',          value: '$24.6K', subMetric: 'of $35K budget',  badgeValue: '70%',     badgeVariant: 'secondary' },
-      { key: 'plays',         label: 'Plays',          value: '186K',   subMetric: 'across loops',    badgeValue: '+22%',    badgeVariant: 'success'   },
-      { key: 'impressions',   label: 'Impressions',    value: '3.1M',   subMetric: 'estimated',       badgeValue: '+11%',    badgeVariant: 'success'   },
-      { key: 'reach',         label: 'Shopper reach',  value: '1.4M',   subMetric: 'unique shoppers', badgeValue: '+9%',     badgeVariant: 'success'   },
-      { key: 'availableTime', label: 'Available time', value: '38%',    subMetric: 'of weekly loops', badgeValue: 'Healthy', badgeVariant: 'info'      },
-      { key: 'roas',          label: 'ROAS',           value: '240%',   subMetric: 'vs. 200% target', badgeValue: '+20%',    badgeVariant: 'success'   },
-    ],
-    campaign: [
-      { key: 'spend',         label: 'Spend',          value: '$5.4K',  subMetric: 'of $7.5K budget', badgeValue: '72%',     badgeVariant: 'secondary' },
-      { key: 'plays',         label: 'Plays',          value: '41K',    subMetric: 'across loops',    badgeValue: '+17%',    badgeVariant: 'success'   },
-      { key: 'impressions',   label: 'Impressions',    value: '682K',   subMetric: 'estimated',       badgeValue: '+8%',     badgeVariant: 'success'   },
-      { key: 'reach',         label: 'Shopper reach',  value: '308K',   subMetric: 'unique shoppers', badgeValue: '+6%',     badgeVariant: 'success'   },
-      { key: 'availableTime', label: 'Available time', value: '38%',    subMetric: 'of weekly loops', badgeValue: 'Healthy', badgeVariant: 'info'      },
-      { key: 'roas',          label: 'ROAS',           value: '230%',   subMetric: 'vs. 200% target', badgeValue: '+15%',    badgeVariant: 'success'   },
-    ],
-    booking: [
-      { key: 'spend',         label: 'Spend',          value: '$1.2K',  subMetric: 'of $1.7K budget', badgeValue: '71%',     badgeVariant: 'secondary' },
-      { key: 'plays',         label: 'Plays',          value: '9.2K',   subMetric: 'across loops',    badgeValue: '+12%',    badgeVariant: 'success'   },
-      { key: 'impressions',   label: 'Impressions',    value: '152K',   subMetric: 'estimated',       badgeValue: '+6%',     badgeVariant: 'success'   },
-      { key: 'reach',         label: 'Shopper reach',  value: '68K',    subMetric: 'unique shoppers', badgeValue: '+4%',     badgeVariant: 'success'   },
-      { key: 'availableTime', label: 'Available time', value: '38%',    subMetric: 'of weekly loops', badgeValue: 'Healthy', badgeVariant: 'info'      },
-      { key: 'roas',          label: 'ROAS',           value: '220%',   subMetric: 'vs. 200% target', badgeValue: '+10%',    badgeVariant: 'success'   },
-    ],
-  },
-
-  // ── Offline In-Store ──────────────────────────────────────────────
-  'offline-instore': {
-    overview: [
-      { key: 'spend',  label: 'Spend',             value: '$31.5K', subMetric: 'of $45K budget', badgeValue: '70%',    badgeVariant: 'secondary' },
-      { key: 'stores', label: 'Stores',            value: '482',    subMetric: 'live in window', badgeValue: '+12%',   badgeVariant: 'success'   },
-      { key: 'reach',  label: 'Shopper reach',     value: '6.2M',   subMetric: 'estimated POS',  badgeValue: '+8%',    badgeVariant: 'success'   },
-      { key: 'sales',  label: 'Incremental sales', value: '$294K',  subMetric: 'attributed',     badgeValue: '+22%',   badgeVariant: 'success'   },
-      { key: 'iroas',  label: 'iROAS',             value: '210%',   subMetric: 'vs. 180% target',badgeValue: '+17%',   badgeVariant: 'success'   },
-      { key: 'sov',    label: 'SOV',               value: '38%',    subMetric: 'in category',    badgeValue: '+4 pts', badgeVariant: 'secondary' },
-    ],
-    campaign: [
-      { key: 'spend',  label: 'Spend',             value: '$6.9K',  subMetric: 'of $10K budget', badgeValue: '69%',    badgeVariant: 'secondary' },
-      { key: 'stores', label: 'Stores',            value: '343',    subMetric: 'live in window', badgeValue: '+9%',    badgeVariant: 'success'   },
-      { key: 'reach',  label: 'Shopper reach',     value: '1.4M',   subMetric: 'estimated POS',  badgeValue: '+6%',    badgeVariant: 'success'   },
-      { key: 'sales',  label: 'Incremental sales', value: '$66K',   subMetric: 'attributed',     badgeValue: '+17%',   badgeVariant: 'success'   },
-      { key: 'iroas',  label: 'iROAS',             value: '210%',   subMetric: 'vs. 180% target',badgeValue: '+17%',   badgeVariant: 'success'   },
-      { key: 'sov',    label: 'SOV',               value: '38%',    subMetric: 'in category',    badgeValue: '+4 pts', badgeVariant: 'secondary' },
-    ],
-    booking: [
-      { key: 'spend',  label: 'Spend',             value: '$1.5K',  subMetric: 'of $2.2K budget',badgeValue: '68%',    badgeVariant: 'secondary' },
-      { key: 'stores', label: 'Stores',            value: '124',    subMetric: 'live in window', badgeValue: '+5%',    badgeVariant: 'success'   },
-      { key: 'reach',  label: 'Shopper reach',     value: '308K',   subMetric: 'estimated POS',  badgeValue: '+3%',    badgeVariant: 'success'   },
-      { key: 'sales',  label: 'Incremental sales', value: '$14K',   subMetric: 'attributed',     badgeValue: '+12%',   badgeVariant: 'success'   },
-      { key: 'iroas',  label: 'iROAS',             value: '200%',   subMetric: 'vs. 180% target',badgeValue: '+11%',   badgeVariant: 'success'   },
-      { key: 'sov',    label: 'SOV',               value: '38%',    subMetric: 'in category',    badgeValue: '+4 pts', badgeVariant: 'secondary' },
-    ],
-  },
-
-  // ── Offsite ───────────────────────────────────────────────────────
-  'offsite': {
-    overview: [
-      { key: 'spend',       label: 'Spend',       value: '$67.1K', subMetric: 'of $90K budget',  badgeValue: '75%',     badgeVariant: 'secondary' },
-      { key: 'impressions', label: 'Impressions', value: '24.6M',  subMetric: 'served',          badgeValue: '+16%',    badgeVariant: 'success'   },
-      { key: 'reach',       label: 'Reach',       value: '5.4M',   subMetric: 'unique users',    badgeValue: '+13%',    badgeVariant: 'success'   },
-      { key: 'buyerReach',  label: 'Buyer reach', value: '1.1M',   subMetric: 'qualified buyers',badgeValue: '+9%',     badgeVariant: 'success'   },
-      { key: 'roas',        label: 'ROAS',        value: '270%',   subMetric: 'vs. 250% target', badgeValue: '+8%',     badgeVariant: 'success'   },
-      { key: 'frequency',   label: 'Frequency',   value: '4.6x',   subMetric: 'avg per user',    badgeValue: 'Optimal', badgeVariant: 'success'   },
-    ],
-    campaign: [
-      { key: 'spend',       label: 'Spend',       value: '$14.8K', subMetric: 'of $20K budget',  badgeValue: '74%',     badgeVariant: 'secondary' },
-      { key: 'impressions', label: 'Impressions', value: '5.4M',   subMetric: 'served',          badgeValue: '+12%',    badgeVariant: 'success'   },
-      { key: 'reach',       label: 'Reach',       value: '1.2M',   subMetric: 'unique users',    badgeValue: '+9%',     badgeVariant: 'success'   },
-      { key: 'buyerReach',  label: 'Buyer reach', value: '246K',   subMetric: 'qualified buyers',badgeValue: '+6%',     badgeVariant: 'success'   },
-      { key: 'roas',        label: 'ROAS',        value: '260%',   subMetric: 'vs. 250% target', badgeValue: '+4%',     badgeVariant: 'success'   },
-      { key: 'frequency',   label: 'Frequency',   value: '4.6x',   subMetric: 'avg per user',    badgeValue: 'Optimal', badgeVariant: 'success'   },
-    ],
-    booking: [
-      { key: 'spend',       label: 'Spend',       value: '$3.3K',  subMetric: 'of $4.6K budget', badgeValue: '72%',     badgeVariant: 'secondary' },
-      { key: 'impressions', label: 'Impressions', value: '1.2M',   subMetric: 'served',          badgeValue: '+8%',     badgeVariant: 'success'   },
-      { key: 'reach',       label: 'Reach',       value: '264K',   subMetric: 'unique users',    badgeValue: '+5%',     badgeVariant: 'success'   },
-      { key: 'buyerReach',  label: 'Buyer reach', value: '54K',    subMetric: 'qualified buyers',badgeValue: '+3%',     badgeVariant: 'success'   },
-      { key: 'roas',        label: 'ROAS',        value: '250%',   subMetric: 'vs. 250% target', badgeValue: '0%',      badgeVariant: 'secondary' },
-      { key: 'frequency',   label: 'Frequency',   value: '4.6x',   subMetric: 'avg per user',    badgeValue: 'Optimal', badgeVariant: 'success'   },
-    ],
-  },
-
-  // ── All engines (aggregate) — only overview is meaningful ─────────
-  'all': {
-    overview: [
-      { key: 'spend',       label: 'Spend',       value: '$224K', subMetric: 'of $310K budget', badgeValue: '72%',  badgeVariant: 'secondary' },
-      { key: 'roas',        label: 'ROAS',        value: '310%',  subMetric: 'weighted avg',    badgeValue: '+12%', badgeVariant: 'success'   },
-      { key: 'impressions', label: 'Impressions', value: '43.2M', subMetric: 'across engines',  badgeValue: '+15%', badgeVariant: 'success'   },
-      { key: 'conversions', label: 'Conversions', value: '32.4K', subMetric: 'attributed',      badgeValue: '+9%',  badgeVariant: 'success'   },
-      { key: 'ctr',         label: 'CTR',         value: '1.42%', subMetric: 'blended',         badgeValue: '+6%',  badgeVariant: 'success'   },
-    ],
-    campaign: [],  // not used
-    booking: [],   // not used
-  },
+const normaliseEngine = (e: string): EngineId | 'all' => {
+  const k = e.toLowerCase().replace(/in[-\s]?store/g, 'instore').replace(/[\s_]+/g, '-');
+  return (['display', 'sponsored-products', 'digital-instore', 'offline-instore', 'offsite'] as const).find((x) => x === k) ?? 'all';
 };
 
-/**
- * Return the per-proposition metric cards for the given engine + scope.
- * Falls back to the "all engines" overview set when the engine isn't
- * recognised, so the call site never renders an empty row.
- */
-export const getPropositionMetrics = (
-  engineType: string,
-  scope: PropositionScope = 'overview',
-): MetricDefinition[] => {
-  const key = normaliseEngine(engineType);
-  const set = definitions[key] ?? definitions['all'];
-  const metrics = set[scope];
-  // Campaign/booking scopes on "all" are intentionally empty; fall back
-  // to the engine's overview so the row never disappears.
-  return metrics.length > 0 ? metrics : set.overview;
+const CARDS: Record<EngineId | 'all', string[]> = {
+  'sponsored-products': ['spend', 'roas', 'sales', 'clicks', 'conversions', 'ctr', 'cpc'],
+  display: ['spend', 'impressions', 'reach', 'ctr', 'roas', 'frequency', 'viewability'],
+  'digital-instore': ['spend', 'plays', 'impressions', 'reach', 'availableTime', 'roas'],
+  'offline-instore': ['spend', 'stores', 'reach', 'sales', 'iroas', 'sov'],
+  offsite: ['spend', 'impressions', 'reach', 'buyerReach', 'roas', 'frequency'],
+  all: ['spend', 'roas', 'impressions', 'conversions', 'ctr'],
 };
 
-// ── Scoping the cards to what is actually on screen ─────────────────────
+// ── Formatting ──────────────────────────────────────────────────────────
 
-/**
- * Metrics that are RATES, not volumes: they describe efficiency, so they do
- * not shrink when fewer campaigns are in view. Everything else is a count and
- * scales with the selection.
- */
-const RATE_KEYS = new Set([
-  'roas', 'iroas', 'ctr', 'cpc', 'cpm', 'cvr', 'conversion-rate',
-  'frequency', 'viewability', 'sov', 'available-time', 'fill-rate', 'vcr',
-]);
+export const fmtEuro = (n: number): string =>
+  n >= 1_000_000 ? `€${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n).toLocaleString('en-GB')}`;
+export const fmtCount = (n: number): string =>
+  n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : Math.round(n).toLocaleString('en-GB');
+const pct = (n: number, digits = 0) => `${(n * 100).toFixed(digits)}%`;
 
-/** Split "$58.3K" into prefix, number, suffix so it can be rescaled in place. */
-const parseDisplayValue = (value: string): { prefix: string; amount: number; suffix: string } | null => {
-  const match = /^([^\d-]*)(-?[\d.,]+)(.*)$/.exec(value.trim());
-  if (!match) return null;
-  const amount = Number(match[2].replace(/,/g, ''));
-  return Number.isFinite(amount) ? { prefix: match[1], amount, suffix: match[3] } : null;
+/** "+12%" / "-4%" — the change from the period before. */
+function change(now: number, before: number | undefined): string | undefined {
+  if (before === undefined || before <= 0) return undefined;
+  const d = Math.round(((now - before) / before) * 100);
+  return `${d > 0 ? '+' : ''}${d}%`;
+}
+
+const variantOf = (delta: string | undefined, lowerIsBetter = false): MetricDefinition['badgeVariant'] => {
+  if (!delta) return 'secondary';
+  const up = !delta.startsWith('-') && delta !== '+0%' && delta !== '0%';
+  return up !== lowerIsBetter ? 'success' : 'warning';
 };
 
-const formatDisplayValue = (prefix: string, amount: number, suffix: string): string => {
-  const rounded = amount >= 100 ? Math.round(amount) : Math.round(amount * 10) / 10;
-  return `${prefix}${rounded.toLocaleString()}${suffix}`;
+// ── Cards ───────────────────────────────────────────────────────────────
+
+interface CardSpec {
+  label: string;
+  /** The number behind the card — also what its chart plots per week. */
+  value: (t: Totals, r: Rates) => number;
+  format: (n: number) => string;
+  sub: (t: Totals, r: Rates, engine: EngineId | 'all') => string;
+  /** Rates compare with the benchmark; volumes with the period before. */
+  target?: (engine: EngineId) => number;
+  lowerIsBetter?: boolean;
+}
+
+const SPECS: Record<string, CardSpec> = {
+  spend:       { label: 'Spend', value: (t) => t.spend, format: fmtEuro, sub: (t) => `of ${fmtEuro(t.budget)} budget` },
+  roas:        { label: 'ROAS', value: (_, r) => r.roas, format: (n) => pct(n), sub: (_, __, e) => e === 'all' ? 'weighted avg' : `vs. ${pct(BENCHMARKS[e].roas)} target`, target: (e) => BENCHMARKS[e].roas },
+  iroas:       { label: 'iROAS', value: (_, r) => r.iroas, format: (n) => pct(n), sub: (_, __, e) => e === 'all' ? 'incremental' : `vs. ${pct(BENCHMARKS[e].iroas)} target`, target: (e) => BENCHMARKS[e].iroas },
+  sales:       { label: 'Sales', value: (t) => t.sales, format: fmtEuro, sub: () => 'attributed' },
+  clicks:      { label: 'Clicks', value: (t) => t.clicks, format: fmtCount, sub: () => 'to the product page' },
+  conversions: { label: 'Conversions', value: (t) => t.conversions, format: fmtCount, sub: (_, r, e) => e === 'sponsored-products' && r.cvr > 0 ? `${pct(r.cvr, 1)} CVR` : 'attributed' },
+  ctr:         { label: 'CTR', value: (_, r) => r.ctr, format: (n) => pct(n, 2), sub: (_, __, e) => e === 'all' ? 'blended' : `vs. ${pct(BENCHMARKS[e].ctr, 1)} target`, target: (e) => BENCHMARKS[e].ctr },
+  cpc:         { label: 'CPC', value: (_, r) => r.cpc, format: (n) => `€${n.toFixed(2)}`, sub: (_, __, e) => e === 'all' ? 'blended' : `vs. €${BENCHMARKS[e].cpc.toFixed(2)} target`, target: (e) => BENCHMARKS[e].cpc, lowerIsBetter: true },
+  impressions: { label: 'Impressions', value: (t) => t.impressions, format: fmtCount, sub: (_, __, e) => e === 'digital-instore' ? 'estimated' : e === 'all' ? 'across propositions' : 'served' },
+  reach:       { label: 'Reach', value: (t) => t.reach, format: fmtCount, sub: (_, __, e) => e === 'digital-instore' || e === 'offline-instore' ? 'unique shoppers' : 'unique users' },
+  buyerReach:  { label: 'Buyer reach', value: (t) => t.conversions * 0.85, format: fmtCount, sub: () => 'buyers reached' },
+  frequency:   { label: 'Frequency', value: (_, r) => r.frequency, format: (n) => `${n.toFixed(1)}x`, sub: () => 'avg per person', target: (e) => BENCHMARKS[e].frequency, lowerIsBetter: true },
+  viewability: { label: 'Viewability', value: (_, r) => r.viewability, format: (n) => pct(n, 1), sub: (_, __, e) => e === 'all' ? 'in view' : `vs. ${pct(BENCHMARKS[e].viewability)} target`, target: (e) => BENCHMARKS[e].viewability },
+  plays:       { label: 'Plays', value: (t) => t.plays, format: fmtCount, sub: () => 'across loops' },
 };
 
-export interface MetricScopeInput {
-  /** Real spend of the rows in view, in euros. */
-  spend: number;
-  /** Real budget of the rows in view, in euros. */
-  budget: number;
-  /**
-   * How much of the proposition is in view, 0–1. Volume cards other than
-   * spend are illustrative, so they are scaled by this rather than invented.
-   */
-  share: number;
+const LABEL_OVERRIDES: Partial<Record<EngineId, Record<string, string>>> = {
+  'digital-instore': { reach: 'Shopper reach' },
+  'offline-instore': { reach: 'Shopper reach', sales: 'Incremental sales' },
+};
+
+export interface PropositionMetricOptions {
+  /** Weekly chart under each card (MetricRow's expand panel). Default on. */
+  charts?: boolean;
 }
 
 /**
- * Bind the proposition's cards to the rows currently listed.
- *
- * Spend and its budget come from the data, so the headline card is exact. The
- * other volumes are illustrative figures scaled by how much of the proposition
- * the filters left in view — the alternative is a row of numbers that ignores
- * the filter directly beneath it, which is worse than an estimate.
+ * The cards for a proposition (or 'all') over a scope: the bookings of a
+ * media plan, a campaign, a booking, a filter, a date range.
  */
-export function scaleMetricsToSelection(
-  metrics: MetricDefinition[],
-  { spend, budget, share }: MetricScopeInput,
+export function propositionMetrics(
+  db: DbData,
+  engineType: EngineType,
+  scope: PerformanceScope = {},
+  { charts = true }: PropositionMetricOptions = {},
 ): MetricDefinition[] {
-  const fmtEuro = (n: number) =>
-    n >= 1000 ? `€${(n / 1000).toFixed(1)}K` : `€${Math.round(n).toLocaleString()}`;
+  const engine = normaliseEngine(engineType);
+  const s: PerformanceScope = engine === 'all' ? scope : { ...scope, engine };
+  const t = totalsFor(db, s);
+  const r = ratesOf(t);
+  const prevScope = previousPeriod(s);
+  const prev = prevScope ? totalsFor(db, prevScope) : undefined;
+  const series = charts ? seriesFor(db, { ...s, ...activeWindow(db, s) }, 'week') : [];
 
-  return metrics.map((metric) => {
-    if (metric.key === 'spend') {
-      const pct = budget > 0 ? Math.round((spend / budget) * 100) : 0;
+  return CARDS[engine].map((key): MetricDefinition => {
+    const label = (engine !== 'all' && LABEL_OVERRIDES[engine]?.[key]) || SPECS[key]?.label || key;
+    if (key === 'spend') {
       return {
-        ...metric,
-        value: fmtEuro(spend),
-        subMetric: `of ${fmtEuro(budget)} budget`,
-        badgeValue: `${pct}%`,
+        key, label, value: fmtEuro(t.spend), subMetric: `of ${fmtEuro(t.budget)} budget`,
+        badgeValue: t.budget > 0 ? `${Math.round(r.pacing * 100)}%` : undefined, badgeVariant: 'secondary',
+        chartData: series.map((p) => ({ day: p.label, value: Math.round(p.totals.spend) })),
       };
     }
-    if (RATE_KEYS.has(metric.key) || !metric.value) return metric;
-
-    const parsed = parseDisplayValue(metric.value);
-    if (!parsed) return metric;
-    return { ...metric, value: formatDisplayValue(parsed.prefix, parsed.amount * share, parsed.suffix) };
+    if (key === 'stores') {
+      const live = liveStores(db, s);
+      return { key, label: 'Stores', value: fmtCount(live), subMetric: 'live today', badgeVariant: 'secondary' };
+    }
+    if (key === 'sov') {
+      const sov = shareOfVoice(db, s);
+      return { key, label: 'SOV', value: pct(sov), subMetric: 'of booked inventory', badgeVariant: 'secondary' };
+    }
+    if (key === 'availableTime') {
+      const free = availableTime(db, s);
+      return { key, label, value: pct(free), subMetric: 'of loop time free', badgeValue: free < 0.2 ? 'Tight' : 'Healthy', badgeVariant: free < 0.2 ? 'warning' : 'info' };
+    }
+    const spec = SPECS[key];
+    const valueOf = (tt: Totals) => (key === 'sales' && engine === 'offline-instore' ? tt.incrementalSales : spec.value(tt, ratesOf(tt)));
+    const now = valueOf(t);
+    let badge: string | undefined;
+    if (spec.target && engine !== 'all') {
+      const target = spec.target(engine);
+      badge = target > 0 && t.spend > 0 ? change(now, target) : undefined;
+    } else if (prev) {
+      badge = change(now, valueOf(prev));
+    }
+    return {
+      key,
+      label,
+      value: t.spend > 0 || key === 'impressions' ? spec.format(now) : '—',
+      subMetric: spec.sub(t, r, engine),
+      badgeValue: badge,
+      badgeVariant: variantOf(badge, spec.lowerIsBetter),
+      chartData: series.map((p) => ({ day: p.label, value: Math.round(valueOf(p.totals) * (now < 10 ? 100 : 1)) / (now < 10 ? 100 : 1) })),
+    };
   });
+}
+
+/** propositionMetrics bound to the live store. */
+export function usePropositionMetrics(
+  engineType: EngineType,
+  scope: PerformanceScope = {},
+  options: PropositionMetricOptions = {},
+): MetricDefinition[] {
+  const db = useDb();
+  const key = JSON.stringify(scope);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return React.useMemo(() => propositionMetrics(db, engineType, scope, options), [db, engineType, key, options.charts]);
 }

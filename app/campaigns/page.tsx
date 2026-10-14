@@ -12,7 +12,7 @@ import { FilterBar } from '@/components/ui/filter-bar';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { useSessionFilters, withinSessionRange, setSessionMetricKeys } from '@/lib/session-filters';
 import { MetricRow } from '@/components/ui/metric-row';
-import { getPropositionMetrics, scaleMetricsToSelection } from '@/lib/proposition-metrics';
+import { propositionMetrics } from '@/lib/proposition-metrics';
 import { AdvertiserSelect } from '@/components/ui/advertiser-select';
 import { SessionAdvertiserSelect } from '@/components/ui/session-advertiser-select';
 import { PropositionIcon } from '@/components/ui/proposition-icon';
@@ -134,10 +134,6 @@ function AllCampaignsPage() {
 
   // What the visible plans spend and may spend — the metric row's basis.
   const visiblePlans = db.mediaPlans.filter((plan) => withinSessionRange(sessionFilters, plan.startDate, plan.endDate));
-  const spendOf = (planIds: Set<string>) => db.campaigns.filter((c) => planIds.has(c.mediaPlanId)).reduce((sum, c) => sum + c.spend, 0);
-  const visibleSpend = spendOf(new Set(visiblePlans.map((p) => p.id)));
-  const totalSpend = spendOf(new Set(db.mediaPlans.map((p) => p.id)));
-  const visibleBudget = visiblePlans.reduce((sum, p) => sum + p.budget, 0);
 
   // Map store entities into the CampaignSummary card shape. Newest first, and
   // only the plans whose flight overlaps the session's date range.
@@ -203,10 +199,12 @@ function AllCampaignsPage() {
             the row so the range and the figures it applies to read together. */}
         <div className="mb-section">
           <MetricRow
-            metrics={scaleMetricsToSelection(getPropositionMetrics('all', 'overview'), {
-              spend: visibleSpend,
-              budget: visibleBudget,
-              share: totalSpend > 0 ? visibleSpend / totalSpend : 1,
+            // The visible plans' bookings, over the session's dates when set —
+            // then each card also compares with the period before.
+            metrics={propositionMetrics(db, 'all', {
+              mediaPlanIds: visiblePlans.map((p) => p.id),
+              from: sessionFilters.dateFrom,
+              to: sessionFilters.dateTo,
             })}
             filterNote={sessionFilters.dateFrom ? `Filtered · ${campaigns.length} of ${db.mediaPlans.length} media plans` : undefined}
             selectedKeys={sessionFilters.metricKeys?.['media-plans']}

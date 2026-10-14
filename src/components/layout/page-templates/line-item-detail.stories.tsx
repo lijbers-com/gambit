@@ -67,7 +67,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
 import { CalendarTable } from '../../ui/calendar-table';
 import { MetricRow } from '@/components/ui/metric-row';
-import { getPropositionMetrics } from '@/lib/proposition-metrics';
+import { usePropositionMetrics } from '@/lib/proposition-metrics';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { Label } from '@/components/ui/label';
@@ -584,7 +584,7 @@ export const Display: Story = {
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
     const availabilityIssue = useAvailabilityIssue(routeBooking);
-    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('display', 'booking'), routeBooking);
+    const bookingMetrics = useDeliveryMetrics(usePropositionMetrics('display', routeBooking ? { bookingIds: [routeBooking.id] } : {}), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -638,7 +638,7 @@ export const Display: Story = {
     const displayCurrentPositions = displayMediaProduct[0]
       ? dbDisplay.positions
           .filter((p) => p.mediaProductId === displayMediaProduct[0])
-          .map((p) => ({ value: p.id, label: p.name, format: p.format, description: dbOffsite.placements.find((x) => x.id === p.placementId)?.name ?? '' }))
+          .map((p) => ({ value: p.id, label: p.name, format: p.format, description: dbDisplay.placements.find((x) => x.id === p.placementId)?.name ?? '' }))
       : [];
     const [positionTab, setPositionTab] = React.useState<'channels' | 'positions'>('positions');
     const [positionSearch, setPositionSearch] = React.useState('');
@@ -1210,7 +1210,7 @@ export const DigitalInStore: Story = {
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
     const availabilityIssue = useAvailabilityIssue(routeBooking);
-    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('digital-instore', 'booking'), routeBooking);
+    const bookingMetrics = useDeliveryMetrics(usePropositionMetrics('digital-instore', routeBooking ? { bookingIds: [routeBooking.id] } : {}), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -2609,7 +2609,7 @@ export const OfflineInStore: Story = {
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
     const availabilityIssue = useAvailabilityIssue(routeBooking);
-    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('offline-instore', 'booking'), routeBooking);
+    const bookingMetrics = useDeliveryMetrics(usePropositionMetrics('offline-instore', routeBooking ? { bookingIds: [routeBooking.id] } : {}), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -3958,7 +3958,7 @@ export const SponsoredProducts: Story = {
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
     const availabilityIssue = useAvailabilityIssue(routeBooking);
-    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('sponsored-products', 'booking'), routeBooking);
+    const bookingMetrics = useDeliveryMetrics(usePropositionMetrics('sponsored-products', routeBooking ? { bookingIds: [routeBooking.id] } : {}), routeBooking);
     // Bids and pacing belong to auction; a guaranteed booking buys a goal.
     const spDb = useDb();
     const spIsAuction = !routeBooking || buyingTypeOf(spDb, routeBooking) !== 'guaranteed';
@@ -4575,7 +4575,7 @@ export const OffsiteDisplay: Story = {
     const submitBooking = useSubmitBooking(routeBooking);
     const markAvailability = useAvailabilityMarks(routeBooking);
     const availabilityIssue = useAvailabilityIssue(routeBooking);
-    const bookingMetrics = useDeliveryMetrics(getPropositionMetrics('offsite', 'booking'), routeBooking);
+    const bookingMetrics = useDeliveryMetrics(usePropositionMetrics('offsite', routeBooking ? { bookingIds: [routeBooking.id] } : {}), routeBooking);
     const routeEntityId = useRouteEntityId();
     const bookingCreatives = useBookingCreativeItems(routeEntityId);
     // Budget & run time — state behind the shared block (ui/booking-budget-runtime).
@@ -4730,7 +4730,7 @@ export const OffsiteDisplay: Story = {
           />
           <div className="mb-section">
             <MetricRow
-              metrics={getPropositionMetrics('offsite', 'booking')}
+              metrics={bookingMetrics}
               maxVisible={5}
               defaultVariant="default"
               removable={false}

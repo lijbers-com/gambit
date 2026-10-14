@@ -9,7 +9,7 @@ import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FilterBar } from '@/components/ui/filter-bar';
 import { MetricRow } from '@/components/ui/metric-row';
-import { getPropositionMetrics, scaleMetricsToSelection } from '@/lib/proposition-metrics';
+import { propositionMetrics } from '@/lib/proposition-metrics';
 import { Button } from '@/components/ui/button';
 import { CampaignSummary } from '@/components/ui/campaign-summary';
 import { DateRangePicker, DatePicker } from '@/components/ui/date-picker';
@@ -213,13 +213,6 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
     const followTable = activeTab === 'campaigns' && tableFiltersActive;
     const scopedCampaigns = followTable ? filterScopedCampaigns : engineCampaigns;
 
-    // What the filters left in view, against the proposition as a whole — the
-    // ratio is how far the illustrative volume cards are scaled down.
-    const visibleSpend = scopedCampaigns.reduce((sum, c) => sum + c.spend, 0);
-    const visibleBudget = scopedCampaigns.reduce((sum, c) => sum + c.budget, 0);
-    const propositionSpend = db.campaigns
-      .filter((c) => engineId === 'all' || c.engine === engineId)
-      .reduce((sum, c) => sum + c.spend, 0);
     const metricRowId = `campaigns:${engineType}`;
     const engineUnread = useUnreadCount('engine', engineId, ['recommendation']);
 
@@ -345,10 +338,10 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
           // The cards describe the rows below them, so they follow the same
           // filters: a date range that hides half the campaigns has to move
           // the numbers too, or the row contradicts the table under it.
-          metrics={scaleMetricsToSelection(getPropositionMetrics(engineType, 'overview'), {
-            spend: visibleSpend,
-            budget: visibleBudget,
-            share: propositionSpend > 0 ? visibleSpend / propositionSpend : 1,
+          metrics={propositionMetrics(db, engineType, {
+            campaignIds: scopedCampaigns.map((c) => c.id),
+            from: sessionFilters.dateFrom,
+            to: sessionFilters.dateTo,
           })}
           filterNote={followTable ? `Filtered · ${filterScopedCampaigns.length} of ${engineCampaigns.length} campaigns` : undefined}
           selectedKeys={sessionFilters.metricKeys?.[metricRowId]}
@@ -602,7 +595,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
             {
               label: 'Insights',
               value: 'insights',
-              content: <InsightsTab engineType={engineType} scope="overview" />,
+              content: <InsightsTab engineType={engineType} performanceScope={{ campaignIds: scopedCampaigns.map((c) => c.id), from: sessionFilters.dateFrom, to: sessionFilters.dateTo }} />,
             },
           ], 'campaigns')}
           // On a proposition page the campaign type is already known; only the

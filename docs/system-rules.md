@@ -29,18 +29,19 @@ Data            src/lib/db (store + seed)    what is true     prototype-data-sch
    inside a template are debt to be moved into the seed.
 2. **Derived, never stored.** Anything that follows from the facts is
    computed when it is read. That covers messages, to-dos, health, inventory
-   load and fill rates, billing state, setup steps, recommendations,
-   forecasts and prices. Only facts and authored content are stored:
+   load and fill rates, performance, billing state, setup steps,
+   recommendations, forecasts and prices. Only facts and authored content are stored:
    entities, configuration, creatives, FAQs, holds and the invoice mirror.
    That is why a page and its inbox can never disagree.
 3. **One source per concept.** There is one status vocabulary, one forecast,
-   one funnel → KPI framework, one inventory model, one target-group
-   catalogue, one creative library and one colour and pattern per
+   one funnel → KPI framework, one inventory model, one performance model,
+   one target-group catalogue, one creative library and one colour and pattern per
    proposition. If you find a second copy, it is a bug.
 4. **The same rule at every level.** Media plan → campaign → booking:
    - Pausing a plan is pausing each of its campaigns and bookings.
-   - Health rolls up.
-   - Workflow boards read the same way at each level.
+   - Health rolls up; performance sums up.
+   - Workflow boards read the same way at each level; an approval
+     (`approvedAt`) counts on a plan, a campaign and a booking alike.
 5. **Configuration drives the product.** The retailer's configuration decides
    what the product does: media products and positions, pricing rules,
    workflows, configuration rules, the metric registry, health thresholds,

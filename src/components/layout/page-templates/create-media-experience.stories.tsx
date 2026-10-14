@@ -75,6 +75,7 @@ import {
   Info,
   FlaskConical,
 } from 'lucide-react';
+import { prototypeToday } from '@/lib/clock';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Create Media Experience',
@@ -751,7 +752,7 @@ export const GoalSelection: Story = {
       const name = campaignName || 'New Media plan';
       const db = getDb();
       const iso = (d: Date) => d.toISOString().slice(0, 10);
-      const start = dateRange?.from ?? new Date();
+      const start = dateRange?.from ?? prototypeToday();
       const end = dateRange?.to ?? new Date(start.getTime() + 30 * 86400000);
       const budget = parseFloat(budgetAmount) || 0;
 
@@ -886,7 +887,7 @@ export const GoalSelection: Story = {
     const draftPatch = () => {
       const db = getDb();
       const iso = (d: Date) => d.toISOString().slice(0, 10);
-      const start = dateRange?.from ?? new Date();
+      const start = dateRange?.from ?? prototypeToday();
       const end = dateRange?.to ?? new Date(start.getTime() + 30 * 86400000);
       const advLabel = advertiserOptions.find((a) => a.value === selectedAdvertiser)?.label;
       const advertiser = db.advertisers.find((a) => a.name === advLabel) ?? db.advertisers[0];

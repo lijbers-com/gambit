@@ -2,6 +2,7 @@ import type { Booking, Campaign, DbData, MediaPlan, Workflow, WorkflowScope, Wor
 import { SETUP_STEP_DEFAULTS, setupStepDone, setupStepDoneForBooking, setupStepDoneForPlan, setupWorkflowSteps, walkSteps, workflowFor } from './setup-steps';
 import { PLAN_STATUS_TO_LIFECYCLE, type LifecycleStatus } from '@/lib/status-vocabulary';
 import { CONFIGURATION_RULES, ruleById } from '@/lib/configuration-rules';
+import { prototypeNow } from '../clock';
 
 /**
  * Reading a workflow for one entity — the one place that says where a media
@@ -199,7 +200,7 @@ function elapsedPercent(startDate: string, endDate: string): number {
   const start = new Date(startDate).getTime();
   const end = new Date(endDate).getTime();
   if (!(end > start)) return 100;
-  return Math.max(0, Math.min(100, Math.round(((Date.now() - start) / (end - start)) * 100)));
+  return Math.max(0, Math.min(100, Math.round(((prototypeNow().getTime() - start) / (end - start)) * 100)));
 }
 
 /** Where an entity stands on a board, and what is done. */

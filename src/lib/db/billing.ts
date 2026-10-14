@@ -1,5 +1,6 @@
 import type { Booking, DbData, Invoice, InvoiceStatus } from './types';
 import { bookingPrice, deliveryProgress, isGuaranteed } from './guaranteed';
+import { prototypeNow } from '../clock';
 
 /**
  * Billing, as Edge sees it.
@@ -68,7 +69,7 @@ function underDeliveryCredit(booking: Booking, agreed: number): { adjustment: nu
 }
 
 /** The line a booking puts on an invoice — or would, once it completes. */
-export function billableLine(db: DbData, booking: Booking, now = new Date()): BillableLine | undefined {
+export function billableLine(db: DbData, booking: Booking, now = prototypeNow()): BillableLine | undefined {
   const campaign = db.campaigns.find((c) => c.id === booking.campaignId);
   const plan = campaign && db.mediaPlans.find((p) => p.id === campaign.mediaPlanId);
   if (!campaign || !plan) return undefined;
@@ -106,7 +107,7 @@ export function billableLine(db: DbData, booking: Booking, now = new Date()): Bi
 }
 
 /** Every billable line, optionally narrowed to one organisation or plan. */
-export function billableLines(db: DbData, scope: { advertiserId?: string; mediaPlanId?: string } = {}, now = new Date()): BillableLine[] {
+export function billableLines(db: DbData, scope: { advertiserId?: string; mediaPlanId?: string } = {}, now = prototypeNow()): BillableLine[] {
   return db.bookings
     .map((b) => billableLine(db, b, now))
     .filter((l): l is BillableLine => !!l)
@@ -122,7 +123,7 @@ export function invoiceTotals(invoice: Invoice) {
 
 /** An invoice past its due date and not paid reads as overdue, whatever the
  *  last sync said — the same way an expired hold reads as expired. */
-export function effectiveInvoiceStatus(invoice: Invoice, now = new Date()): InvoiceStatus {
+export function effectiveInvoiceStatus(invoice: Invoice, now = prototypeNow()): InvoiceStatus {
   if (invoice.status === 'sent' && new Date(invoice.dueAt) < now) return 'overdue';
   return invoice.status;
 }

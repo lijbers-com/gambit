@@ -52,6 +52,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { DateRange } from 'react-day-picker';
 import { Eye, Brain, ShoppingCart, Heart, Check, X, Users, Tag, TrendingUp, DollarSign, Sparkles, ScanBarcode, MonitorSpeaker, ListStart, MonitorPlay, Store, CalendarDays, Target, Search, Plus, ChevronDown, ChevronRight, Download, Upload, Calendar, Clock, CornerDownRight, Globe, ImagePlus, type LucideIcon, Gavel, ShieldCheck } from 'lucide-react';
 import { AddInlineLabel } from '@/components/ui/add-button';
+import { PROTOTYPE_TODAY } from '@/lib/clock';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Create Proposition Campaign',
@@ -900,7 +901,7 @@ const PropositionWizard = ({
       if (typeof window !== 'undefined') window.location.href = afterBooking(routeBooking.campaignId, routeBooking.id);
       return;
     }
-    const fallbackStart = toIso(dateRange?.from) ?? linkedPlan?.startDate ?? new Date().toISOString().slice(0, 10);
+    const fallbackStart = toIso(dateRange?.from) ?? linkedPlan?.startDate ?? PROTOTYPE_TODAY;
     const fallbackEnd = toIso(dateRange?.to) ?? linkedPlan?.endDate ?? fallbackStart;
     const campaignRecord = routeCampaign ?? createCampaign({
       mediaPlanId: linkedPlan?.id ?? '',
@@ -3213,7 +3214,7 @@ export const SimplifiedSPWizard = ({ initialValues }: { initialValues?: SPWizard
       }
       return;
     }
-    const fallbackStart = iso(startDate) ?? linkedPlan?.startDate ?? new Date().toISOString().slice(0, 10);
+    const fallbackStart = iso(startDate) ?? linkedPlan?.startDate ?? PROTOTYPE_TODAY;
     const fallbackEnd = iso(endDate) ?? linkedPlan?.endDate ?? fallbackStart;
     const campaignRecord = routeCampaign ?? createCampaign({
       mediaPlanId: linkedPlan?.id ?? '',

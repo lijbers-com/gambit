@@ -35,6 +35,7 @@ import { useDb, derivePlanHealth, deriveTasksForPlan, deriveMessages, useInboxSt
 import { HealthCell } from './control-cells';
 import { DollarSign, ChevronDown, ChevronUp, Sparkles, Bell, MonitorSpeaker, ListStart, MonitorPlay, Store, Globe, Info, MessageSquare, Plus, SquarePen, MoreHorizontal, Pencil, Trash2, Calendar, ArrowRight, Rows3, LayoutList } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
+import { prototypeToday } from '@/lib/clock';
 
 export interface CampaignEngine {
   id: string;
@@ -311,7 +312,7 @@ export const CampaignSummary = React.forwardRef<HTMLDivElement, CampaignSummaryP
         ]);
         // Seed inline-form draft with sensible defaults: Untitled name + generated External ID.
         const propCode = propCodeById[propType.id] ?? 'C';
-        const yearSeg = new Date().getFullYear();
+        const yearSeg = prototypeToday().getFullYear();
         const counterSeg = engineCounter.current.toString().padStart(3, '0');
         const externalId = `${propCode}-${yearSeg}-${counterSeg}`;
         setPendingEngineDrafts(prev => ({

@@ -32,6 +32,7 @@ import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { AddButton } from '@/components/ui/add-button';
 import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
 import { openCampaignWizard, openMediaPlanWizard } from '@/lib/create-entities';
+import { prototypeToday } from '@/lib/clock';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Campaign Overview',
@@ -966,8 +967,8 @@ export const Campaigns360NoGoalTargeting: Story = {
           placements: 0,
           engines: [],
           dateRange: {
-            from: new Date(),
-            to: addDays(new Date(), 30),
+            from: prototypeToday(),
+            to: addDays(prototypeToday(), 30),
           },
           features: [],
         },

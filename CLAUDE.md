@@ -1,5 +1,14 @@
 # Gambit Retail Media Platform - Component Library Architecture
 
+## Read first: how the prototype works
+
+Components and templates follow the design system. The **rules layer** makes them behave like Edge. Every number, status, message, price and date on a page comes from one rule module in `src/lib` / `src/lib/db`, never from the template itself.
+
+- **Central map of the architecture and every system rule:** [`docs/system-rules.md`](docs/system-rules.md). The master copy is in EpicContext: Tech Stack → `prototype-architecture`. Update both in the same change.
+- **One clock:** business time comes from `src/lib/clock.ts` (today = 30 July 2026). Never use `new Date()` for it.
+- **Design rules per component:** the EpicContext Design System component specs.
+
+
 ## Project Overview
 
 Gambit is a retail media platform designed for rapid prototyping and deployment of theme-specific applications across multiple retailers. The system is built on a component-first architecture with comprehensive theming and version management capabilities.

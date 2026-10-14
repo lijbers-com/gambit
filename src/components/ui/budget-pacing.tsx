@@ -10,6 +10,7 @@ import { DateRangePicker } from './date-picker';
 import type { DateRange } from 'react-day-picker';
 import { retailMoments } from '@/lib/retail-moments';
 import { SettingsCard } from './settings-card';
+import { prototypeToday } from '@/lib/clock';
 
 /**
  * Pacing — how a budget is spread over the days a booking runs.
@@ -156,7 +157,7 @@ export const BudgetPacing: React.FC<BudgetPacingProps> = ({
 
   // The calendar fences what an override can cover: only days inside the
   // flight, and — once the flight has started — never the past.
-  const today = new Date();
+  const today = prototypeToday();
   today.setHours(0, 0, 0, 0);
   const started = !!startDate && startDate < today;
   const fenceFrom = started ? today : startDate;

@@ -10,6 +10,7 @@ import {
   DropdownMenuCheckboxItem,
 } from './dropdown-menu';
 import { Checkbox } from './checkbox';
+import { prototypeToday } from '@/lib/clock';
 
 export interface TableColumn<T> {
   key: string;
@@ -149,9 +150,10 @@ export interface TableProps<T> {
 function RefreshedAt() {
   const [label, setLabel] = React.useState<string | null>(null);
   React.useEffect(() => {
+    // The day is the prototype's today; the time is the real one.
     const d = new Date();
     setLabel(
-      d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) +
+      prototypeToday().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) +
         ', ' +
         d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     );

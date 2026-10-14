@@ -1,5 +1,6 @@
 import type { Booking, Campaign, DbData, MediaPlan } from './types';
 import { keywordWeek } from '../recommendations';
+import { prototypeNow } from '../clock';
 
 /**
  * Health — concern-only.
@@ -177,7 +178,7 @@ export interface PlanAssessment {
  * plan — and each level's summary carries its own indicators plus every
  * indicator found below it.
  */
-export function assessMediaPlan(db: DbData, plan: MediaPlan, config: HealthConfig = DEFAULT_HEALTH_CONFIG, now: number = Date.now()): PlanAssessment {
+export function assessMediaPlan(db: DbData, plan: MediaPlan, config: HealthConfig = DEFAULT_HEALTH_CONFIG, now: number = prototypeNow().getTime()): PlanAssessment {
   const evaluatedAt = new Date(now).toISOString();
   const campaigns = db.campaigns.filter((c) => c.mediaPlanId === plan.id);
   const byCampaign = new Map<string, HealthSummary | undefined>();

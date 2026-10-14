@@ -1,5 +1,6 @@
 import type { Booking, BookingGoal, BookingPriceState, BuyingModel, Campaign, DbData, EngineId, GoalMetric, MediaProduct, PricingBasis } from './types';
 import { effectiveHoldStatus, fillRateFor, formatPrice, priceFor, type PriceBuildUp } from './pricing';
+import { prototypeNow } from '../clock';
 
 /**
  * Guaranteed bookings.
@@ -110,7 +111,7 @@ export interface BookingPriceView {
 
 /** The product's price for this booking today: list price with the pricing
  *  rules that apply to its dates, budget and fill. */
-export function listPriceFor(db: DbData, booking: Booking, now = new Date()) {
+export function listPriceFor(db: DbData, booking: Booking, now = prototypeNow()) {
   const product = productForBooking(db, booking);
   if (!product) return undefined;
   const position = booking.positionIds.map((id) => db.positions.find((p) => p.id === id)).find(Boolean);
@@ -129,7 +130,7 @@ export function listPriceFor(db: DbData, booking: Booking, now = new Date()) {
  * product's list price. A quote whose hold has run out falls back to
  * indicative, because what it locked is gone.
  */
-export function bookingPrice(db: DbData, booking: Booking, now = new Date()): BookingPriceView {
+export function bookingPrice(db: DbData, booking: Booking, now = prototypeNow()): BookingPriceView {
   const stored = booking.price;
   if (stored?.state === 'agreed') {
     return { state: 'agreed', basis: stored.basis, unitPrice: stored.unitPrice, amount: stored.amount, lockedAt: stored.lockedAt };
@@ -176,7 +177,7 @@ export interface DeliveryProgress {
 }
 
 /** The elapsed share of a run time, 0 before it starts and 1 after it ends. */
-export function elapsedShare(startDate: string, endDate: string, now = Date.now()): number {
+export function elapsedShare(startDate: string, endDate: string, now = prototypeNow().getTime()): number {
   const start = new Date(startDate + 'T00:00:00').getTime();
   const end = new Date(endDate + 'T23:59:59').getTime();
   if (now <= start) return 0;
@@ -186,7 +187,7 @@ export function elapsedShare(startDate: string, endDate: string, now = Date.now(
 
 /** How far a guaranteed booking is towards its goal. Only a booking that has
  *  started delivering has progress; a draft or a booking in review has none. */
-export function deliveryProgress(booking: Booking, now = Date.now()): DeliveryProgress | undefined {
+export function deliveryProgress(booking: Booking, now = prototypeNow().getTime()): DeliveryProgress | undefined {
   if (!booking.goal || booking.goal.amount <= 0) return undefined;
   if (booking.status === 'draft' || booking.status === 'in-option') return undefined;
   const delivered = booking.delivered ?? 0;
@@ -198,7 +199,7 @@ export function deliveryProgress(booking: Booking, now = Date.now()): DeliveryPr
 
 /** A campaign's guaranteed totals: its bookings' goals, delivery and price,
  *  summed — only when every goal counts the same thing. */
-export function campaignGuaranteedTotals(db: DbData, campaign: Campaign, now = new Date()) {
+export function campaignGuaranteedTotals(db: DbData, campaign: Campaign, now = prototypeNow()) {
   const bookings = db.bookings.filter((b) => b.campaignId === campaign.id && b.goal);
   if (!bookings.length) return undefined;
   const metric = bookings[0].goal!.metric;
@@ -260,7 +261,7 @@ export const AVAILABILITY_LABEL: Record<AvailabilityStatus, string> = {
  * the booking shows WHICH part is not available. It runs on every change;
  * submitting is what holds the inventory, and only when nothing fails.
  */
-export function checkBookingAvailability(db: DbData, booking: Booking, now = new Date()): AvailabilityCheck {
+export function checkBookingAvailability(db: DbData, booking: Booking, now = prototypeNow()): AvailabilityCheck {
   const checks: AvailabilityCheckItem[] = [];
   const product = productForBooking(db, booking);
 

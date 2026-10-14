@@ -28,6 +28,7 @@ import {
 } from '@/lib/db';
 import type { DateRange } from 'react-day-picker';
 import { ArrowRight, Boxes, ChevronDown, ChevronRight, Layers, Lock, Plus, Tag } from 'lucide-react';
+import { PROTOTYPE_TODAY, prototypeNow } from '@/lib/clock';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Media Products',
@@ -307,7 +308,7 @@ const PriceBuildUpCard: React.FC<{ product: MediaProduct; position?: Position; c
   const db = useDb();
   const [range, setRange] = useState<DateRange | undefined>({ from: new Date('2026-11-16'), to: new Date('2026-11-29') });
   const [budget, setBudget] = useState(15000);
-  const today = new Date();
+  const today = prototypeNow();
   const from = range?.from ? range.from.toISOString().slice(0, 10) : undefined;
   const to = range?.to ? range.to.toISOString().slice(0, 10) : from;
   const daysAhead = from ? Math.max(0, Math.round((new Date(from).getTime() - today.getTime()) / 86400000)) : undefined;
@@ -557,7 +558,7 @@ const OverviewPage: React.FC = () => {
                         { key: 'units', header: 'Units', render: (row) => <span className="tabular-nums">{row.units}</span> },
                         { key: 'price', header: 'Locked price', render: (row) => row.product?.pricingBasis ? <span className="flex items-center gap-1 tabular-nums"><Lock className="h-3 w-3 text-muted-foreground" />{formatPrice(row.priceLocked, row.product.pricingBasis)} <span className="text-muted-foreground">{BASIS_LABEL[row.product.pricingBasis]}</span></span> : `€${row.priceLocked}` },
                         { key: 'expires', header: 'Expires', render: (row) => {
-                          const days = daysBetween(new Date().toISOString().slice(0, 10), row.expiresAt.slice(0, 10));
+                          const days = daysBetween(PROTOTYPE_TODAY, row.expiresAt.slice(0, 10));
                           return row.effective === 'held' ? <span>{fmtDate(row.expiresAt)} <span className="text-muted-foreground">({days} day{days === 1 ? '' : 's'})</span></span> : fmtDate(row.expiresAt);
                         } },
                         { key: 'status', header: 'Status', render: (row) => holdBadge(row.effective) },

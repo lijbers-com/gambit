@@ -5,6 +5,7 @@ import { billingService, type InvoiceRecord } from '@/lib/billing-service';
 import { fillRateFor, priceFor } from './pricing';
 import { SEED_VERSION, seedData } from './seed';
 import { nextStatus, type LifecycleAction } from './lifecycle';
+import { prototypeNow } from '../clock';
 
 /**
  * The prototype "database": seed JSON + localStorage persistence + a tiny
@@ -167,13 +168,13 @@ export function createBooking(input: Omit<Booking, 'id' | 'createdAt' | 'updated
  * pause does not cost the advertiser the rate they were quoted.
  */
 function holdInventory(db: DbData, booking: Booking) {
-  const daysAhead = Math.max(0, Math.round((new Date(booking.startDate).getTime() - Date.now()) / 86400000));
+  const daysAhead = Math.max(0, Math.round((new Date(booking.startDate).getTime() - prototypeNow().getTime()) / 86400000));
   for (const positionId of booking.positionIds) {
     const position = db.positions.find((p) => p.id === positionId);
     const product = position && db.mediaProducts.find((m) => m.id === position.mediaProductId);
     if (!position || !product) continue;
     const build = priceFor(db, position, { from: booking.startDate, to: booking.endDate, daysAhead, budget: booking.budget, fillRate: fillRateFor(db, position, booking.startDate, booking.endDate) });
-    const heldAt = new Date();
+    const heldAt = prototypeNow();
     const expiresAt = new Date(heldAt.getTime() + (product.holdDays ?? 5) * 86400000);
     db.inventoryHolds.push({
       id: nextId('IH', db.inventoryHolds),
@@ -232,7 +233,7 @@ export function quoteBookingPrice(bookingId: string): 'quoted' | 'no-budget' | '
   if (view.state !== 'indicative') return 'no-budget';
   const product = productForBooking(db, booking);
   const positionId = booking.positionIds[0] ?? db.positions.find((p) => p.mediaProductId === product?.id)?.id;
-  const heldAt = new Date();
+  const heldAt = prototypeNow();
   const hold: InventoryHold | undefined = positionId ? {
     id: nextId('IH', db.inventoryHolds),
     bookingId: booking.id,

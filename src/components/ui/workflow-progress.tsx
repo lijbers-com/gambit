@@ -7,6 +7,7 @@ import { TabActionGroup } from './tab-actions';
 import { useDb, useSession, readWorkflow, workflowOrDefault, targetFor, type Booking, type WorkflowScope, type WorkflowStep, type WorkflowStepState, type WorkflowTarget } from '@/lib/db';
 import { LIFECYCLE_LABEL } from '@/lib/status-vocabulary';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import { prototypeToday } from '@/lib/clock';
 
 /**
  * Where a campaign or booking stands in its proposition's workflow, and what
@@ -59,7 +60,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({ engine, book
   // A demo entity the store does not hold still reads the workflow: in
   // review, two weeks out, creatives as linked, no placement yet.
   const linked = bookingId ? db.creatives.filter((c) => c.bookingIds.includes(bookingId)) : [];
-  const fallbackStart = new Date(); fallbackStart.setDate(fallbackStart.getDate() + 14);
+  const fallbackStart = prototypeToday(); fallbackStart.setDate(fallbackStart.getDate() + 14);
   const fallback = (id: string): Booking => ({
     id, campaignId: '', name: id, status: 'in-option', budget: 0, spend: 0,
     startDate: fallbackStart.toISOString().slice(0, 10), endDate: fallbackStart.toISOString().slice(0, 10),

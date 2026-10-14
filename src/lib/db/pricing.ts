@@ -1,5 +1,6 @@
 import type { DbData, EngineId, InventoryHold, MediaProduct, Position, PricingBasis, PricingRule } from './types';
 import { positionFillRate } from './inventory';
+import { prototypeNow } from '../clock';
 
 /**
  * The product & pricing engine, first cut.
@@ -171,7 +172,7 @@ export function holdsFor(db: DbData, filter: { productId?: string; positionId?: 
 }
 
 /** A hold that has run past its expiry without confirmation reads as expired. */
-export function effectiveHoldStatus(hold: InventoryHold, now = new Date()): InventoryHold['status'] {
+export function effectiveHoldStatus(hold: InventoryHold, now = prototypeNow()): InventoryHold['status'] {
   if (hold.status === 'held' && new Date(hold.expiresAt) < now) return 'expired';
   return hold.status;
 }

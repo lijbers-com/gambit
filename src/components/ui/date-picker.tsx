@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { prototypeToday } from '@/lib/clock';
 
 // Single date picker props
 export interface DatePickerProps {
@@ -94,14 +95,14 @@ export const futureDateRangePresets: DateRangePreset[] = [
   {
     label: "This week",
     value: () => ({
-      from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-      to: endOfWeek(new Date(), { weekStartsOn: 1 }),
+      from: startOfWeek(prototypeToday(), { weekStartsOn: 1 }),
+      to: endOfWeek(prototypeToday(), { weekStartsOn: 1 }),
     }),
   },
   {
     label: "Next week",
     value: () => {
-      const next = addWeeks(new Date(), 1)
+      const next = addWeeks(prototypeToday(), 1)
       return {
         from: startOfWeek(next, { weekStartsOn: 1 }),
         to: endOfWeek(next, { weekStartsOn: 1 }),
@@ -111,31 +112,31 @@ export const futureDateRangePresets: DateRangePreset[] = [
   {
     label: "Next 2 weeks",
     value: () => ({
-      from: startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }),
-      to: endOfWeek(addWeeks(new Date(), 2), { weekStartsOn: 1 }),
+      from: startOfWeek(addWeeks(prototypeToday(), 1), { weekStartsOn: 1 }),
+      to: endOfWeek(addWeeks(prototypeToday(), 2), { weekStartsOn: 1 }),
     }),
   },
   {
     label: "This month",
     value: () => ({
-      from: startOfMonth(new Date()),
-      to: endOfMonth(new Date()),
+      from: startOfMonth(prototypeToday()),
+      to: endOfMonth(prototypeToday()),
     }),
   },
   {
     label: "Next month",
     value: () => {
-      const next = addMonths(new Date(), 1)
+      const next = addMonths(prototypeToday(), 1)
       return { from: startOfMonth(next), to: endOfMonth(next) }
     },
   },
   {
     label: "Next 7 days",
-    value: () => ({ from: new Date(), to: addDays(new Date(), 6) }),
+    value: () => ({ from: prototypeToday(), to: addDays(prototypeToday(), 6) }),
   },
   {
     label: "Next 30 days",
-    value: () => ({ from: new Date(), to: addDays(new Date(), 29) }),
+    value: () => ({ from: prototypeToday(), to: addDays(prototypeToday(), 29) }),
   },
 ]
 
@@ -143,42 +144,42 @@ const defaultPresets: DateRangePreset[] = [
   {
     label: "Today",
     value: () => ({
-      from: new Date(),
-      to: new Date(),
+      from: prototypeToday(),
+      to: prototypeToday(),
     }),
   },
   {
     label: "Yesterday",
     value: () => ({
-      from: subDays(new Date(), 1),
-      to: subDays(new Date(), 1),
+      from: subDays(prototypeToday(), 1),
+      to: subDays(prototypeToday(), 1),
     }),
   },
   {
     label: "Last 7 days",
     value: () => ({
-      from: subDays(new Date(), 6),
-      to: new Date(),
+      from: subDays(prototypeToday(), 6),
+      to: prototypeToday(),
     }),
   },
   {
     label: "Last 30 days",
     value: () => ({
-      from: subDays(new Date(), 29),
-      to: new Date(),
+      from: subDays(prototypeToday(), 29),
+      to: prototypeToday(),
     }),
   },
   {
     label: "This week",
     value: () => ({
-      from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-      to: endOfWeek(new Date(), { weekStartsOn: 1 }),
+      from: startOfWeek(prototypeToday(), { weekStartsOn: 1 }),
+      to: endOfWeek(prototypeToday(), { weekStartsOn: 1 }),
     }),
   },
   {
     label: "Last week",
     value: () => {
-      const lastWeek = subWeeks(new Date(), 1)
+      const lastWeek = subWeeks(prototypeToday(), 1)
       return {
         from: startOfWeek(lastWeek, { weekStartsOn: 1 }),
         to: endOfWeek(lastWeek, { weekStartsOn: 1 }),
@@ -188,14 +189,14 @@ const defaultPresets: DateRangePreset[] = [
   {
     label: "This month",
     value: () => ({
-      from: startOfMonth(new Date()),
-      to: endOfMonth(new Date()),
+      from: startOfMonth(prototypeToday()),
+      to: endOfMonth(prototypeToday()),
     }),
   },
   {
     label: "Last month",
     value: () => {
-      const lastMonth = subMonths(new Date(), 1)
+      const lastMonth = subMonths(prototypeToday(), 1)
       return {
         from: startOfMonth(lastMonth),
         to: endOfMonth(lastMonth),
@@ -348,7 +349,7 @@ export function DateRangePicker({
    * were in view explained colours that were not there.
    */
   const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(undefined);
-  const firstMonth = displayMonth ?? dateRange?.from ?? new Date();
+  const firstMonth = displayMonth ?? dateRange?.from ?? prototypeToday();
   const windowStart = startOfMonth(firstMonth);
   const windowEnd = endOfMonth(addMonths(windowStart, 1)); // two months are shown
   const visibleEvents = (events ?? []).filter((ev) => {

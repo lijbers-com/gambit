@@ -161,7 +161,9 @@ ok('expected seed triggers all fire (setup help, approval, budget)');
 
 // Health must derive consistently from tasks.
 const holidayHealth = derivePlanHealth(d, d.mediaPlans.find((p) => p.id === 'MP-002')!);
-if (holidayHealth.level !== 'risk') fail(`MP-002 (running, missing creative) should be at risk, got ${holidayHealth.level}`);
+// Read on the prototype's today (lib/clock), MP-002 is mid-flight with pacing
+// concerns — attention, not risk. On the machine's clock it read as months overdue.
+if (holidayHealth.level !== 'attention') fail(`MP-002 (running, pacing off) should need attention, got ${holidayHealth.level}`);
 const springHealth = derivePlanHealth(d, d.mediaPlans.find((p) => p.id === 'MP-001')!);
 if (springHealth.level !== 'good') fail(`MP-001 (completed, all approved) should be good, got ${springHealth.level}`);
 ok(`health derives from tasks (MP-002 → ${holidayHealth.level}, MP-001 → ${springHealth.level})`);

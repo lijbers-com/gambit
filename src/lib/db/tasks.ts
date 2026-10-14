@@ -2,6 +2,7 @@ import type { DbData, EngineId, MediaPlan, UserSide } from './types';
 import { keywordWeek, recommendationsForKeyword, type Recommendation } from '../recommendations';
 import { deriveWorkflowTodos, type WorkflowTodoStep } from './workflow-todos';
 import { planHealth, scoreHealth, INDICATOR_CATALOGUE } from './health';
+import { prototypeNow } from '../clock';
 
 /**
  * Derived to-dos — the alignment layer between statuses, tasks, health,
@@ -82,7 +83,7 @@ function elapsedPercent(startDate: string, endDate: string): number {
   const start = new Date(startDate).getTime();
   const end = new Date(endDate).getTime();
   if (!(end > start)) return 100;
-  const now = Date.now();
+  const now = prototypeNow().getTime();
   return Math.max(0, Math.min(100, Math.round(((now - start) / (end - start)) * 100)));
 }
 

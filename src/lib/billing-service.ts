@@ -1,4 +1,5 @@
 import type { Invoice } from '@/lib/db/types';
+import { prototypeNow } from './clock';
 
 /**
  * The contract between Edge and the retailer's billing service (RE).
@@ -97,12 +98,12 @@ export function mockBillingService(existing: () => Invoice[]): BillingServiceCli
     mode: 'mock',
     async submitBillableLines(request) {
       const invoices = existing();
-      const year = new Date().getFullYear();
+      const year = prototypeNow().getFullYear();
       const seq = invoices
         .map((i) => parseInt(i.number.split('-').pop() ?? '0', 10))
         .filter((n) => !Number.isNaN(n))
         .reduce((a, b) => Math.max(a, b), 0) + 1;
-      const issued = new Date();
+      const issued = prototypeNow();
       const due = new Date(issued.getTime() + PAYMENT_TERMS_DAYS * 86400000);
       return {
         id: `INV-${String(invoices.length + 1).padStart(3, '0')}`,

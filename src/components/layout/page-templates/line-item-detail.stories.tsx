@@ -71,6 +71,7 @@ import { getPropositionMetrics } from '@/lib/proposition-metrics';
 import type { MetricDefinition } from '@/components/ui/metric-row';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { Label } from '@/components/ui/label';
+import { prototypeToday } from '@/lib/clock';
 
 // --- Shared campaign metrics per proposition type ---
 // These mirror the campaign-level metrics so users see consistent data when navigating from campaign → booking
@@ -612,7 +613,7 @@ export const Display: Story = {
 
     // Booking setup
     const [bookingName, setBookingName] = React.useState('Display · Summer Launch · Homepage Takeover');
-    const [startDate, setStartDate] = React.useState<Date | undefined>(new Date());
+    const [startDate, setStartDate] = React.useState<Date | undefined>(prototypeToday());
     const [startTime, setStartTime] = React.useState('00:00');
     const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
     // The run time is the booking's: shown from it, written back to it.
@@ -1346,8 +1347,8 @@ export const DigitalInStore: Story = {
     const [selectedPlacement, setSelectedPlacement] = React.useState<any>(null);
     const [showPlacementResults, setShowPlacementResults] = React.useState(false);
     // Default the run time to next week (matches the "Next week" preset)
-    const [startDate, setStartDate] = React.useState<Date | undefined>(() => startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }));
-    const [endDate, setEndDate] = React.useState<Date | undefined>(() => endOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }));
+    const [startDate, setStartDate] = React.useState<Date | undefined>(() => startOfWeek(addWeeks(prototypeToday(), 1), { weekStartsOn: 1 }));
+    const [endDate, setEndDate] = React.useState<Date | undefined>(() => endOfWeek(addWeeks(prototypeToday(), 1), { weekStartsOn: 1 }));
     // The run time is the booking's: shown from it, written back to it.
     useBookingDatesSync(routeBooking, startDate, endDate, setStartDate, setEndDate);
     const dInstoreDateRange = React.useMemo<DateRange | undefined>(

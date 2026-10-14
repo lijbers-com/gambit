@@ -43,6 +43,7 @@ import { SessionDateRange } from '@/components/ui/session-date-range';
 import { CardInsightList, type CardInsight } from '@/components/ui/insights-notifications';
 import { shareOfVoiceCase, salesUpliftTestCase, volumePacingCase, buyerMixCase, budgetRecommendationCase, keywordRecommendationCase } from '@/lib/case-templates';
 import { Label } from '@/components/ui/label';
+import { prototypeToday } from '@/lib/clock';
 
 // The Share of Voice card's own insights — template-built cases, shown in
 // the card the numbers live in (see ui/insights-notifications).
@@ -388,7 +389,7 @@ const performanceMetrics = [
 // Mock data for chart - showing daily campaign runtime performance
 const getChartData = (selectedMetric: string, engineType?: string, timeRange: string = 'last-month', dateRange?: DateRange) => {
   const days = [];
-  const today = new Date();
+  const today = prototypeToday();
   
   // If dateRange is provided, use it instead of timeRange
   if (dateRange?.from && dateRange?.to) {
@@ -629,8 +630,8 @@ export const GeneralInsights: Story = {
     const currentTheme = storybookTheme || 'retailMedia';
     const routes = getRoutesForTheme(currentTheme);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(),
+      from: new Date(prototypeToday().getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(),
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
     
@@ -1347,8 +1348,8 @@ export const DisplayPerformance: Story = {
     const [activeTab, setActiveTab] = useState('bookings');
     const [timeRange, setTimeRange] = useState('last-month');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(),
+      from: new Date(prototypeToday().getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(),
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
     
@@ -1590,8 +1591,8 @@ export const DigitalInstorePerformance: Story = {
     const [activeTab, setActiveTab] = useState('bookings');
     const [timeRange, setTimeRange] = useState('last-month');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(),
+      from: new Date(prototypeToday().getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(),
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
     
@@ -2016,8 +2017,8 @@ export const OfflineInstorePerformance: Story = {
     const [activeTab, setActiveTab] = useState('bookings');
     const [timeRange, setTimeRange] = useState('last-month');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(),
+      from: new Date(prototypeToday().getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(),
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
     
@@ -2368,8 +2369,8 @@ export const FullReportView: Story = {
     const [bookingFilter, setBookingFilter] = useState<string | undefined>(undefined);
     const [engineFilter, setEngineFilter] = useState<string | undefined>(undefined);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(),
+      from: new Date(prototypeToday().getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(),
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
 
@@ -2704,8 +2705,8 @@ export const ProductReportView: Story = {
     const [searchValue, setSearchValue] = useState('');
     const [activeTab, setActiveTab] = useState('product-report');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(),
+      from: new Date(prototypeToday().getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(),
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
 

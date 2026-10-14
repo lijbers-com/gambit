@@ -19,9 +19,10 @@
 
 import type { Booking, DbData, EngineId, GoalMetric, MediaProduct, Position, PricingRule } from './types';
 import { buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
+import { PROTOTYPE_TODAY } from '../clock';
 
-/** The prototype's today — the seed's own `now`. Calendars open on it. */
-export const PROTOTYPE_TODAY = '2026-07-30';
+/** The prototype's today (lib/clock) — calendars open on it. */
+export { PROTOTYPE_TODAY };
 /** Weeks a calendar shows when it opens. */
 export const CALENDAR_WEEKS = 12;
 

@@ -2,6 +2,8 @@
 
 Welcome to the comprehensive documentation for the Gambit Retail Media Platform.
 
+**Start here:** [Architecture & system rules](./system-rules.md). It is the central map of how the prototype works, mirrored from EpicContext `prototype-architecture`.
+
 ## 📋 Documentation Structure
 
 ### 🏢 Business & Strategy

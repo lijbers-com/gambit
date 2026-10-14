@@ -1,6 +1,7 @@
 import { productImages } from '@/lib/product-images';
 import type { Booking, DbData, Invoice } from './types';
 import { buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
+import { prototypeNow } from '../clock';
 
 /**
  * Seed data for the prototype database. Users map 1:1 to the EpicContext
@@ -13,9 +14,9 @@ import { buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 41;
+export const SEED_VERSION = 42;
 
-const now = '2026-07-30T00:00:00.000Z';
+const now = prototypeNow().toISOString();
 
 const baseSeed: DbData = {
   version: SEED_VERSION,
@@ -936,13 +937,14 @@ const baseSeed: DbData = {
 
   // ── Inventory holds ───────────────────────────────────────────────────
   // Bookings in review hold their positions at the price that stood when
-  // they were booked, until the product's hold days run out.
+  // they were booked, until the product's hold days run out. Dated around
+  // the prototype's today (lib/clock), so the held ones are still held.
   inventoryHolds: [
-    { id: 'IH-001', bookingId: 'B-009', positionId: 'pos-dis-entrance',    from: '2026-06-08', to: '2026-08-15', units: 2,  priceLocked: 9,    heldAt: '2026-09-14T09:00:00.000Z', expiresAt: '2026-09-21T09:00:00.000Z', status: 'held' },
-    { id: 'IH-002', bookingId: 'B-010', positionId: 'pos-off-web-standard', from: '2026-06-08', to: '2026-08-15', units: 20, priceLocked: 6,    heldAt: '2026-09-15T10:30:00.000Z', expiresAt: '2026-09-20T10:30:00.000Z', status: 'held' },
-    { id: 'IH-003', bookingId: 'B-012', positionId: 'pos-dsp-pdp',          from: '2026-07-01', to: '2026-08-31', units: 4,  priceLocked: 10.8, heldAt: '2026-09-13T14:00:00.000Z', expiresAt: '2026-09-16T14:00:00.000Z', status: 'expired' },
-    { id: 'IH-004', bookingId: 'B-014', positionId: 'pos-sp-search-top',    from: '2026-08-10', to: '2026-09-10', units: 1,  priceLocked: 0.83, heldAt: '2026-09-15T08:00:00.000Z', expiresAt: '2026-09-18T08:00:00.000Z', status: 'held' },
-    { id: 'IH-005', bookingId: 'B-018', positionId: 'pos-ois-floor',        from: '2026-09-01', to: '2026-09-30', units: 3,  priceLocked: 32,   heldAt: '2026-09-10T11:00:00.000Z', expiresAt: '2026-09-20T11:00:00.000Z', status: 'held' },
+    { id: 'IH-001', bookingId: 'B-009', positionId: 'pos-dis-entrance',    from: '2026-06-08', to: '2026-08-15', units: 2,  priceLocked: 9,    heldAt: '2026-07-27T09:00:00.000Z', expiresAt: '2026-08-03T09:00:00.000Z', status: 'held' },
+    { id: 'IH-002', bookingId: 'B-010', positionId: 'pos-off-web-standard', from: '2026-06-08', to: '2026-08-15', units: 20, priceLocked: 6,    heldAt: '2026-07-28T10:30:00.000Z', expiresAt: '2026-08-02T10:30:00.000Z', status: 'held' },
+    { id: 'IH-003', bookingId: 'B-012', positionId: 'pos-dsp-pdp',          from: '2026-07-01', to: '2026-08-31', units: 4,  priceLocked: 10.8, heldAt: '2026-07-24T14:00:00.000Z', expiresAt: '2026-07-27T14:00:00.000Z', status: 'expired' },
+    { id: 'IH-004', bookingId: 'B-014', positionId: 'pos-sp-search-top',    from: '2026-08-10', to: '2026-09-10', units: 1,  priceLocked: 0.83, heldAt: '2026-07-29T08:00:00.000Z', expiresAt: '2026-08-01T08:00:00.000Z', status: 'held' },
+    { id: 'IH-005', bookingId: 'B-018', positionId: 'pos-ois-floor',        from: '2026-09-01', to: '2026-09-30', units: 3,  priceLocked: 32,   heldAt: '2026-07-24T11:00:00.000Z', expiresAt: '2026-08-03T11:00:00.000Z', status: 'held' },
     { id: 'IH-006', bookingId: 'B-005', positionId: 'pos-dsp-home-hero',    from: '2026-06-01', to: '2026-06-30', units: 1,  priceLocked: 17.5, heldAt: '2026-05-20T09:00:00.000Z', expiresAt: '2026-05-25T09:00:00.000Z', status: 'confirmed' },
   ],
 
@@ -1230,7 +1232,7 @@ function withGuaranteedTerms(db: DbData): DbData {
     return { id: `L-${i + 1}`, bookingId: id, description: b.name, amount: b.price?.state === 'agreed' ? b.price.amount : b.spend };
   };
   const invoice = (inv: Omit<Invoice, 'lines' | 'vatRate' | 'syncedAt'>, bookingIds: string[]): Invoice => ({
-    ...inv, vatRate: 0.21, syncedAt: '2026-09-27T06:00:00.000Z', lines: bookingIds.map(lineFor),
+    ...inv, vatRate: 0.21, syncedAt: '2026-07-30T06:00:00.000Z', lines: bookingIds.map(lineFor),
   });
   withTerms.invoices = [
     invoice({ id: 'INV-001', number: '2026-0017', advertiserId: 'adv-nestle-trade', mediaPlanId: 'MP-009', poNumber: 'PO-2026-0003', status: 'paid', issuedAt: '2026-02-20T09:00:00.000Z', dueAt: '2026-03-22T09:00:00.000Z', paidAt: '2026-03-15T09:00:00.000Z' }, ['B-021', 'B-022']),

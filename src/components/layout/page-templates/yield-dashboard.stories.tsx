@@ -20,6 +20,7 @@ import { Table } from '@/components/ui/table';
 import { Viewbar } from '@/components/ui/viewbar';
 import { Input } from '@/components/ui/input';
 import { FilterBar } from '@/components/ui/filter-bar';
+import { prototypeToday } from '@/lib/clock';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Yield Dashboard',
@@ -1467,8 +1468,8 @@ export const SponsoredProductsYield: Story = {
     const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(), // today
+      from: new Date(prototypeToday().getTime() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(), // today
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
     const [activeTab, setActiveTab] = useState('positions');
@@ -1624,8 +1625,8 @@ export const DisplayYield: Story = {
     const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(), // today
+      from: new Date(prototypeToday().getTime() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(), // today
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
     const [activeTab, setActiveTab] = useState('positions');
@@ -1781,8 +1782,8 @@ export const DigitalInstoreYield: Story = {
     const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(), // today
+      from: new Date(prototypeToday().getTime() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(), // today
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
     const [activeTab, setActiveTab] = useState('stores');
@@ -1938,8 +1939,8 @@ export const OfflineInstoreYield: Story = {
     const routes = getRoutesForTheme(currentTheme);
     const [selectedMetric, setSelectedMetric] = useState('fill-rate');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(), // today
+      from: new Date(prototypeToday().getTime() - 29 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(), // today
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
     const [activeTab, setActiveTab] = useState('positions');
@@ -2100,8 +2101,8 @@ export const YieldReportView: Story = {
     const [searchValue, setSearchValue] = useState('');
     const [activeTab, setActiveTab] = useState('fill-rate-report');
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-      from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      to: new Date(),
+      from: new Date(prototypeToday().getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      to: prototypeToday(),
     });
     const [conversionWindow, setConversionWindow] = useState<number>(14);
 

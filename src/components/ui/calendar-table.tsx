@@ -33,6 +33,20 @@ export interface Booking {
   volume?: { amount: number; unit: 'stores' | 'clicks' | 'impressions' };
 }
 
+/** The level between a media product and its positions: where it runs —
+ *  a page, a store area, a partner. A row of its own, with its own cells,
+ *  that opens into its positions. */
+export interface Placement {
+  id: string;
+  name: string;
+  availability: CalendarCellValue[];
+  storeCapacity?: number;
+  availableStores?: number[];
+  capacity?: number[];
+  skipTargetCheck?: boolean;
+  positions: Position[];
+}
+
 /** One drill-down level under a channel — typically a screen or banner position. */
 export interface Position {
   id: string;
@@ -216,6 +230,10 @@ export interface MediaProduct {
   name: string;
   /** As Position.placement, when the row stands for a position. */
   placement?: string;
+  /** Media product → placement → position: when given, an open product
+   *  shows its placements as rows, and each placement opens into its
+   *  positions. Without it, positions sit straight under the product. */
+  placements?: Placement[];
   availability: CalendarCellValue[];
   bookings?: Booking[];
   isHighlighted?: boolean[];
@@ -981,8 +999,47 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                 )}
               </tr>
 
+              {/* Media product → placement → position: every level a row of its
+                  own; a click opens the next level down. */}
+              {expandedRows.includes(product.id) && product.placements?.map((placement) => (
+                <React.Fragment key={`plc-${placement.id}`}>
+                  <tr className="bg-muted/50">
+                    <td className="py-[11px] align-middle pl-8 pr-4" style={{ width: zonesColumnWidth, maxWidth: zonesColumnWidth }}>
+                      <div className="flex items-center gap-1.5 min-w-0" title={placement.name}>
+                        <button
+                          type="button"
+                          onClick={() => toggleRow(placement.id)}
+                          className="shrink-0 text-muted-foreground hover:text-foreground focus:outline-none"
+                          aria-label={expandedRows.includes(placement.id) ? `Collapse ${placement.name}` : `Expand ${placement.name}`}
+                        >
+                          {expandedRows.includes(placement.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </button>
+                        <span className="truncate text-[13px] text-neutral-700">{placement.name}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">{placement.positions.length}</span>
+                      </div>
+                    </td>
+                    {placement.availability.slice(0, weeks).map((value, i) =>
+                      renderAvailabilityCell(value, i, { ...product, id: placement.id, name: placement.name, availability: placement.availability, storeCapacity: placement.storeCapacity, availableStores: placement.availableStores, capacity: placement.capacity, skipTargetCheck: placement.skipTargetCheck, positions: undefined, placements: undefined }, undefined, placement)
+                    )}
+                  </tr>
+                  {expandedRows.includes(placement.id) && placement.positions.map((position) => (
+                    <tr key={`pos-${position.id}`} className="bg-muted/50">
+                      <td className="py-[11px] align-middle pl-14 pr-4" style={{ width: zonesColumnWidth, maxWidth: zonesColumnWidth }}>
+                        <div className="flex items-center gap-1.5 min-w-0 text-[13px] text-muted-foreground" title={position.name}>
+                          <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+                          <span className="truncate">{position.name}</span>
+                        </div>
+                      </td>
+                      {position.availability.slice(0, weeks).map((value, i) =>
+                        renderAvailabilityCell(value, i, { ...product, id: position.id, name: position.name, availability: position.availability, storeCapacity: position.storeCapacity, availableStores: position.availableStores, capacity: position.capacity, skipTargetCheck: undefined, positions: undefined, placements: undefined }, undefined, position)
+                      )}
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
+
               {/* Expanded positions (ad positions / screens under the channel) — capped at maxInlinePositions */}
-              {expandedRows.includes(product.id) && product.positions && product.positions.slice(0, maxInlinePositions).map((position, positionIndex, shown) => (
+              {expandedRows.includes(product.id) && !product.placements?.length && product.positions && product.positions.slice(0, maxInlinePositions).map((position, positionIndex, shown) => (
                 <React.Fragment key={`pos-${position.id}`}>
                 {/* Media product → placement → position: a placement heads
                     its positions, once, where the group starts. */}
@@ -1016,7 +1073,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                     </div>
                   </td>
                   {position.availability.slice(0, weeks).map((value, i) =>
-                    renderAvailabilityCell(value, i, { ...product, id: position.id, name: position.name, availability: position.availability, positions: undefined }, undefined, position)
+                    renderAvailabilityCell(value, i, { ...product, id: position.id, name: position.name, availability: position.availability, storeCapacity: position.storeCapacity, availableStores: position.availableStores, capacity: position.capacity, skipTargetCheck: undefined, positions: undefined }, undefined, position)
                   )}
                 </tr>
                 </React.Fragment>
@@ -1025,7 +1082,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
               {/* "+N more positions" row — appears when the channel has more
                   positions than maxInlinePositions and points the user at
                   the focused view (opened via onChannelClick). */}
-              {expandedRows.includes(product.id) && product.positions && product.positions.length > maxInlinePositions && (
+              {expandedRows.includes(product.id) && !product.placements?.length && product.positions && product.positions.length > maxInlinePositions && (
                 <tr className="bg-muted/50">
                   <td
                     colSpan={weeks + 1}

@@ -266,9 +266,27 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
     const storeCapacity = combo
       ? Math.min(...posRows.map((r) => r.storeCapacity ?? 0))
       : posRows.reduce((sum, r) => sum + (r.storeCapacity ?? 0), 0);
+    // Placements: the level between the product and its positions, each a
+    // row of its own summed (or, while composing, combined) the same way.
+    const placementRows = [...new Set(positions.map((p) => p.placementId))].map((placementId) => {
+      const own = posRows.filter((r) => positions.find((p) => p.id === r.id)?.placementId === placementId);
+      const ids = own.map((r) => r.id);
+      const pWeeks = mondays.map((m) => productWeek(db, product, m, inventoryOpts, ids));
+      const pStores = mondays.map((_, i) => combo ? Math.min(...own.map((r) => r.stores[i])) : own.reduce((sum, r) => sum + r.stores[i], 0));
+      const pCapacity = combo ? Math.min(...own.map((r) => r.storeCapacity ?? 0)) : own.reduce((sum, r) => sum + (r.storeCapacity ?? 0), 0);
+      return {
+        id: placementId,
+        name: placementName(placementId) ?? placementId,
+        availability: pWeeks.map((w, i) => cellFor(w, pStores[i])),
+        capacity: pWeeks.map((w) => w.capacity),
+        ...(config.storeBased ? { storeCapacity: pCapacity, ...(combo ? { availableStores: pStores } : { skipTargetCheck: true }) } : {}),
+        positions: own,
+      };
+    });
     return {
       id: product.id,
       name: product.name,
+      placements: placementRows,
       availability: weeks.map((w, i) => cellFor(w, stores[i])),
       capacity: weeks.map((w) => w.capacity),
       ...(config.storeBased ? { storeCapacity, ...(combo ? { availableStores: stores } : { skipTargetCheck: true }) } : {}),
@@ -297,12 +315,22 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
     const i = weekNumbers.indexOf(weekNumber);
     if (i < 0) return;
     const product = products.find((p) => p.id === row.id);
+    const placement = db.placements.find((p) => p.id === row.id);
     const position = db.positions.find((p) => p.id === row.id);
+    const placementProduct = placement && products.find((p) => p.id === placement.mediaProductId);
     const week = product
       ? productWeek(db, product, mondays[i], inventoryOpts, visiblePositions(product).map((p) => p.id))
-      : position ? positionWeek(db, position, mondays[i], inventoryOpts) : undefined;
+      : placement && placementProduct
+        ? productWeek(db, placementProduct, mondays[i], inventoryOpts, visiblePositions(placementProduct).filter((p) => p.placementId === placement.id).map((p) => p.id))
+        : position ? positionWeek(db, position, mondays[i], inventoryOpts) : undefined;
     if (!week) return;
-    setCell({ name: row.name, monday: mondays[i], week, stores: row.availableStores?.[i], storeCapacity: row.storeCapacity });
+    // Stores free: the row's own figure, else the sum over its positions.
+    const under = product ? visiblePositions(product)
+      : placement && placementProduct ? visiblePositions(placementProduct).filter((p) => p.placementId === placement.id)
+        : position ? [position] : [];
+    const stores = row.availableStores?.[i]
+      ?? (config.storeBased ? under.reduce((n, p) => n + storesFree(db, p, positionWeek(db, p, mondays[i], inventoryOpts), storeShare), 0) : undefined);
+    setCell({ name: row.name, monday: mondays[i], week, stores, storeCapacity: row.storeCapacity });
     setDrawerOpen(true);
   };
 

@@ -54,7 +54,9 @@ export const defaultFillRateColors: Record<FillRateSegmentKey, string> = {
   booked:       "hsl(var(--chart-800))",
   confirmed:    "hsl(var(--chart-500))",
   reserved:     "hsl(var(--chart-300))",
-  available:    "rgb(var(--neutral-200))",
+  // A step darker than the row greys, so the open part of the bar still
+  // reads on an expanded (grey) calendar row.
+  available:    "rgb(var(--neutral-300))",
   overbooked:   "hsl(var(--destructive-500))",
   overreserved: "hsl(var(--warning-500))",
   // Sales-channel split reuses the same shade slots so it visually
@@ -205,8 +207,8 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
 
     const bar = (
       <div
-        className="flex w-full overflow-hidden rounded-sm bg-muted"
-        style={{ height }}
+        className="flex w-full overflow-hidden rounded-sm"
+        style={{ height, backgroundColor: "rgb(var(--neutral-300))" }}
         role="img"
         aria-label={tooltipText}
       >

@@ -272,6 +272,10 @@ export interface CalendarTableProps {
   /** Rows that open expanded — a proposition with one media product shows
    *  its positions straight away. */
   defaultExpandedIds?: string[];
+  /** Booking lanes shown under an open row before the rest folds into a
+   *  "+N more bookings" row. Bookings share a lane when they do not overlap,
+   *  earliest first, so the lanes read left to right. Default 6. */
+  maxBookingLanes?: number;
 }
 
 /** What a row knows beyond its cells: the stores bar's length and the
@@ -308,11 +312,14 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   hasRetailProductFilter = false,
   storeTarget,
   defaultExpandedIds,
+  maxBookingLanes = 6,
   onChannelClick,
   onBookingClick,
   maxInlinePositions = 5,
 }) => {
   const [expandedRows, setExpandedRows] = React.useState<string[]>(defaultExpandedIds ?? []);
+  // Rows whose every booking lane is shown, past maxBookingLanes.
+  const [allLanes, setAllLanes] = React.useState<string[]>([]);
   const [isCommercialCalendarOpen, setIsCommercialCalendarOpen] = React.useState(true);
 
   const toggleRow = (id: string) => {
@@ -611,36 +618,40 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     );
   };
 
-  const renderBooking = (booking: Booking, weekNumbers: number[], bookingIndex: number, totalBookings: number) => {
-    const startCol = Math.max(0, weekNumbers.indexOf(booking.startWeek));
-    const endCol = Math.min(weeks - 1, weekNumbers.indexOf(booking.endWeek));
-    const colspan = endCol - startCol + 1;
-    
-    const cells = [];
-    
-    // Add empty cells before the booking
-    for (let i = 0; i < startCol; i++) {
-      cells.push(
-        <td key={`empty-${i}`} className={cn(
-          "px-4 align-middle",
-          bookingIndex === 0 ? "pt-6 pb-0.5" : bookingIndex === totalBookings - 1 ? "pt-0.5 pb-6" : "py-0.5"
-        )}>
-          <div style={{ minHeight: 32 }} />
-        </td>
-      );
+  /** Bookings packed into lanes: sorted by start, each into the first lane
+   *  it does not overlap, so a lane reads left to right in time. */
+  const laneColumns = (booking: Booking) => {
+    const startIdx = weekNumbers.indexOf(booking.startWeek);
+    const endIdx = weekNumbers.indexOf(booking.endWeek);
+    return { start: startIdx < 0 ? 0 : startIdx, end: endIdx < 0 ? weeks - 1 : Math.min(weeks - 1, endIdx) };
+  };
+  const packLanes = (bookings: Booking[]): Booking[][] => {
+    const sorted = [...bookings].sort((a, b) => laneColumns(a).start - laneColumns(b).start || laneColumns(a).end - laneColumns(b).end);
+    const lanes: Booking[][] = [];
+    for (const booking of sorted) {
+      const { start } = laneColumns(booking);
+      const lane = lanes.find((l) => laneColumns(l[l.length - 1]).end < start);
+      if (lane) lane.push(booking); else lanes.push([booking]);
     }
-    
-    // Add the booking cell
-    if (colspan > 0) {
+    return lanes;
+  };
+
+  const renderLane = (lane: Booking[], laneIndex: number, totalLanes: number) => {
+    const pad = laneIndex === 0 ? (totalLanes === 1 ? "pt-6 pb-6" : "pt-6 pb-0.5") : laneIndex === totalLanes - 1 ? "pt-0.5 pb-6" : "py-0.5";
+    const cells: React.ReactNode[] = [];
+    let col = 0;
+    const empty = (key: string) => (
+      <td key={key} className={cn("px-4 align-middle", pad)}>
+        <div style={{ minHeight: 32 }} />
+      </td>
+    );
+    for (const booking of lane) {
+      const { start, end } = laneColumns(booking);
+      for (; col < start; col++) cells.push(empty(`empty-${booking.id}-${col}`));
+      const colspan = end - start + 1;
+      if (colspan <= 0) continue;
       cells.push(
-        <td 
-          key={booking.id} 
-          colSpan={colspan}
-          className={cn(
-            "px-4 align-middle",
-            bookingIndex === 0 ? "pt-6 pb-0.5" : bookingIndex === totalBookings - 1 ? "pt-0.5 pb-6" : "py-0.5"
-          )}
-        >
+        <td key={booking.id} colSpan={colspan} className={cn("px-4 align-middle", pad)}>
           <div style={{ minHeight: 32 }} className="flex items-center">
             {(() => {
               // The badge value depends on the active view: Impressions
@@ -713,20 +724,9 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
           </div>
         </td>
       );
+      col = end + 1;
     }
-    
-    // Add empty cells after the booking
-    for (let i = endCol + 1; i < weeks; i++) {
-      cells.push(
-        <td key={`empty-after-${i}`} className={cn(
-          "px-4 align-middle",
-          bookingIndex === 0 ? "pt-6 pb-0.5" : bookingIndex === totalBookings - 1 ? "pt-0.5 pb-6" : "py-0.5"
-        )}>
-          <div style={{ minHeight: 32 }} />
-        </td>
-      );
-    }
-    
+    for (; col < weeks; col++) cells.push(empty(`empty-after-${col}`));
     return cells;
   };
 
@@ -1049,21 +1049,40 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
               )}
 
               {/* Expanded bookings */}
-              {expandedRows.includes(product.id) && product.bookings && product.bookings.map((booking, bookingIndex) => (
-                <tr key={booking.id} className={cn(
-                  "bg-white",
-                  bookingIndex === 0 && "pt-6", // 24px top padding for first row
-                  bookingIndex === product.bookings!.length - 1 && "pb-6 border-b border-border" // 24px bottom padding and border for last row
-                )}>
-                  <td className={cn(
-                    "px-4 align-middle",
-                    bookingIndex === 0 ? "pt-6 pb-0.5" : bookingIndex === product.bookings!.length - 1 ? "pt-0.5 pb-6" : "py-0.5"
-                  )}>
-                    <div style={{ minHeight: 32 }} />
-                  </td>
-                  {renderBooking(booking, weekNumbers, bookingIndex, product.bookings!.length)}
-                </tr>
-              ))}
+              {expandedRows.includes(product.id) && product.bookings && product.bookings.length > 0 && (() => {
+                const lanes = packLanes(product.bookings);
+                const showAll = allLanes.includes(product.id);
+                const shown = showAll ? lanes : lanes.slice(0, maxBookingLanes);
+                const hidden = lanes.slice(shown.length).reduce((n, l) => n + l.length, 0);
+                const rows = shown.length + (hidden > 0 || showAll && lanes.length > maxBookingLanes ? 1 : 0);
+                return (
+                  <>
+                    {shown.map((lane, laneIndex) => (
+                      <tr key={`lane-${product.id}-${laneIndex}`} className={cn("bg-white", laneIndex === rows - 1 && "border-b border-border")}>
+                        <td className={cn("px-4 align-middle", laneIndex === 0 ? "pt-6 pb-0.5" : laneIndex === rows - 1 ? "pt-0.5 pb-6" : "py-0.5")}>
+                          <div style={{ minHeight: 32 }} />
+                        </td>
+                        {renderLane(lane, laneIndex, rows)}
+                      </tr>
+                    ))}
+                    {/* Past the cap, the rest of the bookings fold into one row. */}
+                    {rows > shown.length && (
+                      <tr className="bg-white border-b border-border">
+                        <td className="px-4 pt-0.5 pb-6" />
+                        <td colSpan={weeks} className="px-4 pt-0.5 pb-6">
+                          <button
+                            type="button"
+                            onClick={() => setAllLanes((prev) => showAll ? prev.filter((id) => id !== product.id) : [...prev, product.id])}
+                            className="inline-flex items-center rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-foreground hover:bg-accent"
+                          >
+                            {showAll ? 'Show fewer bookings' : `+${hidden} more booking${hidden === 1 ? '' : 's'}`}
+                          </button>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })()}
             </React.Fragment>
           ))}
         </tbody>

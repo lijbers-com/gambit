@@ -111,6 +111,8 @@ Data            src/lib/db (store + seed)    what is true     prototype-data-sch
 
 ## Known gaps
 
+- The seed's ~40 bookings fill only a small part of AH's network, so yield
+  fill rates read far below target.
 - `verify-db` still expects five to-dos from the old rule list (before the
   workflow boards). The expectations need updating to the workflow-driven
   to-dos.

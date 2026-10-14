@@ -23,6 +23,7 @@ export interface FilterBarFilter {
     placeholder?: string;
     type?: 'text' | 'number' | 'date';
     unit?: string;
+    range?: { min: number; max: number; step?: number };
   };
   /** Force the search field in the popover even when options is small. */
   forceSearch?: boolean;
@@ -65,6 +66,9 @@ export interface FilterBarProps {
   action?: React.ReactNode;
   /** Enter in the search box — for bars where typing also adds. */
   onSearchSubmit?: () => void;
+  /** A control before the filters — the date range, when a page has no
+   *  metric row to carry it. */
+  leading?: React.ReactNode;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -80,6 +84,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   viewIcon: ViewIcon = BarChart3,
   action,
   onSearchSubmit,
+  leading,
 }) => {
   // The bar watches its own width: filters, search and the action at full
   // width have to fit, or the action drops its label. Full width is cached
@@ -123,6 +128,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     // top right of the first line however many filters there are.
     <div ref={barRef} className={cn("flex items-start gap-inline w-full", className)}>
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-inline">
+        {leading}
         {filters.map((filter) => (
           <Filter
             key={filter.name}

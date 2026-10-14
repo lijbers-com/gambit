@@ -4226,7 +4226,6 @@ export const FunnelView: Story = {
             selectedKeys={selectedTopMetrics}
             onSelectionChange={setSelectedTopMetrics}
             maxSelectable={topMetrics.length}
-            editButtonVariant="outline"
           />
 
           {/* Conversion Funnel Breakdown + selected stage section */}

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Popover, PopoverTrigger, PopoverContent } from './popover';
 import { Checkbox } from './checkbox';
+import { Slider } from './slider';
 
 export interface FilterOption {
   label: string;
@@ -26,6 +27,9 @@ export interface FilterProps {
     /** Shown after the value on the chip, so a set threshold reads as
      *  "300 stores" without opening the popover. */
     unit?: string;
+    /** A number with known bounds: drawn as a typed field above a slider,
+     *  so it can be dragged roughly or typed exactly. 0 clears it. */
+    range?: { min: number; max: number; step?: number };
   };
   /** How many of each selected option — a booking asks for "Vloersticker ×2".
    *  When given, a selected option gets a stepper and the chip reads "×n". */
@@ -152,7 +156,47 @@ export const Filter: React.FC<FilterProps> = ({
             </div>
           </div>
         )}
-        {customInput && (
+        {customInput?.range && (() => {
+          const { min, max, step = 1 } = customInput.range;
+          const n = Number(customInput.value);
+          const sliderValue = Number.isFinite(n) && customInput.value !== '' ? Math.min(max, Math.max(min, n)) : min;
+          const set = (v: number) => customInput.onChange(v > 0 ? String(v) : '');
+          return (
+            <div className="sticky top-0 z-10 space-y-3 border-b border-border bg-white px-3 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-foreground">{customInput.label}</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={min}
+                    max={max}
+                    step={step}
+                    value={customInput.value}
+                    placeholder={customInput.placeholder}
+                    aria-label={customInput.label}
+                    onChange={(e) => customInput.onChange(e.target.value)}
+                    className="h-8 w-24 rounded-md border border-input bg-background px-2 text-right text-sm tabular-nums focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  {customInput.unit && <span className="text-sm text-muted-foreground">{customInput.unit}</span>}
+                </div>
+              </div>
+              <Slider
+                min={min}
+                max={max}
+                step={step}
+                value={[sliderValue]}
+                onValueChange={([v]) => set(v)}
+                aria-label={customInput.label}
+              />
+              <div className="flex justify-between text-xs tabular-nums text-muted-foreground">
+                <span>{min.toLocaleString('en-GB')}</span>
+                <span>{max.toLocaleString('en-GB')}</span>
+              </div>
+            </div>
+          );
+        })()}
+        {customInput && !customInput.range && (
           <div className="sticky top-0 z-10 bg-white border-b border-border">
             <div className="relative flex items-center">
               <span className="absolute left-3 text-muted-foreground">

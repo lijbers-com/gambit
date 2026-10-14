@@ -15,6 +15,7 @@ import { AvailableTimeBar, AvailableTimeValue } from '@/components/ui/available-
 import { MetricRow, MetricDefinition } from '@/components/ui/metric-row';
 import { FilterBar, type FilterBarFilter } from '@/components/ui/filter-bar';
 import { DateRangePicker } from '@/components/ui/date-picker';
+import { AdvertiserSelect } from '@/components/ui/advertiser-select';
 import { 
   RightDrawer, 
   RightDrawerTrigger, 
@@ -473,8 +474,11 @@ const BookingCalendarTemplate = ({
   const [status, setStatus] = useState<string[]>([]);
   const [storeAssortment, setStoreAssortment] = useState<string[]>([]);
   const [channel, setChannel] = useState<string[]>([]);
-  const [publisher, setPublisher] = useState<string[]>([]);
+  // One publisher at a time, picked in the page header like the media
+  // partner elsewhere.
+  const [publisher, setPublisher] = useState<string>('ah');
   const [storeType, setStoreType] = useState<string[]>([]);
+  const [storeTarget, setStoreTarget] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedChannelId, setFocusedChannelId] = useState<string | null>(null);
   // Which tab is currently visible. Kept separate from focusedChannelId so
@@ -576,6 +580,22 @@ const BookingCalendarTemplate = ({
     }))
   }));
 
+  // Demo shares of the store estate per store type, until store master data
+  // carries the real split.
+  const STORE_TYPE_SHARE: Record<string, number> = {
+    'to-go': 0.15, xl: 0.2, express: 0.25, premium: 0.15, compact: 0.25,
+  };
+  const storeTypeShare = storeType.length > 0
+    ? storeType.reduce((sum, t) => sum + (STORE_TYPE_SHARE[t] ?? 0.2), 0)
+    : 1;
+  const targetStores = parseInt(storeTarget, 10);
+  const activeTarget = !hideStoresTab && Number.isFinite(targetStores) && targetStores > 0 ? targetStores : undefined;
+  // The slider runs to the most stores any row offers in any week.
+  const storeRangeMax = Math.max(
+    10,
+    ...bookingsData.flatMap((p: any) => p.availability.filter((v: any) => typeof v === 'number')),
+  );
+
   // Filter the adjusted bookings data based on selected filters
   const filteredBookingsData = adjustedBookingsData.filter(product => {
     // Media product filter
@@ -586,16 +606,11 @@ const BookingCalendarTemplate = ({
     if (channel.length > 0 && !channel.includes(product.id)) {
       return false;
     }
-    // Publisher filter (data is synthetic so accept any product when no
-    // publisher mapping is present yet — kept as a UI hook for now).
+    // Publisher (header): the synthetic rows carry no publisher yet, so
+    // every row belongs to the one picked — kept as the hook for real data.
     void publisher;
     // Free-text search matches channel name (case-insensitive).
     if (searchQuery.trim() && !product.name.toLowerCase().includes(searchQuery.trim().toLowerCase())) {
-      return false;
-    }
-
-    // Store type filter
-    if (storeType.length > 0 && !storeType.some(type => product.storeTypes?.includes(type))) {
       return false;
     }
 
@@ -626,6 +641,26 @@ const BookingCalendarTemplate = ({
       };
     }
     return product;
+  }).map(product => {
+    // Store types narrow how many stores a week has, they don't hide rows.
+    // The available-stores figures are what a store target is checked on.
+    const narrow = (values: any[]) =>
+      values.map((v) => (typeof v === 'number' ? Math.round(v * storeTypeShare) : v));
+    const counts = (values: any[]) => values.map((v) => (typeof v === 'number' ? v : 0));
+    const availability = narrow(product.availability);
+    return {
+      ...product,
+      availability,
+      ...(hideStoresTab ? {} : { availableStores: counts(availability) }),
+      positions: product.positions?.map((pos: any) => {
+        const posAvailability = narrow(pos.availability);
+        return {
+          ...pos,
+          availability: posAvailability,
+          ...(hideStoresTab ? {} : { availableStores: counts(posAvailability) }),
+        };
+      }),
+    };
   });
 
   return (
@@ -642,18 +677,22 @@ const BookingCalendarTemplate = ({
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Select date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-              className="w-[280px]"
+          // The publisher scopes the whole page, so it sits in the header
+          // like the media partner does elsewhere. Without one the header
+          // keeps its default.
+          headerRight: showPublisherFilter ? (
+            <AdvertiserSelect
+              value={publisher}
+              onChange={setPublisher}
+              placeholder="Publisher"
+              options={publisherOptions ?? [
+                { label: 'Albert Heijn', value: 'ah' },
+                { label: 'Etos', value: 'etos' },
+                { label: 'Gall & Gall', value: 'gall' },
+                { label: 'Bol', value: 'bol' },
+              ]}
             />
-          ),
+          ) : undefined,
         }}
       >
         {(() => {
@@ -663,6 +702,21 @@ const BookingCalendarTemplate = ({
                 viewOptions={viewTabs}
                 activeView={activeView}
                 onViewChange={setActiveView}
+                // The date range leads the row, as it leads the metric row
+                // on pages that have one.
+                leading={
+                  <DateRangePicker
+                    variant="outline"
+                    dateRange={dateRange}
+                    onDateRangeChange={setDateRange}
+                    placeholder="Select date range"
+                    showPresets={true}
+                    showConversionWindow={true}
+                    conversionWindow={conversionWindow}
+                    onConversionWindowChange={setConversionWindow}
+                    className="w-auto max-w-[260px]"
+                  />
+                }
                 filters={[
                   {
                     name: 'Status',
@@ -678,22 +732,10 @@ const BookingCalendarTemplate = ({
                     onChange: setStatus,
                   },
                   ...(showChannelFilter ? [{
-                    name: 'Channel',
+                    name: 'Media product',
                     options: channelOptions ?? mediaProductOptions,
                     selectedValues: channel,
                     onChange: setChannel,
-                    forceSearch: true,
-                  }] : []),
-                  ...(showPublisherFilter ? [{
-                    name: 'Publisher',
-                    options: publisherOptions ?? [
-                      { label: 'Etos', value: 'etos' },
-                      { label: 'Albert Heijn', value: 'ah' },
-                      { label: 'Bol', value: 'bol' },
-                      { label: 'Gall & Gall', value: 'gall' },
-                    ],
-                    selectedValues: publisher,
-                    onChange: setPublisher,
                     forceSearch: true,
                   }] : []),
                   ...(hideStoreAssortmentFilter ? [] : [{
@@ -724,7 +766,16 @@ const BookingCalendarTemplate = ({
                   onChange: setStoreAssortment,
                 }]),
                 ...(hideStoreTypeFilter ? [] : [{
-                  name: 'Store type',
+                  name: 'Stores',
+                  customInput: {
+                    label: 'Target',
+                    value: storeTarget,
+                    onChange: setStoreTarget,
+                    placeholder: '0',
+                    type: 'number' as const,
+                    unit: 'stores',
+                    range: { min: 0, max: storeRangeMax, step: 5 },
+                  },
                   options: [
                     { label: 'To Go', value: 'to-go' },
                     { label: 'XL', value: 'xl' },
@@ -788,6 +839,7 @@ const BookingCalendarTemplate = ({
                 id: pos.id,
                 name: pos.name,
                 availability: pos.availability,
+                availableStores: pos.availableStores,
                 // Bookings belong to the parent channel — share them with every
                 // position row so expanding a position in the focused tab still
                 // shows the booking bars (positions don't carry their own list).
@@ -814,6 +866,7 @@ const BookingCalendarTemplate = ({
             onCellClick: handleCellClick,
             onBookingClick: (booking: any) => { window.location.href = `/campaigns/${booking.id}`; },
             maxInlinePositions,
+            storeTarget: activeTarget,
           };
 
           const tabs = [
@@ -2458,9 +2511,10 @@ const OfflineInstoreCalendarTemplate = ({
       label: 'Target',
       value: storeTarget,
       onChange: setStoreTarget,
-      placeholder: 'Target number of stores',
+      placeholder: '0',
       type: 'number',
       unit: 'stores',
+      range: { min: 0, max: ZONE_STORES, step: 10 },
     },
     options: [
       { label: 'AH DNAH', value: 'ah-dnah' },
@@ -2484,18 +2538,6 @@ const OfflineInstoreCalendarTemplate = ({
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
           onSettings: () => alert('Settings clicked'),
-          headerRight: (
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              placeholder="Select date range with conversion window"
-              showPresets={true}
-              showConversionWindow={true}
-              conversionWindow={conversionWindow}
-              onConversionWindowChange={setConversionWindow}
-              className="w-[280px]"
-            />
-          ),
         }}
       >
         {(() => {
@@ -2505,6 +2547,19 @@ const OfflineInstoreCalendarTemplate = ({
                 viewOptions={viewTabs}
                 activeView={activeView}
                 onViewChange={setActiveView}
+                leading={
+                  <DateRangePicker
+                    variant="outline"
+                    dateRange={dateRange}
+                    onDateRangeChange={setDateRange}
+                    placeholder="Select date range"
+                    showPresets={true}
+                    showConversionWindow={true}
+                    conversionWindow={conversionWindow}
+                    onConversionWindowChange={setConversionWindow}
+                    className="w-auto max-w-[260px]"
+                  />
+                }
                 filters={[
                   mediaProductFilter,
                   storesFilter,

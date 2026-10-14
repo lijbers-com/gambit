@@ -108,10 +108,9 @@ export interface MetricRowProps {
   /** The measurement settings (attribution window, which sales count) open
    *  every Edit metrics dialog. Off for rows that measure nothing. */
   hideMeasurement?: boolean
-  /** How the Edit metrics button is drawn. Ghost by default — a quiet
-   *  control beside the tab strip. Outline where the header row already
-   *  carries outlined filters (the insights dashboard), so it matches its
-   *  neighbours instead of sitting beside them in a different weight. */
+  /** How the Edit metrics button is drawn. Outline by default: a border
+   *  and nothing behind it, beside the white filter buttons. Ghost only
+   *  where a row has no other controls to match. */
   editButtonVariant?: 'ghost' | 'outline'
   /** Lay the cards out in a single horizontally-scrolling row instead of a
    *  responsive grid. Cards keep a fixed min-width and overflow scrolls —
@@ -147,7 +146,7 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
     dialogExtra,
     hideDateRange,
     hideMeasurement,
-    editButtonVariant = 'ghost',
+    editButtonVariant = 'outline',
     scrollable = false,
     bleedEdges = false,
     ...props
@@ -230,8 +229,8 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
       <div ref={ref} className={cn("space-y-row", className)} {...props}>
       {(!hideDateRange || headerLeft || filterNote || (hasDialogContent && !hideEditButton)) && (
         // One row of controls, right-aligned: the date range and the page's
-        // filters first, then Edit metrics — all quiet ghost controls in the
-        // tab strip's grey, so the row reads as one toolbar. A filter note sits left, on its own.
+        // filters first, drawn like every filter (white, bordered), then
+        // Edit metrics with only a border. A filter note sits left, on its own.
         <div className="flex items-center justify-between gap-inline">
           {filterNote ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
@@ -239,12 +238,21 @@ const MetricRow = React.forwardRef<HTMLDivElement, MetricRowProps>(
               {filterNote}
             </span>
           ) : <span />}
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-inline">
-            {!hideDateRange && <SessionDateRange />}
+          <div
+            className={cn(
+              "flex min-w-0 flex-wrap items-center justify-end gap-inline",
+              // Every control here is a filter drawn like the filter bar's:
+              // white, bordered — the row sits on the page colour, so white
+              // has to be set. Edit metrics is the exception: border only.
+              "[&_button:not([data-edit-metrics]):not(.bg-surface-selected)]:bg-background [&_button:not([data-edit-metrics]):not(.bg-surface-selected):hover]:bg-accent",
+            )}
+          >
+            {!hideDateRange && <SessionDateRange variant="outline" />}
             {headerLeft}
             {hasDialogContent && !hideEditButton && (
               <Button
                 type="button"
+                data-edit-metrics=""
                 variant={editButtonVariant}
                 onClick={() => setDialogOpen(true)}
                 className={cn(

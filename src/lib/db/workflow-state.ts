@@ -42,7 +42,7 @@ export interface WorkflowTarget {
 export function campaignAsBooking(db: DbData, c: Campaign): Booking {
   const bs = db.bookings.filter((b) => b.campaignId === c.id);
   return {
-    id: c.id, campaignId: c.id, name: c.name, status: c.status, budget: c.budget, spend: c.spend,
+    id: c.id, campaignId: c.id, name: c.name, status: c.status, approvedAt: c.approvedAt, budget: c.budget, spend: c.spend,
     startDate: c.startDate, endDate: c.endDate,
     positionIds: bs.flatMap((b) => b.positionIds),
     creativeStatus: bs.length && bs.every((b) => b.creativeStatus === 'approved') ? 'approved' : bs.some((b) => b.creativeStatus !== 'missing') ? 'submitted' : 'missing',
@@ -55,7 +55,7 @@ export function planAsBooking(db: DbData, pl: MediaPlan): Booking {
   const cs = db.campaigns.filter((c) => c.mediaPlanId === pl.id);
   const bs = db.bookings.filter((b) => cs.some((c) => c.id === b.campaignId));
   return {
-    id: pl.id, campaignId: '', name: pl.name, status: pl.status, budget: pl.budget, spend: cs.reduce((sum, c) => sum + c.spend, 0),
+    id: pl.id, campaignId: '', name: pl.name, status: pl.status, approvedAt: pl.approvedAt, budget: pl.budget, spend: cs.reduce((sum, c) => sum + c.spend, 0),
     startDate: pl.startDate, endDate: pl.endDate,
     positionIds: bs.flatMap((b) => b.positionIds),
     creativeStatus: bs.length && bs.every((b) => b.creativeStatus === 'approved') ? 'approved' : bs.some((b) => b.creativeStatus !== 'missing') ? 'submitted' : 'missing',
@@ -242,9 +242,13 @@ export function readWorkflow(db: DbData, workflow: Workflow, target: WorkflowTar
     if (/booking approved|approved by/.test(n)) return !!approvedAt || !['draft', 'in-review', 'changes-requested'].includes(lifecycle);
     if (/po number/.test(n)) return !!plan?.poNumber?.trim();
     if (/price agreed/.test(n)) return (entity as { price?: { state: string } }).price?.state === 'agreed' || !['draft', 'in-review', 'changes-requested'].includes(lifecycle);
+    // A spec check runs on upload: passed once a creative is in.
+    if (/spec/.test(n)) return entity.creativeStatus !== 'missing';
     if (/creative/.test(n)) return entity.creativeStatus === 'approved';
     if (/store|screen|placement|position/.test(n)) return entity.positionIds.length > 0;
     if (/product/.test(n)) return true; // assigned with the campaign
+    // A review is behind it once the entity is approved or past review.
+    if (/review|approv/.test(n)) return !!approvedAt || !['draft', 'in-review', 'changes-requested'].includes(lifecycle);
     // The automatic checks: done while the fact they watch holds.
     if (/budget/.test(n)) return target.allocated === undefined || target.allocated <= entity.budget;
     if (/pacing/.test(n)) {

@@ -2,6 +2,7 @@ import { productImages } from '@/lib/product-images';
 import type { Booking, DbData, Invoice } from './types';
 import { bookingListPrice, buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
 import { prototypeNow } from '../clock';
+import { withMarketDemand } from './seed-demand';
 
 /**
  * Seed data for the prototype database. Users map 1:1 to the EpicContext
@@ -14,7 +15,7 @@ import { prototypeNow } from '../clock';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 44;
+export const SEED_VERSION = 47;
 
 const now = prototypeNow().toISOString();
 
@@ -277,7 +278,7 @@ const baseSeed: DbData = {
     { id: 'B-003', campaignId: 'C-002', name: 'Entrance Screens',           status: 'completed', budget: 7000, spend: 6800, startDate: '2026-03-01', endDate: '2026-04-15', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-004', campaignId: 'C-003', name: 'Open Web Display',           status: 'completed', budget: 5000, spend: 4950, startDate: '2026-03-08', endDate: '2026-04-15', positionIds: ['pos-off-web-standard'],  creativeStatus: 'approved', createdAt: now, updatedAt: now },
     // Holiday Sale (live; one creative awaiting approval)
-    { id: 'B-005', campaignId: 'C-004', name: 'Homepage Takeover',          status: 'running',   budget: 2500, spend: 2100, startDate: '2026-06-01', endDate: '2026-07-15', positionIds: ['pos-dsp-home-top'], creativeStatus: 'approved',  createdAt: now, updatedAt: now },
+    { id: 'B-005', campaignId: 'C-004', name: 'Homepage Takeover',          status: 'running',   budget: 2500, spend: 2100, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-dsp-home-top'], creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-006', campaignId: 'C-004', name: 'Category Banner — Drinks',   status: 'running',   budget: 2500, spend: 1700, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-dsp-cat-top'],  creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-007', campaignId: 'C-005', name: 'Keywords — cola zero',       status: 'running',   budget: 2000, spend: 1900, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-008', campaignId: 'C-005', name: 'Keywords — beer & bbq',      status: 'running',   budget: 2000, spend: 1700, startDate: '2026-06-01', endDate: '2026-08-15', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
@@ -1302,4 +1303,4 @@ function withCampaignRollups(db: DbData): DbData {
   return { ...db, campaigns, mediaPlans };
 }
 
-export const seedData: DbData = withGuaranteedTerms(withCampaignRollups(baseSeed));
+export const seedData: DbData = withGuaranteedTerms(withCampaignRollups(withMarketDemand(baseSeed)));

@@ -129,6 +129,8 @@ export interface MediaPlan {
   startDate: string; // ISO yyyy-mm-dd
   endDate: string;
   createdBy?: string; // DbUser id
+  /** When the plan passed its workflow's approval — approved, not yet live. */
+  approvedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -156,6 +158,8 @@ export interface Campaign {
   spend: number;
   startDate: string;
   endDate: string;
+  /** When the campaign passed its workflow's approval — approved, not yet live. */
+  approvedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

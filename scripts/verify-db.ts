@@ -17,6 +17,7 @@ import {
 import { deriveTasks, derivePlanHealth } from '../src/lib/db/tasks';
 import { deriveMessages } from '../src/lib/db/messages';
 import { FAQ_SURFACES, faqsFor, canManageFaq } from '../src/lib/db/faq';
+import { PROTOTYPE_TODAY } from '../src/lib/clock';
 
 let failures = 0;
 const fail = (msg: string) => {
@@ -150,6 +151,13 @@ for (const p of d.positions) {
 for (const b of d.bookings) for (const id of b.positionIds) if (!d.positions.some((p) => p.id === id)) fail(`${b.id} books unknown position ${id}`);
 for (const h of d.inventoryHolds) if (!d.positions.some((p) => p.id === h.positionId)) fail(`${h.id} holds unknown position ${h.positionId}`);
 ok('every position sits in a placement of its own product; bookings and holds point at real positions');
+
+// The seed reads as of the prototype's today: nothing runs past its end.
+for (const e of [...d.mediaPlans, ...d.campaigns, ...d.bookings]) {
+  if ((e.status === 'running' || e.status === 'paused') && e.endDate < PROTOTYPE_TODAY) fail(`${e.id} is ${e.status} but ended ${e.endDate}`);
+  if (e.status === 'completed' && e.endDate >= PROTOTYPE_TODAY) fail(`${e.id} is completed but runs until ${e.endDate}`);
+}
+ok('statuses agree with the prototype today');
 
 // ── 4. Derived to-do engine ────────────────────────────────────────────
 console.log('\n4. Derived to-do engine');

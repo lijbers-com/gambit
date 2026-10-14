@@ -63,7 +63,12 @@ Data            src/lib/db (store + seed)    what is true     prototype-data-sch
    there. Add bookings to the seed rather than faking the cells. Bump
    `SEED_VERSION` when the seed changes. A campaign's spend is its
    bookings' spend and a plan's budget holds its campaigns' (derived in the
-   seed); no flight is still running after its end date.
+   seed); no flight is still running after its end date (verify-db checks
+   it). Beyond the hand-written stories, `db/seed-demand.ts` generates the
+   rest of the market deterministically — ~170 flights from the seed's
+   advertisers on every position, sized against capacity at the position's
+   price, so AH's network runs at 55–60% fill over the year and 70–90% in
+   the weeks ahead.
 
 ## The rules, per domain
 
@@ -111,8 +116,6 @@ Data            src/lib/db (store + seed)    what is true     prototype-data-sch
 
 ## Known gaps
 
-- The seed's ~40 bookings fill only a small part of AH's network, so yield
-  fill rates read far below target.
 - `verify-db` still expects five to-dos from the old rule list (before the
   workflow boards). The expectations need updating to the workflow-driven
   to-dos.

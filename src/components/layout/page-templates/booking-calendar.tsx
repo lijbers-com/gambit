@@ -61,6 +61,7 @@ import {
   type InventoryWeek,
   type WeekOptions,
 } from '@/lib/db/inventory';
+import { retailProductOptions } from '@/lib/db/retail-products';
 
 export type CalendarEngine = Exclude<EngineId, 'offsite'>;
 type ViewKey = 'reach' | 'fillRate' | 'revenue' | 'stores' | 'availableTime' | 'bookings';
@@ -92,8 +93,8 @@ const CONFIG: Record<CalendarEngine, {
 }> = {
   display: { title: 'Display Calendar', views: ['reach', 'fillRate', 'revenue', 'bookings'], defaultView: 'reach', publisher: true, saleChannels: true, statusFilter: true },
   'sponsored-products': { title: 'Sponsored Product Calendar', views: ['fillRate', 'revenue', 'bookings'], defaultView: 'fillRate', publisher: true, statusFilter: true },
-  'digital-instore': { title: 'Digital In-store Calendar', views: ['fillRate', 'stores', 'availableTime', 'bookings'], defaultView: 'fillRate', publisher: true, storeBased: true, statusFilter: true },
-  'offline-instore': { title: 'Offline In-store Calendar', views: ['bookings', 'stores', 'fillRate'], defaultView: 'bookings', storeBased: true, quantities: true, retailProductFilter: true },
+  'digital-instore': { title: 'Digital In-store Calendar', views: ['fillRate', 'stores', 'availableTime', 'bookings'], defaultView: 'stores', publisher: true, storeBased: true, statusFilter: true },
+  'offline-instore': { title: 'Offline In-store Calendar', views: ['bookings', 'stores', 'fillRate'], defaultView: 'stores', storeBased: true, quantities: true, retailProductFilter: true },
 };
 
 const STATUS_OPTIONS: Array<{ label: string; value: PlanStatus }> = [
@@ -380,7 +381,7 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
       selectedValues: selected,
       onChange: setSelected,
       forceSearch: productOptions.length > 8,
-      ...(config.quantities ? { quantities, onQuantitiesChange: setQuantities } : {}),
+      ...(config.quantities && singleProduct ? { quantities, onQuantitiesChange: setQuantities } : {}),
     },
     ...(config.storeBased ? [{
       name: 'Stores',
@@ -399,7 +400,7 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
     }] : []),
     ...(config.retailProductFilter ? [{
       name: 'Retail Product',
-      options: db.retailProducts.map((p) => ({ label: p.name, value: p.id, description: p.packSize })),
+      options: retailProductOptions(db),
       selectedValues: retailProducts,
       onChange: setRetailProducts,
       forceSearch: true,

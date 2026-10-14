@@ -73,3 +73,17 @@ export function brandOfProduct(db: DbData, product: Pick<RetailProduct, 'brandId
   }
   return {};
 }
+
+/** Retail products as filter options — every retail product filter shows the
+ *  packshot, the name and the pack size. */
+export function retailProductOptions(db: DbData, products: RetailProduct[] = db.retailProducts) {
+  return products.map((p) => ({ label: p.name, value: p.id, description: p.packSize ?? p.category, image: p.image }));
+}
+
+/** Adds the packshot to options that name a retail product by id or name. */
+export function withProductImages<T extends { label: string; value: string }>(db: DbData, options: T[]): (T & { image?: string })[] {
+  return options.map((o) => {
+    const p = db.retailProducts.find((r) => r.id === o.value || r.name === o.value || r.name === o.label);
+    return p ? { ...o, image: p.image } : o;
+  });
+}

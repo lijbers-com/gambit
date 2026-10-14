@@ -34,6 +34,8 @@ import { AddCampaignMenu } from '@/components/ui/add-campaign-menu';
 import { openCampaignWizard, openMediaPlanWizard } from '@/lib/create-entities';
 import { prototypeToday } from '@/lib/clock';
 import { productForBooking } from '@/lib/db/guaranteed';
+import { retailProductOptions } from '@/lib/db/retail-products';
+import { levelLinks } from '@/lib/level-links';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Campaign Overview',
@@ -320,7 +322,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
           // proposition's campaigns, and "Campaigns" alone reads the same on
           // all five. The engine-wide page keeps the plain title.
           title: engineType === 'all' ? 'Campaigns' : `${engineTitle} campaigns`,
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(db, { engine: engineType })} />,
           subtitle: engineType === 'all' ? 'All campaigns' : `All ${engineType} campaigns`,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
@@ -476,18 +478,7 @@ const createCampaignOverviewStory = (engineType: string, engineTitle: string, sh
                       },
                       {
                         name: 'Retail Product',
-                        options: [
-                          { label: 'Coca-Cola - coca-cola zero fl - 1 liter', value: '606983' },
-                          { label: 'Pepsi - pepsi max - 1.5 liter', value: '607124' },
-                          { label: 'Red Bull - energy drink original - 250ml', value: '608456' },
-                          { label: 'Heineken - premium lager beer - 6x330ml', value: '609782' },
-                          { label: 'Samsung - galaxy s24 ultra - 256GB', value: '610394' },
-                          { label: 'iPhone - 15 pro max - 512GB', value: '611205' },
-                          { label: 'Nike - air max 270 - size 42', value: '612816' },
-                          { label: 'Adidas - ultraboost 22 - size 43', value: '613427' },
-                          { label: 'Nutella - hazelnut spread - 750g', value: '614038' },
-                          { label: "Ben & Jerry's - cookie dough - 465ml", value: '614649' },
-                        ],
+                        options: retailProductOptions(db),
                         selectedValues: retailProduct,
                         onChange: setRetailProduct,
                       },

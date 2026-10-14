@@ -72,6 +72,8 @@ import type { MetricDefinition } from '@/components/ui/metric-row';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { Label } from '@/components/ui/label';
 import { prototypeToday } from '@/lib/clock';
+import { withProductImages } from '@/lib/db/retail-products';
+import { levelLinks } from '@/lib/level-links';
 
 // --- Shared campaign metrics per proposition type ---
 // These mirror the campaign-level metrics so users see consistent data when navigating from campaign → booking
@@ -730,7 +732,7 @@ export const Display: Story = {
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: bookingName || 'Booking Detail',
-          titleIcon: <HierarchyBadge level="booking" />,
+          titleIcon: <HierarchyBadge level="booking" links={levelLinks(useDb(), { bookingId: routeBooking?.id })} />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -1825,7 +1827,7 @@ export const DigitalInStore: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: bookingName || 'Booking Detail',
-          titleIcon: <HierarchyBadge level="booking" />,
+          titleIcon: <HierarchyBadge level="booking" links={levelLinks(useDb(), { bookingId: routeBooking?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -2991,7 +2993,7 @@ export const OfflineInStore: Story = {
     // Over-delivery buffer: extra % of stores added to a generated list so the
     // booked reach is still delivered if some stores drop out. Default 3%.
     const [overDeliveryPct, setOverDeliveryPct] = React.useState(3);
-    const retailProductFilterOptions = retailProducts.map((p) => ({ label: `${p.name} (${p.id})`, value: p.id }));
+    const retailProductFilterOptions = withProductImages(useDb(), retailProducts.map((p) => ({ label: `${p.name} (${p.id})`, value: p.id })));
     // In-store zones (shelf areas) — used as a store-list filter. Larger AH XL
     // stores carry the full assortment; smaller AH DNAH stores a core subset.
     const zoneOptions = [
@@ -3119,7 +3121,7 @@ export const OfflineInStore: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: bookingName || 'Booking Detail',
-          titleIcon: <HierarchyBadge level="booking" />,
+          titleIcon: <HierarchyBadge level="booking" links={levelLinks(useDb(), { bookingId: routeBooking?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -4147,7 +4149,7 @@ export const SponsoredProducts: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{ 
           title: bookingName || 'Booking Detail',
-          titleIcon: <HierarchyBadge level="booking" />,
+          titleIcon: <HierarchyBadge level="booking" links={levelLinks(useDb(), { bookingId: routeBooking?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -4709,7 +4711,7 @@ export const OffsiteDisplay: Story = {
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: bookingName || 'Booking Detail',
-          titleIcon: <HierarchyBadge level="booking" />,
+          titleIcon: <HierarchyBadge level="booking" links={levelLinks(useDb(), { bookingId: routeBooking?.id })} />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),

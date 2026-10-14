@@ -10,6 +10,8 @@ export interface FilterOption {
   label: string;
   value: string;
   description?: string;
+  /** A thumbnail before the label — a retail product's packshot. */
+  image?: string;
 }
 
 export interface FilterProps {
@@ -245,6 +247,9 @@ export const Filter: React.FC<FilterProps> = ({
                   tabIndex={-1}
                   className="mt-0.5"
                 />
+                {opt.image && (
+                  <img src={opt.image} alt="" className="h-9 w-9 shrink-0 rounded-md border border-border bg-white object-contain" />
+                )}
                 <div className="flex-1 min-w-0 space-y-1">
                   <span className="truncate block">{opt.label}</span>
                   {opt.description && (

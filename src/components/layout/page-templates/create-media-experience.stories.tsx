@@ -337,8 +337,8 @@ const assistedBookings: Record<string, { name: string; positionId: string; detai
     { name: 'Checkout screens', positionId: 'pos-dis-checkout', detail: 'In-store screens · checkout' },
   ],
   'offline-instore': [
-    { name: 'Wobblers', positionId: 'pos-ois-shelf', detail: 'In-store POS · ambient aisles' },
-    { name: 'VSB', positionId: 'pos-ois-endcap', detail: 'In-store POS · ambient aisles' },
+    { name: 'Wobblers', positionId: 'pos-ois-coffee-wobbler', detail: 'Ambient groceries · Coffee & tea' },
+    { name: 'VSB', positionId: 'pos-ois-coffee-vsb', detail: 'Ambient groceries · Coffee & tea' },
   ],
   offsite: [
     { name: 'IAB standard · DPG', positionId: 'pos-off-web-standard', detail: 'Open web display · DPG Media' },

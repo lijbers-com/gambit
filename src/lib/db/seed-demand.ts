@@ -68,12 +68,13 @@ export function withMarketDemand(db: DbData): DbData {
   let campaignN = 200;
   let bookingN = 300;
 
-  // What a flight books: one position — or, on in-store screens, a whole
-  // screen group (placement), since AH sells the players of a group as one
-  // package (a take-over is its three screens).
+  // What a flight books: one position — or, in store, a whole placement:
+  // AH sells a screen group's players as one package (a take-over is its
+  // three screens), and in-store POS as a combination of the formats at a
+  // shelf (VSB + wobbler).
   const units = db.positions.flatMap((position) => {
     const engine = db.mediaProducts.find((m) => m.id === position.mediaProductId)?.engine;
-    if (engine !== 'digital-instore') return [{ position, positions: [position] }];
+    if (engine !== 'digital-instore' && engine !== 'offline-instore') return [{ position, positions: [position] }];
     const group = db.positions.filter((p) => p.placementId === position.placementId);
     return group[0].id === position.id ? [{ position, positions: group }] : [];
   });
@@ -104,7 +105,8 @@ export function withMarketDemand(db: DbData): DbData {
       // budget that buys it at the position's price.
       let budget: number;
       if (engine === 'offline-instore') {
-        budget = Math.round(position.stores! * share) * price;                    // per store, whole run
+        // per store, whole run; a shelf package takes each of its formats' stores
+        budget = Math.round(unitPositions.reduce((n, p) => n + (p.stores ?? 0), 0) * share) * price;
       } else if (product.pricingBasis === 'cpc') {
         const clicks = engine === 'sponsored-products' ? capacity * weeks * share : capacity * weeks * share * 0.01;
         budget = clicks * price;

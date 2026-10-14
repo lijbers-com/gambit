@@ -154,7 +154,11 @@ export function bookingLoad(db: DbData, booking: Booking, position: Position, mo
     const share = Math.min(1, bookingVolume(db, booking) / periods);
     return weeklyCapacity(db, position) * share * (days / 7) / booking.positionIds.length;
   }
-  const perPosition = bookingVolume(db, booking) / booking.positionIds.length;
+  // A booking on several positions (a shelf package, a screen group) takes
+  // from each in proportion to what it can hold.
+  const caps = booking.positionIds.map((id) => db.positions.find((p) => p.id === id)).filter((p): p is Position => !!p).map((p) => weeklyCapacity(db, p));
+  const total = caps.reduce((a, b) => a + b, 0);
+  const perPosition = bookingVolume(db, booking) * (total > 0 ? weeklyCapacity(db, position) / total : 1 / booking.positionIds.length);
   if (engineOfPosition(db, position) === 'offline-instore') return perPosition;
   return perPosition * (days / runDays(booking));
 }

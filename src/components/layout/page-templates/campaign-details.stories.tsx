@@ -57,6 +57,8 @@ import React, { useState } from 'react';
 import { HierarchyBadge } from '@/components/ui/hierarchy-badge';
 import { AddButton } from '@/components/ui/add-button';
 import { addBooking } from '@/lib/create-entities';
+import { retailProductOptions, withProductImages } from '@/lib/db/retail-products';
+import { levelLinks } from '@/lib/level-links';
 
 // Derived ROAS / conversion-rate table columns. Values are computed from the
 // row's revenue / ad spend / conversions / clicks so we don't duplicate them
@@ -728,7 +730,7 @@ const updatedForecastMetrics = [
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Digital in-store, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -1222,7 +1224,7 @@ export const DigitalInstoreRunning: Story = {
           breadcrumbProps={{ namespace: '' }}
           pageHeaderProps={{
             title: 'Digital in-store, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
             onImport: () => alert('Import clicked'),
@@ -1687,7 +1689,7 @@ export const OfflineInstoreRunning: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offline in-store, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -1878,12 +1880,7 @@ export const OfflineInstoreRunning: Story = {
                       },
                       {
                         name: 'Retail product',
-                        options: [
-                          { label: 'Dove Body Wash 250ml', value: 'Dove Body Wash 250ml' },
-                          { label: 'Knorr Stock Cubes', value: 'Knorr Stock Cubes' },
-                          { label: 'Lipton Ice Tea 1.5L', value: 'Lipton Ice Tea 1.5L' },
-                          { label: 'Magnum Classic 4-pack', value: 'Magnum Classic 4-pack' },
-                        ],
+                        options: withProductImages(useDb(), [...new Set(bookingData.flatMap((r) => r.retailProduct.split(', ')))].filter((v) => v !== '—').map((v) => ({ label: v, value: v }))),
                         selectedValues: bookingProduct,
                         onChange: setBookingProduct,
                       },
@@ -1955,7 +1952,7 @@ export const OfflineInstoreRunning: Story = {
                       const statusMatch = bookingStatus.length === 0 || bookingStatus.includes(row.status);
                       const placementMatch = placement.length === 0 || placement.includes(row.placement);
                       const brandMatch = bookingBrand.length === 0 || bookingBrand.includes(row.brand);
-                      const productMatch = bookingProduct.length === 0 || bookingProduct.includes(row.retailProduct);
+                      const productMatch = bookingProduct.length === 0 || bookingProduct.some((p) => row.retailProduct.split(', ').includes(p));
                       const locationMatch = bookingLocation.length === 0 || bookingLocation.includes(row.location);
                       const readinessMatch = bookingReadiness.length === 0 || bookingReadiness.includes(row.readiness);
                       // A deadline filter keeps what has to be in by that day.
@@ -2211,7 +2208,7 @@ export const DisplayRunning: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Display, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -2672,7 +2669,7 @@ export const OfflineInstoreInOption: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offline in-store, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -3127,7 +3124,7 @@ export const DisplayInOption: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Display, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -3917,7 +3914,7 @@ export const SponsoredProductsInOption: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Sponsored products, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -4497,7 +4494,7 @@ export const SponsoredProductsRunning: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Sponsored products, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -4920,7 +4917,7 @@ export const OffsiteRunning: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offsite, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -5106,14 +5103,7 @@ export const OffsiteRunning: Story = {
                       },
                       {
                         name: 'Retail Product',
-                        options: [
-                          { label: 'Coca-Cola Zero - 1 liter', value: '606983' },
-                          { label: 'Pepsi Max - 1.5 liter', value: '607124' },
-                          { label: 'Red Bull Original - 250ml', value: '608456' },
-                          { label: 'Heineken Lager - 6x330ml', value: '609782' },
-                          { label: 'Nutella Hazelnut Spread - 750g', value: '614038' },
-                          { label: "Ben & Jerry's Cookie Dough - 465ml", value: '614649' },
-                        ],
+                        options: retailProductOptions(useDb()),
                         selectedValues: retailProduct,
                         onChange: setRetailProduct,
                       },
@@ -5389,7 +5379,7 @@ export const OffsiteInOption: Story = {
         breadcrumbProps={{ namespace: '' }}
         pageHeaderProps={{
           title: 'Offsite, Summer Launch',
-          titleIcon: <HierarchyBadge level="campaign" />,
+          titleIcon: <HierarchyBadge level="campaign" links={levelLinks(useDb(), { campaignId: routeCampaign?.id })} />,
           onEdit: () => alert('Edit clicked'),
           onExport: () => alert('Export clicked'),
           onImport: () => alert('Import clicked'),
@@ -5575,14 +5565,7 @@ export const OffsiteInOption: Story = {
                       },
                       {
                         name: 'Retail Product',
-                        options: [
-                          { label: 'Coca-Cola Zero - 1 liter', value: '606983' },
-                          { label: 'Pepsi Max - 1.5 liter', value: '607124' },
-                          { label: 'Red Bull Original - 250ml', value: '608456' },
-                          { label: 'Heineken Lager - 6x330ml', value: '609782' },
-                          { label: 'Nutella Hazelnut Spread - 750g', value: '614038' },
-                          { label: "Ben & Jerry's Cookie Dough - 465ml", value: '614649' },
-                        ],
+                        options: retailProductOptions(useDb()),
                         selectedValues: retailProduct,
                         onChange: setRetailProduct,
                       },

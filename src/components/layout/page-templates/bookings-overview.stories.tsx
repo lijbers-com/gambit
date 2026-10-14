@@ -20,6 +20,8 @@ import * as React from 'react';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { AddButton } from '@/components/ui/add-button';
 import { addBooking } from '@/lib/create-entities';
+import { withProductImages } from '@/lib/db/retail-products';
+import { levelLinks } from '@/lib/level-links';
 
 const meta: Meta<typeof AppLayout> = {
   title: 'Page templates/Bookings Overview',
@@ -258,7 +260,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
           pageHeaderProps={{
             // Same as the campaign overview: name the proposition in the title.
             title: engineType === 'all' ? 'Bookings' : `${engineTitle} bookings`,
-            titleIcon: <HierarchyBadge level="booking" />,
+            titleIcon: <HierarchyBadge level="booking" links={levelLinks(db, { engine: engineType })} />,
             subtitle: engineType === 'all' ? 'All bookings' : `All ${engineType} bookings`,
             onEdit: () => alert('Edit clicked'),
             onExport: () => alert('Export clicked'),
@@ -332,7 +334,7 @@ const createBookingsOverviewStory = (engineType: string, engineTitle: string) =>
                                 },
                                 {
                                   name: 'Retail product',
-                                  options: optionsOf(engineRows.map((r) => r.retailProduct)),
+                                  options: withProductImages(db, optionsOf(engineRows.map((r) => r.retailProduct))),
                                   selectedValues: retailProduct,
                                   onChange: setRetailProduct,
                                 },

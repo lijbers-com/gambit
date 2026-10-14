@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight, CornerDownRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
+import { ChevronDown, ChevronRight, CornerDownRight, Eye, MoreHorizontal, Percent, Euro, Store, TvMinimalPlay, LayoutList } from 'lucide-react';
 import { FillRateBar, FillRateValue } from './fill-rate-bar';
 import { AvailableTimeBar, AvailableTimeValue } from './available-time-bar';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from './tooltip';
@@ -158,7 +158,7 @@ const bookingBadgeModeFor = (displayType: string | undefined): BookingBadgeMode 
     case 'availableTimeBar':
     case 'availableTime':
       return 'time';
-    case 'bookedCampaigns':
+    case 'bookings':
     case 'fillRate':
     case 'fillRateBar':
     default:
@@ -232,7 +232,7 @@ export interface CalendarTableProps {
   startWeek?: number;
   retailerEvents?: RetailerEvent[];
   showReach?: boolean;
-  displayType?: 'reach' | 'fillRate' | 'fillRateBar' | 'impressionsBar' | 'availableTimeBar' | 'revenue' | 'stores' | 'players' | 'bookedCampaigns';
+  displayType?: 'reach' | 'fillRate' | 'fillRateBar' | 'impressionsBar' | 'availableTimeBar' | 'revenue' | 'stores' | 'players' | 'bookings';
   className?: string;
   onCellClick?: (mediaProduct: MediaProduct, weekNumber: number, value: CalendarCellValue) => void;
   /** Fires when the channel name (left column) is clicked. Use to open a
@@ -261,6 +261,10 @@ interface RowMeta {
   storeCapacity?: number;
   availableStores?: number[];
 }
+
+/** Every week cell is this tall, whatever the view — a bar with labels, a
+ *  count with an icon — so rows never change height when the view does. */
+const CELL_HEIGHT = 52;
 
 /** Round up to a figure a bar can plausibly be "out of". */
 const niceCeil = (n: number) => {
@@ -360,45 +364,32 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
         ? `Fits the ${storeTarget!.toLocaleString('en-GB')}-store target`
         : `Not enough stores for the ${storeTarget!.toLocaleString('en-GB')}-store target`;
 
-    // Bookings cell: small status-colored count chips
-    // (■4 ■1 = 4 booked + 1 reserved).
+    // Bookings cell: how many bookings run in the week, as a count with the
+    // bookings icon — the same text as every other count. The split by
+    // status lives in the tooltip.
     if (isBookingsCellValue(value)) {
       const handleCellClick = () => {
         if (onCellClick) onCellClick(mediaProduct, weekNumbers[weekIndex], value);
       };
       const counts = value.bookingStatusCounts;
       const order: BookingStatus[] = ['booked', 'confirmed', 'reserved', 'overbooked'];
-      const chips = order
-        .map((status) => ({ status, count: counts[status] ?? 0 }))
-        .filter((c) => c.count > 0);
+      const total = order.reduce((sum, status) => sum + (counts[status] ?? 0), 0);
+      const split = order
+        .filter((status) => (counts[status] ?? 0) > 0)
+        .map((status) => `${counts[status]} ${bookingStatusLabels[status].toLowerCase()}`)
+        .join(' · ');
       return (
         <td
           key={weekIndex}
-          className={cn("px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors", fitClass)}
-          title={fitTitle}
+          className={cn("px-3 align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors", fitClass)}
+          style={{ height: CELL_HEIGHT }}
+          title={fitTitle ?? (split || undefined)}
           onClick={handleCellClick}
         >
-          {chips.length === 0 ? (
-            <span className="text-sm text-neutral-400">—</span>
-          ) : (
-            <div className="flex items-center justify-center gap-1 flex-wrap">
-              {chips.map((c) => (
-                <div
-                  key={c.status}
-                  className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full text-[10px] font-semibold leading-none tabular-nums"
-                  style={{
-                    backgroundColor: bookingStatusColors[c.status],
-                    // Light-green "reserved" needs dark text for contrast;
-                    // every other status has enough contrast against white.
-                    color: c.status === 'reserved' ? 'hsl(var(--chart-900))' : 'white',
-                  }}
-                  title={`${bookingStatusLabels[c.status]}: ${c.count}`}
-                >
-                  {c.count}
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="flex items-center justify-center gap-1">
+            <span className="text-sm font-semibold text-neutral-700">{total}</span>
+            <LayoutList className="w-4 h-4 flex-shrink-0 text-neutral-400" />
+          </div>
         </td>
       );
     }
@@ -412,6 +403,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
         <td
           key={weekIndex}
           className={cn("p-0 align-middle hover:bg-neutral-50 transition-colors", fitClass)}
+          style={{ height: CELL_HEIGHT }}
           title={fitTitle}
           onClick={handleCellClick}
         >
@@ -438,6 +430,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
         <td
           key={weekIndex}
           className={cn("p-0 align-middle hover:bg-neutral-50 transition-colors", fitClass)}
+          style={{ height: CELL_HEIGHT }}
           title={fitTitle}
           onClick={handleCellClick}
         >
@@ -470,6 +463,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
         <td
           key={weekIndex}
           className={cn("p-0 align-middle cursor-pointer hover:bg-neutral-50 transition-colors", fitClass)}
+          style={{ height: CELL_HEIGHT }}
           title={fitTitle}
           onClick={handleCellClick}
         >
@@ -527,7 +521,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
         }
       } else if (displayType === 'stores') {
         displayValue = value.toString();
-      } else if (displayType === 'bookedCampaigns') {
+      } else if (displayType === 'bookings') {
         displayValue = value.toString();
       } else {
         // Default formatting for other numeric values
@@ -559,15 +553,16 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     };
 
     // Show reach icon based on showReach prop
-    const shouldShowIcon = showReach !== false;
+    const shouldShowIcon = showReach !== false || displayType === 'bookings';
 
     return (
       <td 
         key={weekIndex} 
         className={cn(
-          "px-3 py-[11px] align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors",
+          "px-3 align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors",
           fitClass
         )}
+        style={{ height: CELL_HEIGHT }}
         title={fitTitle}
         onClick={handleCellClick}
       >
@@ -584,7 +579,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
               : displayType === 'revenue' ? Euro 
               : displayType === 'stores' ? Store 
               : displayType === 'players' ? TvMinimalPlay 
-              : displayType === 'bookedCampaigns' ? Megaphone
+              : displayType === 'bookings' ? LayoutList
               : Eye;
             return <IconComponent className={cn("w-4 h-4 flex-shrink-0", iconColorClass)} />;
           })()}

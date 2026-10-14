@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MenuContextProvider } from '@/contexts/menu-context';
 import { AppLayout } from '../app-layout';
 import { Card, CardHeader, CardContent, CardWithTabs } from '@/components/ui/card';
-import { X, Eye, Euro, Percent, Store, TvMinimalPlay, Megaphone } from 'lucide-react';
+import { X, Eye, Euro, Percent, Store, TvMinimalPlay, LayoutList } from 'lucide-react';
 import {
   CalendarTable,
   computeBookingImpressions,
@@ -305,7 +305,6 @@ const buildDrawerMetrics = (
         };
       }
       case 'bookings':
-      case 'bookedCampaigns':
         return { key, label, value: `${bookingCount}`, subMetric: bookingCount === 1 ? 'booking' : 'bookings' };
       default:
         return { key, label, value: `${Math.round(used)}%` };
@@ -506,7 +505,7 @@ const BookingCalendarTemplate = ({
     { value: 'fillRate', label: 'Fill Rate', icon: Percent },
     ...(hideStoresTab ? [] : [{ value: 'stores', label: 'Available Stores', icon: Store }]),
     ...(showAvailableTimeTab ? [{ value: 'availableTime', label: 'Available time', icon: TvMinimalPlay }] : []),
-    ...(showBookingsTab ? [{ value: 'bookings', label: 'Bookings', icon: Megaphone }] : []),
+    ...(showBookingsTab ? [{ value: 'bookings', label: 'Bookings', icon: LayoutList }] : []),
   ];
 
   // Calculate weeks to show and start week from date range
@@ -807,11 +806,11 @@ const BookingCalendarTemplate = ({
               activeView === 'reach' ? 'impressionsBar' :
               activeView === 'fillRate' ? 'fillRateBar' :
               activeView === 'availableTime' ? 'availableTimeBar' :
-              activeView === 'bookings' ? 'bookedCampaigns' :
+              activeView === 'bookings' ? 'bookings' :
               activeView === 'revenue' ? 'revenue' :
               activeView === 'stores' ? 'stores' :
               'reach'
-            ) as 'fillRateBar' | 'impressionsBar' | 'availableTimeBar' | 'bookedCampaigns' | 'revenue' | 'stores' | 'reach',
+            ) as 'fillRateBar' | 'impressionsBar' | 'availableTimeBar' | 'bookings' | 'revenue' | 'stores' | 'reach',
             onCellClick: handleCellClick,
             onBookingClick: (booking: any) => { window.location.href = `/campaigns/${booking.id}`; },
             maxInlinePositions,
@@ -2300,7 +2299,7 @@ const OfflineInstoreCalendarTemplate = ({
     weekNumber: number;
     value: number | string;
   } | null>(null);
-  const [activeView, setActiveView] = useState('bookedCampaigns');
+  const [activeView, setActiveView] = useState('bookings');
   // Which 3 metric cards appear in the cell drawer. State lives here so the
   // user's pick persists across cell clicks; defaults to the first 3 view tabs.
   const [drawerMetricKeys, setDrawerMetricKeys] = useState<string[] | null>(null);
@@ -2313,7 +2312,7 @@ const OfflineInstoreCalendarTemplate = ({
   // Impressions intentionally omitted — only the Display calendar surfaces
   // impressions as a top-level view (other channels measure differently).
   const viewTabs = [
-    { value: 'bookedCampaigns', label: 'Bookings', icon: Megaphone },
+    { value: 'bookings', label: 'Bookings', icon: LayoutList },
     { value: 'stores', label: 'Available stores', icon: Store },
     { value: 'fillRate', label: 'Fill Rate', icon: Percent },
   ];
@@ -2535,10 +2534,20 @@ const OfflineInstoreCalendarTemplate = ({
           );
 
           const transformed = filteredBookingsData.map(product => {
+            // Bookings counts the zone's own bookings per week, the same way
+            // every other calendar does; positions carry none of their own.
+            if (activeView === 'bookings') {
+              return {
+                ...product,
+                availability: buildBookingsAvailability(product.bookings, numberOfWeeks, startWeek),
+                positions: product.positions?.map((pos: any) => ({
+                  ...pos,
+                  availability: buildBookingsAvailability(undefined, numberOfWeeks, startWeek),
+                })),
+              };
+            }
             const raw =
-              activeView === 'bookedCampaigns'
-                ? (product.campaignCounts || product.availability)
-                : activeView === 'reach'
+              activeView === 'reach'
                 ? (product.reachData || product.availability)
                 : product.availability;
             return {
@@ -2578,10 +2587,10 @@ const OfflineInstoreCalendarTemplate = ({
             showReach: activeView !== 'fillRate',
             displayType: (
               activeView === 'fillRate' ? 'fillRateBar' :
-              activeView === 'bookedCampaigns' ? 'bookedCampaigns' :
+              activeView === 'bookings' ? 'bookings' :
               activeView === 'stores' ? 'stores' :
               'reach'
-            ) as 'fillRateBar' | 'bookedCampaigns' | 'stores' | 'reach',
+            ) as 'fillRateBar' | 'bookings' | 'stores' | 'reach',
             onCellClick: handleCellClick,
             onBookingClick: (booking: any) => { window.location.href = `/campaigns/${booking.id}`; },
             hideGreyCells: activeView === 'stores' || activeView === 'reach',
@@ -2732,7 +2741,6 @@ export const OfflineInstoreCalendar: Story = {
           ...product,
           storeTypes: ['ah-dnah', 'ah-xl'], // Add sample store types
           retailProducts: ['606983', '607124', '608456'], // Add sample retail products
-          campaignCounts: [3, 7, 2, 8, 12, 5, 1, 9, 4, 6, 0, 11] // Number of booked campaigns (0-12) for each week
         })))}
         title="Offline In-store Calendar"
         mediaProductOptions={[

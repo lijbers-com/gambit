@@ -837,8 +837,8 @@ const calendarProducts = [
 ];
 /** Available stores per week for two zones, out of 1,100 stores each. */
 const calendarStoreProducts = [
-  { id: 'zuivel', name: 'Zuivel', storeCapacity: 1100, availability: [612, 551, 497, 444, 398, 291] },
-  { id: 'diepvries', name: 'Diepvries', storeCapacity: 1100, availability: [480, 420, 350, 310, 260, 330] },
+  { id: 'dairy', name: 'Dairy', storeCapacity: 1100, availability: [612, 551, 497, 444, 398, 291] },
+  { id: 'frozen', name: 'Frozen', storeCapacity: 1100, availability: [480, 420, 350, 310, 260, 330] },
 ];
 /* ── The registry ───────────────────────────────────────────────────── */
 

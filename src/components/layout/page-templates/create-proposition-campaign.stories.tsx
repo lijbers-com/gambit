@@ -305,7 +305,7 @@ const categoryPlacements = [
     { id: 'vla', name: 'Vla category' },
     { id: 'pudding', name: 'Pudding category' },
   ]},
-  { id: 'zuivel-cat', name: 'Zuivel category', children: [
+  { id: 'zuivel-cat', name: 'Dairy category', children: [
     { id: 'melk', name: 'Melk category' },
     { id: 'kaas', name: 'Kaas category' },
   ]},

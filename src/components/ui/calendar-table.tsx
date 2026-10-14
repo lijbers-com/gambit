@@ -349,14 +349,16 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     const storesInCell =
       meta.availableStores?.[weekIndex] ??
       (displayType === 'stores' && typeof value === 'number' ? value : undefined);
-    const shortBy =
-      storeTarget && storeTarget > 0 && storesInCell !== undefined
-        ? Math.max(0, storeTarget - storesInCell)
-        : 0;
-    const fitClass = shortBy > 0 ? 'opacity-40' : undefined;
-    const fitTitle = shortBy > 0
-      ? `${shortBy.toLocaleString('en-GB')} stores short of the ${storeTarget!.toLocaleString('en-GB')}-store target`
-      : undefined;
+    // Either the week can take the booking or it cannot: a possible week is
+    // tinted whole, an impossible one steps back.
+    const checked = !!storeTarget && storeTarget > 0 && storesInCell !== undefined;
+    const fits = checked && storesInCell! >= storeTarget!;
+    const fitClass = !checked ? undefined : fits ? 'bg-success-50' : 'opacity-40';
+    const fitTitle = !checked
+      ? undefined
+      : fits
+        ? `Fits the ${storeTarget!.toLocaleString('en-GB')}-store target`
+        : `Not enough stores for the ${storeTarget!.toLocaleString('en-GB')}-store target`;
 
     // Bookings cell: small status-colored count chips
     // (■4 ■1 = 4 booked + 1 reserved).
@@ -481,7 +483,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
             showLabels
             format="count"
             unit="stores"
-            note={shortBy > 0 ? `${shortBy.toLocaleString('en-GB')} short` : undefined}
+            unitIcon={Store}
             className="px-3 py-[11px]"
           />
         </td>

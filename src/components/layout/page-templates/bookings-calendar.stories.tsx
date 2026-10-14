@@ -1308,7 +1308,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '2',
-    name: 'Zuivel',
+    name: 'Dairy',
     availability: [850, 780, 710, 640, 580, 520, 460, 820, 750, 690, 730, 860],
     reachData: [2650000, 2180000, 1780000, 1520000, 1280000, 850000, 580000, 2050000, 2550000, 1650000, 980000, 2850000],
     storeTypes: ['xl', 'premium', 'compact'],
@@ -1346,7 +1346,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '3',
-    name: 'Vers',
+    name: 'Fresh',
     availability: [780, 720, 660, 600, 550, 500, 450, 750, 690, 630, 670, 800],
     reachData: [2450000, 2050000, 1650000, 1380000, 1150000, 750000, 480000, 1850000, 2350000, 1450000, 850000, 2650000],
     storeTypes: ['to-go', 'express', 'compact'],
@@ -1375,7 +1375,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '4',
-    name: 'Vlees & Vega',
+    name: 'Meat & vegetarian',
     availability: [740, 680, 620, 560, 510, 460, 420, 720, 650, 590, 630, 760],
     reachData: [2250000, 1850000, 1450000, 1180000, 950000, 650000, 380000, 1650000, 2150000, 1250000, 750000, 2450000],
     storeTypes: ['xl', 'premium'],
@@ -1404,7 +1404,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '5',
-    name: 'Diepvries',
+    name: 'Frozen',
     availability: [770, 710, 650, 590, 540, 490, 450, 740, 680, 620, 660, 790],
     reachData: [2150000, 1750000, 1350000, 1080000, 850000, 550000, 320000, 1550000, 1950000, 1150000, 680000, 2350000],
     storeTypes: ['xl', 'premium', 'compact'],
@@ -1433,7 +1433,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '6',
-    name: 'Worldfoods',
+    name: 'World foods',
     availability: [720, 660, 600, 540, 490, 440, 400, 700, 640, 580, 620, 740],
     reachData: [1950000, 1550000, 1150000, 880000, 650000, 450000, 300000, 1350000, 1750000, 950000, 580000, 2150000],
     storeTypes: ['premium', 'compact'],
@@ -1462,7 +1462,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '7',
-    name: 'Maaltijdtoevoegingen',
+    name: 'Meal additions',
     availability: [510, 370, 260, 150, 95, 50, 25, 440, 350, 290, 320, 490],
     reachData: [1150000, 950000, 750000, 580000, 420000, 350000, 300000, 850000, 1050000, 650000, 480000, 1350000],
     storeTypes: ['to-go', 'xl', 'premium'],
@@ -1472,7 +1472,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '8',
-    name: 'Noten, toast, chips etc.',
+    name: 'Nuts, crackers & crisps',
     availability: [480, 340, 230, 120, 70, 40, 20, 410, 320, 270, 300, 460],
     reachData: [950000, 780000, 620000, 480000, 380000, 320000, 300000, 720000, 850000, 550000, 420000, 1150000],
     storeTypes: ['express', 'compact', 'premium'],
@@ -1482,7 +1482,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '9',
-    name: 'Zoetwaren',
+    name: 'Confectionery',
     availability: [520, 380, 270, 140, 85, 45, 22, 450, 360, 300, 340, 500],
     reachData: [1250000, 1050000, 820000, 650000, 480000, 380000, 320000, 920000, 1150000, 720000, 520000, 1450000],
     storeTypes: ['to-go', 'express', 'xl'],
@@ -1492,7 +1492,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '10',
-    name: 'Ontbijt',
+    name: 'Breakfast',
     availability: [560, 420, 310, 180, 110, 60, 35, 490, 400, 340, 370, 540],
     reachData: [1450000, 1250000, 980000, 750000, 550000, 420000, 350000, 1080000, 1350000, 820000, 620000, 1650000],
     storeTypes: ['xl', 'premium', 'compact'],
@@ -1502,7 +1502,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '11',
-    name: 'Non Food',
+    name: 'Non-food',
     availability: [440, 310, 200, 100, 55, 30, 15, 380, 290, 240, 260, 420],
     reachData: [850000, 680000, 520000, 420000, 350000, 310000, 300000, 620000, 750000, 480000, 380000, 950000],
     storeTypes: ['premium', 'compact'],
@@ -1512,7 +1512,7 @@ const offlineInstoreBookingsData = [
   },
   {
     id: '12',
-    name: 'To Go',
+    name: 'To go',
     availability: [390, 270, 180, 90, 45, 25, 10, 330, 250, 200, 220, 370],
     reachData: [750000, 580000, 450000, 380000, 320000, 300000, 300000, 550000, 650000, 420000, 350000, 820000],
     storeTypes: ['to-go', 'express'],

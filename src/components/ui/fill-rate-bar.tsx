@@ -125,6 +125,8 @@ export interface FillRateBarProps {
   format?: "percent" | "count"
   /** Unit for counts in the tooltip legend ("stores"). */
   unit?: string
+  /** Icon after each count label — the store glyph, as "%" follows a share. */
+  unitIcon?: React.ComponentType<{ className?: string }>
   /** Replaces the right-hand label with a status, e.g. "50 short" when a
    *  cell cannot reach the store target. Warning tone: an attention state. */
   note?: string
@@ -146,6 +148,7 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
       impressionsTotal,
       format = "percent",
       unit,
+      unitIcon: UnitIcon,
       note,
     },
     ref
@@ -272,12 +275,18 @@ export const FillRateBar = React.forwardRef<HTMLDivElement, FillRateBarProps>(
 
     const labelRow = hasRollup ? (
       <div className="flex w-full justify-between gap-1 text-[10px] leading-none tabular-nums whitespace-nowrap">
-        <span style={{ color: colors.booked }}>{leftLabel}</span>
+        <span className="inline-flex items-center gap-0.5" style={{ color: colors.booked }}>
+          {leftLabel}
+          {format === "count" && UnitIcon && <UnitIcon className="h-3 w-3" />}
+        </span>
         {note ? (
           <span style={{ color: "hsl(var(--warning-700))" }}>{note}</span>
         ) : (
           !impressionsMode && showRight && (
-            <span style={{ color: rightColor }}>{rightLabel}</span>
+            <span className="inline-flex items-center gap-0.5" style={{ color: rightColor }}>
+              {rightLabel}
+              {format === "count" && UnitIcon && <UnitIcon className="h-3 w-3" />}
+            </span>
           )
         )}
       </div>

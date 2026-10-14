@@ -297,17 +297,17 @@ const mockCreatives = [
 // Mock data for placement search results - 3 packages per zone
 const zones = [
   'No zone',
-  'Zuivel',
-  'Vers',
-  'Vlees & Vega',
-  'Diepvries',
-  'Worldfoods',
-  'Maaltijdtoevoegingen',
-  'Noten, toast, chips etc.',
-  'Zoetwaren',
-  'Ontbijt',
-  'Non Food',
-  'To Go'
+  'Dairy',
+  'Fresh',
+  'Meat & vegetarian',
+  'Frozen',
+  'World foods',
+  'Meal additions',
+  'Nuts, crackers & crisps',
+  'Confectionery',
+  'Breakfast',
+  'Non-food',
+  'To go'
 ];
 
 const packages = ['Small', 'Medium', 'Large'];
@@ -2687,17 +2687,17 @@ export const OfflineInStore: Story = {
     // Location options for Filter component
     const locationOptions = [
       { label: 'No zone', value: 'no-zone', description: 'General store placement' },
-      { label: 'Zuivel', value: 'zuivel', description: 'Dairy section, refrigerated area' },
-      { label: 'Vers', value: 'vers', description: 'Fresh produce, vegetables, fruits' },
-      { label: 'Vlees & Vega', value: 'vlees-vega', description: 'Meat counter, vegetarian alternatives' },
-      { label: 'Diepvries', value: 'diepvries', description: 'Frozen food aisles, freezer sections' },
-      { label: 'Worldfoods', value: 'worldfoods', description: 'International cuisine, ethnic foods' },
-      { label: 'Maaltijdtoevoegingen', value: 'maaltijdtoevoegingen', description: 'Meal additions, sauces, seasonings' },
-      { label: 'Noten, toast, chips etc.', value: 'noten-toast-chips', description: 'Snacks aisle, nuts, crackers' },
-      { label: 'Zoetwaren', value: 'zoetwaren', description: 'Candy aisle, chocolates, sweets' },
-      { label: 'Ontbijt', value: 'ontbijt', description: 'Breakfast items, cereals, spreads' },
-      { label: 'Non Food', value: 'non-food', description: 'Household items, personal care' },
-      { label: 'To Go', value: 'to-go', description: 'Ready meals, grab-and-go section' },
+      { label: 'Dairy', value: 'zuivel', description: 'Dairy section, refrigerated area' },
+      { label: 'Fresh', value: 'vers', description: 'Fresh produce, vegetables, fruits' },
+      { label: 'Meat & vegetarian', value: 'vlees-vega', description: 'Meat counter, vegetarian alternatives' },
+      { label: 'Frozen', value: 'diepvries', description: 'Frozen food aisles, freezer sections' },
+      { label: 'World foods', value: 'worldfoods', description: 'International cuisine, ethnic foods' },
+      { label: 'Meal additions', value: 'maaltijdtoevoegingen', description: 'Meal additions, sauces, seasonings' },
+      { label: 'Nuts, crackers & crisps', value: 'noten-toast-chips', description: 'Snacks aisle, nuts, crackers' },
+      { label: 'Confectionery', value: 'zoetwaren', description: 'Candy aisle, chocolates, sweets' },
+      { label: 'Breakfast', value: 'ontbijt', description: 'Breakfast items, cereals, spreads' },
+      { label: 'Non-food', value: 'non-food', description: 'Household items, personal care' },
+      { label: 'To go', value: 'to-go', description: 'Ready meals, grab-and-go section' },
     ];
 
     // Inventory options with detailed information

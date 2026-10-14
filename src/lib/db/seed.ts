@@ -15,7 +15,7 @@ import { withMarketDemand } from './seed-demand';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 48;
+export const SEED_VERSION = 49;
 
 const now = prototypeNow().toISOString();
 

@@ -290,9 +290,8 @@ export interface CalendarTableProps {
   /** Rows that open expanded — a proposition with one media product shows
    *  its positions straight away. */
   defaultExpandedIds?: string[];
-  /** Booking lanes shown under an open row before the rest folds into a
-   *  "+N more bookings" row. Bookings share a lane when they do not overlap,
-   *  earliest first, so the lanes read left to right. Default 6. */
+  /** Bookings shown under an open row — one line each, earliest first —
+   *  before the rest fold into a "+N more bookings" row. Default 6. */
   maxBookingLanes?: number;
 }
 
@@ -636,23 +635,17 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
     );
   };
 
-  /** Bookings packed into lanes: sorted by start, each into the first lane
-   *  it does not overlap, so a lane reads left to right in time. */
+  /** One line per booking, earliest start first (then earliest end), so the
+   *  bars step down left to right in time. */
   const laneColumns = (booking: Booking) => {
     const startIdx = weekNumbers.indexOf(booking.startWeek);
     const endIdx = weekNumbers.indexOf(booking.endWeek);
     return { start: startIdx < 0 ? 0 : startIdx, end: endIdx < 0 ? weeks - 1 : Math.min(weeks - 1, endIdx) };
   };
-  const packLanes = (bookings: Booking[]): Booking[][] => {
-    const sorted = [...bookings].sort((a, b) => laneColumns(a).start - laneColumns(b).start || laneColumns(a).end - laneColumns(b).end);
-    const lanes: Booking[][] = [];
-    for (const booking of sorted) {
-      const { start } = laneColumns(booking);
-      const lane = lanes.find((l) => laneColumns(l[l.length - 1]).end < start);
-      if (lane) lane.push(booking); else lanes.push([booking]);
-    }
-    return lanes;
-  };
+  const packLanes = (bookings: Booking[]): Booking[][] =>
+    [...bookings]
+      .sort((a, b) => laneColumns(a).start - laneColumns(b).start || laneColumns(a).end - laneColumns(b).end)
+      .map((booking) => [booking]);
 
   const renderLane = (lane: Booking[], laneIndex: number, totalLanes: number) => {
     const pad = laneIndex === 0 ? (totalLanes === 1 ? "pt-6 pb-6" : "pt-6 pb-0.5") : laneIndex === totalLanes - 1 ? "pt-0.5 pb-6" : "py-0.5";

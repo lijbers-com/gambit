@@ -66,8 +66,7 @@ ok(`users → advertisers (${d.users.length} users)`);
 
 for (const m of d.mediaProducts) if (!engineIds.has(m.engine)) fail(`${m.id}: unknown engine ${m.engine}`);
 for (const p of d.positions) if (!mediaProductIds.has(p.mediaProductId)) fail(`${p.id}: unknown media product ${p.mediaProductId}`);
-for (const a of d.availability) if (!positionIds.has(a.positionId)) fail(`availability: unknown position ${a.positionId}`);
-ok(`media products → engines; positions → products; availability → positions`);
+ok(`media products → engines; positions → products`);
 
 for (const m of d.metricDefinitions) {
   if (m.engine !== 'all' && !engineIds.has(m.engine)) fail(`metric ${m.key}: unknown engine ${m.engine}`);
@@ -129,11 +128,11 @@ for (const e of d.engines) {
   if (!usedEngines.has(e.id)) console.log(`  ⚠ engine ${e.id}: no seeded campaign uses it`);
 }
 
-for (const a of d.availability) {
-  const pos = d.positions.find((p) => p.id === a.positionId)!;
-  if (a.booked > pos.dailyCapacity * 7) fail(`availability ${a.positionId} ${a.week}: booked ${a.booked} exceeds weekly capacity ${pos.dailyCapacity * 7}`);
+for (const p of d.positions) {
+  const engine = d.mediaProducts.find((m) => m.id === p.mediaProductId)?.engine;
+  if ((engine === 'offline-instore' || engine === 'digital-instore') && !p.stores) fail(`${p.id}: in-store position without a store count`);
 }
-ok('availability bookings within weekly capacity');
+ok('in-store positions carry their store counts');
 
 // ── 4. Derived to-do engine ────────────────────────────────────────────
 console.log('\n4. Derived to-do engine');

@@ -13,7 +13,7 @@ import { buyingTypeOf, goalMetricFor, productForBooking } from './guaranteed';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 40;
+export const SEED_VERSION = 41;
 
 const now = '2026-07-30T00:00:00.000Z';
 
@@ -288,21 +288,21 @@ const baseSeed: DbData = {
     { id: 'B-013', campaignId: 'C-009', name: 'Social Retargeting',         status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-08-31', positionIds: ['pos-off-soc-meta'],   creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     // Back to School (in option; creative work outstanding)
     { id: 'B-014', campaignId: 'C-010', name: 'Keywords — school lunch',    status: 'in-option', budget: 7000, spend: 0, startDate: '2026-08-10', endDate: '2026-09-10', positionIds: ['pos-sp-search'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
-    { id: 'B-015', campaignId: 'C-011', name: 'Shelf Displays — Snacks',    status: 'draft',     budget: 5000, spend: 0, startDate: '2026-08-17', endDate: '2026-09-10', positionIds: ['pos-ois-shelf'], creativeStatus: 'missing',  createdAt: now, updatedAt: now },
+    { id: 'B-015', campaignId: 'C-011', name: 'Wobblers — Snacks',    status: 'draft',     budget: 5000, spend: 0, startDate: '2026-08-17', endDate: '2026-09-10', positionIds: ['pos-ois-shelf'], creativeStatus: 'missing',  createdAt: now, updatedAt: now },
     // Coffee Moments (live loyalty)
     { id: 'B-016', campaignId: 'C-012', name: 'Keywords — coffee & pads',   status: 'running',   budget: 4000, spend: 1400, startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-sp-search'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-017', campaignId: 'C-013', name: 'Aisle Screens — Coffee',     status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
-    { id: 'B-018', campaignId: 'C-014', name: 'Floor Stickers — Coffee',    status: 'in-option', budget: 3000, spend: 0,    startDate: '2026-08-01', endDate: '2026-09-30', positionIds: ['pos-ois-floor'],    creativeStatus: 'submitted', createdAt: now, updatedAt: now },
+    { id: 'B-018', campaignId: 'C-014', name: 'Vloerstickers — Coffee',    status: 'in-option', budget: 3000, spend: 0,    startDate: '2026-08-01', endDate: '2026-09-30', positionIds: ['pos-ois-floor'],    creativeStatus: 'submitted', createdAt: now, updatedAt: now },
     // Ice Cream Summer (paused)
     { id: 'B-019', campaignId: 'C-015', name: 'Homepage Takeover',          status: 'paused',    budget: 5000, spend: 2600, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-dsp-home-mid'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
-    { id: 'B-020', campaignId: 'C-016', name: 'Shelf Displays — Ice cream', status: 'paused',    budget: 4000, spend: 1800, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-ois-shelf'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-020', campaignId: 'C-016', name: 'Wobblers — Ice cream', status: 'paused',    budget: 4000, spend: 1800, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-ois-shelf'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     // Bookings for the campaigns above, spread across the year for the same
     // reason: a date range should visibly change what the table holds.
     { id: 'B-021', campaignId: 'C-021', name: 'Search — New Year',           status: 'completed', budget: 3000, spend: 2980, startDate: '2026-01-12', endDate: '2026-02-15', positionIds: ['pos-sp-search'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-022', campaignId: 'C-022', name: 'Entrance Screens — January',  status: 'completed', budget: 2500, spend: 2500, startDate: '2026-01-05', endDate: '2026-01-31', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-023', campaignId: 'C-023', name: 'Open Web — Coffee',           status: 'completed', budget: 2400, spend: 2350, startDate: '2026-02-01', endDate: '2026-03-15', positionIds: ['pos-off-web-standard'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-024', campaignId: 'C-023', name: 'Social — Coffee moments',     status: 'completed', budget: 1800, spend: 1750, startDate: '2026-02-10', endDate: '2026-03-15', positionIds: ['pos-off-soc-meta'],  creativeStatus: 'approved', createdAt: now, updatedAt: now },
-    { id: 'B-025', campaignId: 'C-024', name: 'Floor Graphics — Spring',     status: 'running',   budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', positionIds: ['pos-ois-floor'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-025', campaignId: 'C-024', name: 'Vloerstickers — Spring',     status: 'running',   budget: 3600, spend: 1450, startDate: '2026-04-01', endDate: '2026-05-31', positionIds: ['pos-ois-floor'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     // Two bookings pacing far apart on purpose: the aisle screens sit on
     // budget they cannot use while the entrance screens are nearly capped —
     // the shape the booking-rebalance recommendation exists to catch.
@@ -310,7 +310,7 @@ const baseSeed: DbData = {
     { id: 'B-031', campaignId: 'C-025', name: 'Entrance Screens — Summer',   status: 'running',   budget: 1500, spend: 1370, startDate: '2026-05-04', endDate: '2026-06-30', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-027', campaignId: 'C-026', name: 'Search — Ice cream',          status: 'paused',    budget: 3200, spend: 2100, startDate: '2026-05-18', endDate: '2026-07-31', positionIds: ['pos-sp-search'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-028', campaignId: 'C-027', name: 'Open Web — Back to school',   status: 'in-option', budget: 5400, spend: 0,    startDate: '2026-09-01', endDate: '2026-09-30', positionIds: ['pos-off-web-standard'], creativeStatus: 'submitted', createdAt: now, updatedAt: now },
-    { id: 'B-029', campaignId: 'C-028', name: 'Shelf Displays — September',  status: 'in-option', budget: 4100, spend: 0,    startDate: '2026-08-24', endDate: '2026-09-20', positionIds: ['pos-ois-shelf'],    creativeStatus: 'missing',   createdAt: now, updatedAt: now },
+    { id: 'B-029', campaignId: 'C-028', name: 'Wobblers — September',  status: 'in-option', budget: 4100, spend: 0,    startDate: '2026-08-24', endDate: '2026-09-20', positionIds: ['pos-ois-shelf'],    creativeStatus: 'missing',   createdAt: now, updatedAt: now },
     { id: 'B-030', campaignId: 'C-030', name: 'Open Web — Winter',           status: 'draft',     budget: 3500, spend: 0,    startDate: '2026-10-05', endDate: '2026-11-15', positionIds: [],                   creativeStatus: 'missing',   createdAt: now, updatedAt: now },
     // Black Friday: campaigns exist, bookings deliberately absent (create-flow demo)
   ],
@@ -370,7 +370,7 @@ const baseSeed: DbData = {
     // Digital in-store
     { id: 'mprod-dis-instore', engine: 'digital-instore', name: 'In-store screens', description: 'Digital screens in physical stores.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 9, floorPrice: 0.3, holdDays: 7, constraints: ['Minimum run time 14 days', 'Creatives due X-4', 'Store list generated by Edge', 'Sold on impressions: a goal at a CPM'], owner: 'Media Proposition Developer' },
     // Offline in-store
-    { id: 'mprod-ois-print',   engine: 'offline-instore', name: 'Printed materials', description: 'Shelf displays, floor stickers, posters.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'per-store', listPrice: 32, holdDays: 10, constraints: ['Minimum run time 14 days', 'Print files due X-8', 'Installed by Hamilton Bright'], owner: 'Media Proposition Developer' },
+    { id: 'mprod-ois-print',   engine: 'offline-instore', name: 'Printed materials', description: 'Wobblers, VSBs, vloerstickers and the other printed formats in store.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'per-store', listPrice: 32, holdDays: 10, constraints: ['Minimum run time 14 days', 'Print files due X-8', 'Installed by Hamilton Bright'], owner: 'Media Proposition Developer' },
     // Offsite — channel terminology per the activation-arm diagram
     { id: 'mprod-off-display',    engine: 'offsite', name: 'Display',                    description: 'Programmatic display on the open web.', partner: 'Epsilon', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 6, floorPrice: 0.35, holdDays: 5, constraints: ['Audience data shared only with the partner'], owner: 'Yield Manager' },
     { id: 'mprod-off-olv',        engine: 'offsite', name: 'Online Video (OLV)',         description: 'In-stream and out-stream online video.', partner: 'Epsilon', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 18, holdDays: 5, constraints: ['15s or 6s video', 'Minimum €5,000'], owner: 'Yield Manager' },
@@ -414,17 +414,18 @@ const baseSeed: DbData = {
     { id: 'pos-sp-search-rail',  mediaProductId: 'mprod-sp-search', name: 'Search side rail',          format: 'Product listing', dailyCapacity: 20, floorPrice: 7.0, listPrice: 1650 },
     { id: 'pos-sp-autocomplete', mediaProductId: 'mprod-sp-search', name: 'Autocomplete suggestion',   format: 'Text + thumbnail', dailyCapacity: 25, floorPrice: 9.0, listPrice: 1550 },
     // Digital in-store
-    { id: 'pos-dis-entrance',    mediaProductId: 'mprod-dis-instore', name: 'Entrance screens',        format: 'Full screen 1080p', dailyCapacity: 6, floorPrice: 20.4, listPrice: 2560 },
-    { id: 'pos-dis-aisle',       mediaProductId: 'mprod-dis-instore', name: 'Aisle screens',           format: 'Full screen 1080p', dailyCapacity: 10, floorPrice: 16.0, listPrice: 2250 },
-    { id: 'pos-dis-checkout',    mediaProductId: 'mprod-dis-instore', name: 'Checkout screens',        format: 'Portrait 1080x1920', dailyCapacity: 12, floorPrice: 11.8, listPrice: 2320 },
-    { id: 'pos-dis-freezer',     mediaProductId: 'mprod-dis-instore', name: 'Freezer door screens',    format: 'Portrait 1080x1920', dailyCapacity: 8, floorPrice: 14.2, listPrice: 2080 },
-    { id: 'pos-dis-shelfedge',   mediaProductId: 'mprod-dis-instore', name: 'Shelf-edge displays',     format: 'Strip 1920x158', dailyCapacity: 20, floorPrice: 10.0, listPrice: 1900 },
+    { id: 'pos-dis-entrance',    mediaProductId: 'mprod-dis-instore', name: 'Entrance screens',        format: 'Full screen 1080p', dailyCapacity: 6, floorPrice: 20.4, listPrice: 2560, stores: 450 },
+    { id: 'pos-dis-aisle',       mediaProductId: 'mprod-dis-instore', name: 'Aisle screens',           format: 'Full screen 1080p', dailyCapacity: 10, floorPrice: 16.0, listPrice: 2250, stores: 320 },
+    { id: 'pos-dis-checkout',    mediaProductId: 'mprod-dis-instore', name: 'Checkout screens',        format: 'Portrait 1080x1920', dailyCapacity: 12, floorPrice: 11.8, listPrice: 2320, stores: 600 },
+    { id: 'pos-dis-freezer',     mediaProductId: 'mprod-dis-instore', name: 'Freezer door screens',    format: 'Portrait 1080x1920', dailyCapacity: 8, floorPrice: 14.2, listPrice: 2080, stores: 260 },
+    { id: 'pos-dis-shelfedge',   mediaProductId: 'mprod-dis-instore', name: 'Shelf-edge displays',     format: 'Strip 1920x158', dailyCapacity: 20, floorPrice: 10.0, listPrice: 1900, stores: 180 },
     // Offline in-store
-    { id: 'pos-ois-shelf',       mediaProductId: 'mprod-ois-print', name: 'Shelf displays',            format: 'Shelf talker A6', dailyCapacity: 20, floorPrice: 11.0, listPrice: 1650 },
-    { id: 'pos-ois-floor',       mediaProductId: 'mprod-ois-print', name: 'Floor stickers',            format: 'Floor decal 60x60', dailyCapacity: 15, floorPrice: 10.0, listPrice: 2100 },
-    { id: 'pos-ois-endcap',      mediaProductId: 'mprod-ois-print', name: 'Endcap posters',            format: 'Poster A1', dailyCapacity: 10, floorPrice: 17.0, listPrice: 2100 },
-    { id: 'pos-ois-trolley',     mediaProductId: 'mprod-ois-print', name: 'Trolley panels',            format: 'Panel A3', dailyCapacity: 25, floorPrice: 6.0, listPrice: 1500 },
-    { id: 'pos-ois-window',      mediaProductId: 'mprod-ois-print', name: 'Window posters',            format: 'Poster A0', dailyCapacity: 8, floorPrice: 17.2, listPrice: 2080 },
+    { id: 'pos-ois-shelf',       mediaProductId: 'mprod-ois-print', name: 'Wobbler',                   format: 'Shelf-edge card A6', dailyCapacity: 1, floorPrice: 11.0, listPrice: 1650, stores: 640 },
+    { id: 'pos-ois-floor',       mediaProductId: 'mprod-ois-print', name: 'Vloersticker',              format: 'Floor decal 60x60 cm', dailyCapacity: 1, floorPrice: 10.0, listPrice: 2100, stores: 420 },
+    { id: 'pos-ois-endcap',      mediaProductId: 'mprod-ois-print', name: 'VSB',                       format: 'Floor-standing board A1', dailyCapacity: 1, floorPrice: 17.0, listPrice: 2100, stores: 380 },
+    { id: 'pos-ois-trolley',     mediaProductId: 'mprod-ois-print', name: 'Koeldeursticker',           format: 'Cooler-door sticker A4', dailyCapacity: 1, floorPrice: 6.0, listPrice: 1500, stores: 520 },
+    { id: 'pos-ois-coolerflag',  mediaProductId: 'mprod-ois-print', name: 'Koeldeurvlag',              format: 'Cooler-door flag A5', dailyCapacity: 1, floorPrice: 6.0, listPrice: 1400, stores: 520 },
+    { id: 'pos-ois-window',      mediaProductId: 'mprod-ois-print', name: 'Makelaarsbord',             format: 'Board A0', dailyCapacity: 1, floorPrice: 17.2, listPrice: 2080, stores: 260 },
     // Offsite positions per channel
     { id: 'pos-off-web-standard', mediaProductId: 'mprod-off-display', placementId: 'plc-off-web-std',    name: 'Open web display',      format: 'MPU 300x250', dailyCapacity: 100, floorPrice: 2, listPrice: 150 },
     { id: 'pos-off-web-hpa',      mediaProductId: 'mprod-off-display', placementId: 'plc-off-web-hi',    name: 'High-impact takeover',  format: 'Skin + billboard', dailyCapacity: 15, floorPrice: 11.0, listPrice: 1800 },
@@ -443,27 +444,6 @@ const baseSeed: DbData = {
     { id: 'pos-off-dooh-screens',  mediaProductId: 'mprod-off-dooh',   name: 'DOOH screens',    dailyCapacity: 40, floorPrice: 2, listPrice: 1150 },
   ],
 
-  // Seeded per-week booked load across the summer flights; the calendar and
-  // availability views derive free capacity as dailyCapacity×7 − booked.
-  availability: [
-    { positionId: 'pos-dsp-home-top', week: '2026-W27', booked: 24 },
-    { positionId: 'pos-dsp-home-top', week: '2026-W28', booked: 28 },
-    { positionId: 'pos-dsp-home-top', week: '2026-W29', booked: 26 },
-    { positionId: 'pos-dsp-home-top', week: '2026-W30', booked: 20 },
-    { positionId: 'pos-dsp-home-mid', week: '2026-W28', booked: 30 },
-    { positionId: 'pos-dsp-cat-top',  week: '2026-W27', booked: 40 },
-    { positionId: 'pos-dsp-cat-top',  week: '2026-W28', booked: 48 },
-    { positionId: 'pos-dsp-pdp',      week: '2026-W28', booked: 55 },
-    { positionId: 'pos-sp-search',    week: '2026-W27', booked: 190 },
-    { positionId: 'pos-sp-search',    week: '2026-W28', booked: 230 },
-    { positionId: 'pos-sp-search',    week: '2026-W29', booked: 210 },
-    { positionId: 'pos-dis-entrance', week: '2026-W28', booked: 32 },
-    { positionId: 'pos-dis-aisle',    week: '2026-W28', booked: 45 },
-    { positionId: 'pos-ois-shelf',    week: '2026-W33', booked: 70 },
-    { positionId: 'pos-ois-floor',    week: '2026-W32', booked: 40 },
-    { positionId: 'pos-off-web-standard',  week: '2026-W28', booked: 380 },
-    { positionId: 'pos-off-soc-meta',  week: '2026-W28', booked: 300 },
-  ],
 
   // ── FAQ ──────────────────────────────────────────────────────────────
   // Authored help per template (see faq.ts). Written the way a retailer would
@@ -890,7 +870,7 @@ const baseSeed: DbData = {
       values: { header: 'New this summer', duration: '10', loop: 'yes' }, languages: ['en'], bookingIds: ['B-031'], createdAt: now, updatedAt: now },
     { id: 'CR-104', name: 'Aisle Screens — Summer loop', engine: 'digital-instore', templateId: 'tpl-dgi-signage', status: 'approved',
       values: { header: 'Cool down. Aisle 7.', duration: '10', loop: 'yes' }, languages: ['en'], bookingIds: ['B-026'], createdAt: now, updatedAt: now },
-    { id: 'CR-105', name: 'Floor Graphics — Spring decal', engine: 'offline-instore', templateId: 'tpl-oit-vloersticker', status: 'approved',
+    { id: 'CR-105', name: 'Vloersticker — Spring decal', engine: 'offline-instore', templateId: 'tpl-oit-vloersticker', status: 'approved',
       values: {}, languages: ['en'], bookingIds: ['B-025'], createdAt: now, updatedAt: now },
     { id: 'CR-106', name: 'Coffee Moments — Open web', engine: 'offsite', templateId: 'tpl-off-banner', status: 'submitted',
       values: { header: 'Your coffee moment', cta: 'Taste it', 'nl:header': 'Jouw koffiemoment', 'nl:cta': 'Proef hem', textColor: '#2B1B12', bgColor: '#E9DCC9' },
@@ -903,7 +883,7 @@ const baseSeed: DbData = {
       values: {}, languages: ['en'], bookingIds: [], rejectionReason: 'Logo below minimum size for A6; supply the master file with 3mm bleed.', createdAt: now, updatedAt: now },
     { id: 'CR-110', name: 'Winter Warmers — Video wall', engine: 'digital-instore', templateId: 'tpl-dgi-videowall', status: 'draft',
       values: { duration: '20' }, languages: ['en'], bookingIds: [], createdAt: now, updatedAt: now },
-    { id: 'CR-111', name: 'Shelf Displays — September', engine: 'offline-instore', templateId: 'tpl-oit-vsb', status: 'requested',
+    { id: 'CR-111', name: 'Wobblers — September', engine: 'offline-instore', templateId: 'tpl-oit-vsb', status: 'requested',
       values: {}, languages: ['en'], bookingIds: ['B-029'], createdAt: now, updatedAt: now },
   ],
 

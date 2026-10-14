@@ -27,6 +27,10 @@ export interface Booking {
    *  the calendar is in Revenue view. When omitted, a demo value is
    *  derived from impressions at €4 CPM. */
   revenue?: number;
+  /** What the booking takes, in its proposition's unit ("320 stores",
+   *  "1.2M impressions"). Shown on the bar in every view that has no
+   *  measure of its own — the booking's real size, not an estimate. */
+  volume?: { amount: number; unit: 'stores' | 'clicks' | 'impressions' };
 }
 
 /** One drill-down level under a channel — typically a screen or banner position. */
@@ -38,6 +42,8 @@ export interface Position {
   storeCapacity?: number;
   /** See MediaProduct.availableStores. */
   availableStores?: number[];
+  /** See MediaProduct.capacity. */
+  capacity?: number[];
 }
 
 /** Color mapping for the four booking statuses. Booked / Confirmed /
@@ -184,17 +190,17 @@ const formatBookingBadge = (
       const value = v.toLocaleString();
       return { value, ariaLabel: `${value} stores` };
     }
-    case 'time': {
-      // Per-booking "time" doesn't have a real unit; fall through to
-      // impressions which is what yield managers actually want here.
-      const v = computeBookingImpressions(booking);
-      const value = fmtImpressionsCompact(v);
-      return { value, ariaLabel: `${value} impressions` };
-    }
     case 'none':
       return null;
+    case 'time':
     case 'impressions':
     default: {
+      if (booking.volume) {
+        const value = booking.volume.unit === 'stores'
+          ? Math.round(booking.volume.amount).toLocaleString('en-GB')
+          : fmtImpressionsCompact(booking.volume.amount);
+        return { value, ariaLabel: `${value} ${booking.volume.unit}` };
+      }
       const v = computeBookingImpressions(booking);
       const value = fmtImpressionsCompact(v);
       return { value, ariaLabel: `${value} impressions` };
@@ -219,6 +225,12 @@ export interface MediaProduct {
    *  cells are not store counts (fill rate, bookings). In the Available
    *  stores view the cell value is used. */
   availableStores?: number[];
+  /** What the row can hold per week, in its unit — the impressions view
+   *  labels its bar against it ("85% / 330K"). */
+  capacity?: number[];
+  /** Leave this row out of the store-target check — a total across
+   *  formats, say, which no single booking could take. */
+  skipTargetCheck?: boolean;
 }
 
 export interface RetailerEvent {
@@ -252,6 +264,9 @@ export interface CalendarTableProps {
    *  that cannot reach it fades and says how many stores it is short, so the
    *  weeks that can take the booking are the ones left standing. */
   storeTarget?: number;
+  /** Rows that open expanded — a proposition with one media product shows
+   *  its positions straight away. */
+  defaultExpandedIds?: string[];
 }
 
 /** What a row knows beyond its cells: the stores bar's length and the
@@ -260,6 +275,8 @@ interface RowMeta {
   availability: CalendarCellValue[];
   storeCapacity?: number;
   availableStores?: number[];
+  capacity?: number[];
+  skipTargetCheck?: boolean;
 }
 
 /** Every week cell is this tall, whatever the view — a bar with labels, a
@@ -285,11 +302,12 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
   hideGreyCells = false,
   hasRetailProductFilter = false,
   storeTarget,
+  defaultExpandedIds,
   onChannelClick,
   onBookingClick,
   maxInlinePositions = 5,
 }) => {
-  const [expandedRows, setExpandedRows] = React.useState<string[]>([]);
+  const [expandedRows, setExpandedRows] = React.useState<string[]>(defaultExpandedIds ?? []);
   const [isCommercialCalendarOpen, setIsCommercialCalendarOpen] = React.useState(true);
 
   const toggleRow = (id: string) => {
@@ -350,7 +368,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
 
     // Target check: the week's available stores against what the booking
     // needs. Cells with no store figure are left alone.
-    const storesInCell =
+    const storesInCell = meta.skipTargetCheck ? undefined :
       meta.availableStores?.[weekIndex] ??
       (displayType === 'stores' && typeof value === 'number' ? value : undefined);
     // Either the week can take the booking or it cannot: a possible week is
@@ -424,7 +442,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       // varied across cells so the demo doesn't look uniform.
       const impressionsTotal =
         displayType === 'impressionsBar'
-          ? computeImpressionsTotal(mediaProduct.id, weekIndex)
+          ? (meta.capacity?.[weekIndex] ?? computeImpressionsTotal(mediaProduct.id, weekIndex))
           : undefined;
       return (
         <td
@@ -977,7 +995,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                     </div>
                   </td>
                   {position.availability.slice(0, weeks).map((value, i) =>
-                    renderAvailabilityCell(value, i, { ...product, name: position.name }, undefined, position)
+                    renderAvailabilityCell(value, i, { ...product, id: position.id, name: position.name, availability: position.availability, positions: undefined }, undefined, position)
                   )}
                 </tr>
               ))}

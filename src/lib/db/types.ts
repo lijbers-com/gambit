@@ -370,6 +370,9 @@ export interface Position {
   /** Creative format this slot takes, e.g. "Billboard 970x250". */
   format?: string;
   dailyCapacity: number;
+  /** In-store only: the stores that carry this fixture or screen — what the
+   *  in-store calendars count availability in (see inventory.ts). */
+  stores?: number;
   /** Auction: the lowest bid the position accepts, € CPM. */
   floorPrice?: number;
   /** Guaranteed: the fixed price of a day on the position, €. */
@@ -391,14 +394,6 @@ export interface PropositionListing {
   name: string;
   reason?: string;
   addedAt: string;
-}
-
-/** One position × ISO week → how much of the capacity is already booked. */
-export interface AvailabilityEntry {
-  positionId: string;
-  /** ISO week key, e.g. "2026-W27". */
-  week: string;
-  booked: number;
 }
 
 // ── FAQ ────────────────────────────────────────────────────────────────
@@ -663,7 +658,6 @@ export interface DbData {
   positions: Position[];
   pricingRules: PricingRule[];
   inventoryHolds: InventoryHold[];
-  availability: AvailabilityEntry[];
   faqs: FaqEntry[];
   terms: TermEntry[];
   releaseNotes: ReleaseNote[];

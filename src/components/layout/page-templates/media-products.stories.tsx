@@ -19,6 +19,7 @@ import { PropositionIcon } from '@/components/ui/proposition-icon';
 import { getRoutesForTheme } from '@/lib/theme-navigation';
 import { useStorybookTheme } from '@/contexts/storybook-theme-context';
 import { cn } from '@/lib/utils';
+import { defaultFrame, mondaysBetween, positionWeek, weekNumberOf } from '@/lib/db/inventory';
 import {
   useDb, useRouteEntityId, createMediaProduct, updateMediaProduct, createPlacement, createPosition, createPricingRule, updatePricingRule, deletePricingRule, setHoldStatus,
   priceFor, fillRateFor, formatPrice, holdsFor, placementsOf, positionsOf, effectiveHoldStatus, rulesForProduct, ruleApplies,
@@ -813,17 +814,17 @@ const ProductPage: React.FC = () => {
                       <CardContent>
                         <div className="grid gap-2">
                           {positions.map((pos) => {
-                            const entries = db.availability.filter((a) => a.positionId === pos.id).sort((a, b) => a.week.localeCompare(b.week));
-                            const cap = pos.dailyCapacity * 7;
+                            // The same weeks and numbers the booking calendar opens on.
+                            const frame = defaultFrame();
+                            const weeks = mondaysBetween(frame.from, frame.to).map((m) => positionWeek(db, pos, m));
                             return (
                               <div key={pos.id} className="grid grid-cols-[12rem_minmax(0,1fr)] items-center gap-3 text-sm">
                                 <span className="truncate">{pos.name}</span>
                                 <span className="flex gap-1">
-                                  {entries.map((e) => {
-                                    const f = cap ? Math.min(1, e.booked / cap) : 0;
-                                    return <span key={e.week} title={`${e.week}: ${e.booked}/${cap}`} className={cn('h-5 flex-1 rounded-sm', f >= 0.95 ? 'bg-destructive/70' : f >= 0.8 ? 'bg-warning-400/70' : f > 0 ? 'bg-primary/50' : 'bg-muted')} />;
+                                  {weeks.map((w) => {
+                                    const f = w.fill;
+                                    return <span key={w.monday} title={`Week ${weekNumberOf(w.monday)}: ${Math.round(f * 100)}% booked`} className={cn('h-5 flex-1 rounded-sm', f >= 0.95 ? 'bg-destructive/70' : f >= 0.8 ? 'bg-warning-400/70' : f > 0 ? 'bg-primary/50' : 'bg-muted')} />;
                                   })}
-                                  {entries.length === 0 && <span className="text-xs text-muted-foreground">No calendar yet</span>}
                                 </span>
                               </div>
                             );

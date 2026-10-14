@@ -1,4 +1,5 @@
 import type { DbData, EngineId, InventoryHold, MediaProduct, Position, PricingBasis, PricingRule } from './types';
+import { positionFillRate } from './inventory';
 
 /**
  * The product & pricing engine, first cut.
@@ -122,15 +123,10 @@ export function isoWeek(dateStr: string): string {
   return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
 }
 
-/** The fill rate of a position over a run time: booked over capacity, 0–1. */
+/** The fill rate of a position over a run time: booked over capacity, 0–1.
+ *  Read from the inventory model, so it matches the booking calendars. */
 export function fillRateFor(db: DbData, position: Position, from?: string, to?: string): number {
-  const entries = db.availability.filter((a) => a.positionId === position.id);
-  if (!entries.length || !position.dailyCapacity) return 0;
-  const weeks = from && to ? weeksBetween(from, to) : entries.map((e) => e.week);
-  const inRange = entries.filter((e) => weeks.includes(e.week));
-  if (!inRange.length) return 0;
-  const booked = inRange.reduce((s, e) => s + e.booked, 0);
-  return Math.min(1, booked / (inRange.length * position.dailyCapacity * 7));
+  return positionFillRate(db, position, from, to);
 }
 
 export function weeksBetween(from: string, to: string): string[] {

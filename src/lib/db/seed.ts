@@ -15,7 +15,7 @@ import { withMarketDemand } from './seed-demand';
  * Bump `version` whenever the seed shape changes — stale localStorage copies
  * are then replaced with this seed on next load.
  */
-export const SEED_VERSION = 47;
+export const SEED_VERSION = 48;
 
 const now = prototypeNow().toISOString();
 
@@ -293,7 +293,7 @@ const baseSeed: DbData = {
     { id: 'B-015', campaignId: 'C-011', name: 'Wobblers — Snacks',    status: 'draft',     budget: 5000, spend: 0, startDate: '2026-08-17', endDate: '2026-09-10', positionIds: ['pos-ois-shelf'], creativeStatus: 'missing',  createdAt: now, updatedAt: now },
     // Coffee Moments (live loyalty)
     { id: 'B-016', campaignId: 'C-012', name: 'Keywords — coffee & pads',   status: 'running',   budget: 4000, spend: 1400, startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-sp-search-top', 'pos-sp-search', 'pos-sp-search-rail'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
-    { id: 'B-017', campaignId: 'C-013', name: 'Take-over — Coffee',         status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
+    { id: 'B-017', campaignId: 'C-013', name: 'Take-over — Coffee',         status: 'running',   budget: 3000, spend: 900,  startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-dis-aisle', 'pos-dis-takeover-left', 'pos-dis-takeover-right'],    creativeStatus: 'approved',  createdAt: now, updatedAt: now },
     { id: 'B-018', campaignId: 'C-014', name: 'Vloerstickers — Coffee',    status: 'in-option', budget: 3000, spend: 0,    startDate: '2026-08-01', endDate: '2026-09-30', positionIds: ['pos-ois-floor'],    creativeStatus: 'submitted', createdAt: now, updatedAt: now },
     // Ice Cream Summer (paused)
     { id: 'B-019', campaignId: 'C-015', name: 'Homepage Takeover',          status: 'paused',    budget: 5000, spend: 2600, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-dsp-home-mid'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
@@ -308,14 +308,14 @@ const baseSeed: DbData = {
     // Two bookings pacing far apart on purpose: the aisle screens sit on
     // budget they cannot use while the entrance screens are nearly capped —
     // the shape the booking-rebalance recommendation exists to catch.
-    { id: 'B-026', campaignId: 'C-025', name: 'Take-over — Summer',         status: 'running',   budget: 3000, spend: 880,  startDate: '2026-06-15', endDate: '2026-07-31', positionIds: ['pos-dis-aisle'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-026', campaignId: 'C-025', name: 'Take-over — Summer',         status: 'running',   budget: 3000, spend: 880,  startDate: '2026-06-15', endDate: '2026-07-31', positionIds: ['pos-dis-aisle', 'pos-dis-takeover-left', 'pos-dis-takeover-right'],    creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-031', campaignId: 'C-025', name: 'Entrance Screens — Summer',   status: 'running',   budget: 1500, spend: 1370, startDate: '2026-06-15', endDate: '2026-07-31', positionIds: ['pos-dis-entrance'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     // On the AH positions the first seed left empty, so every placement
     // shows delivery somewhere (Bonus, Allerhande, checkout, cooler and
     // freezer doors, YouTube, category pages).
     { id: 'B-032', campaignId: 'C-004', name: 'Bonus Booster — Drinks', status: 'running', budget: 2400, spend: 1450, startDate: '2026-07-06', endDate: '2026-08-15', positionIds: ['pos-dsp-bonus-booster'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-033', campaignId: 'C-008', name: 'Allerhande Koken — Summer recipes', status: 'running', budget: 2200, spend: 1050, startDate: '2026-07-01', endDate: '2026-08-31', positionIds: ['pos-dsp-ah-app'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
-    { id: 'B-034', campaignId: 'C-013', name: 'Checkout screens — Coffee', status: 'running', budget: 2400, spend: 780, startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-dis-checkout'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
+    { id: 'B-034', campaignId: 'C-013', name: 'Checkout screens — Coffee', status: 'running', budget: 2400, spend: 780, startDate: '2026-07-01', endDate: '2026-09-30', positionIds: ['pos-dis-checkout', 'pos-dis-checkout-landscape'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-035', campaignId: 'C-014', name: 'Koeldeurvlag — Coffee', status: 'in-option', budget: 1800, spend: 0, startDate: '2026-08-03', endDate: '2026-08-30', positionIds: ['pos-ois-coolerflag'], creativeStatus: 'submitted', createdAt: now, updatedAt: now },
     { id: 'B-036', campaignId: 'C-016', name: 'Vriesdeurframe — Ice cream', status: 'paused', budget: 2000, spend: 900, startDate: '2026-06-15', endDate: '2026-08-31', positionIds: ['pos-ois-freezerframe'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
     { id: 'B-037', campaignId: 'C-009', name: 'YouTube — Efficient reach', status: 'running', budget: 2600, spend: 1250, startDate: '2026-07-01', endDate: '2026-08-31', positionIds: ['pos-off-yt-reach'], creativeStatus: 'approved', createdAt: now, updatedAt: now },
@@ -389,9 +389,15 @@ const baseSeed: DbData = {
     // Sponsored products — bought per keyword or category in an auction;
     // the position is the auction's outcome, reported, not bought.
     { id: 'mprod-sp-search', engine: 'sponsored-products', name: 'Sponsored Products', description: 'Sponsored product listings in search results and on category pages, ah.nl and the AH app.', status: 'active', buyingModels: ['auction', 'guaranteed'], pricingBasis: 'cpc', listPrice: 0.6, floorPrice: 0.2, holdDays: 3, constraints: ['Second price: the next bid + €0.01', 'Pay per click or per add-to-cart', 'Floor price per product category, from €0.20', 'Only keywords the product is found on organically; never competitor brand names', 'Campaigns pause, they are never deleted; out of stock stops the product', 'Invoiced every 4 weeks'], owner: 'Yield Manager' },
-    // Digital in-store — screen groups sold in S/M/L packages by number of
-    // stores: the package is the store target.
-    { id: 'mprod-dis-instore', engine: 'digital-instore', name: 'In-store screens', description: 'Video screens in AH stores, sold per screen group in S/M/L packages by number of stores.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 13, floorPrice: 6.5, holdDays: 7, constraints: ['MP4, 25 fps, max 50 MB, no sound', 'No AH house-style colours; promotions only in the AH promotion block, confirmed by the AH category', 'Packages S/M/L set the number of stores', 'Creatives due X-4'], owner: 'Media Proposition Developer' },
+    // Digital in-store — the proposition is the screen network; a media
+    // product is a store area, its placements the screen groups AH sells
+    // in S/M/L packages (the package is the store target), its positions
+    // the players: the screens in each store.
+    { id: 'mprod-dis-front',    engine: 'digital-instore', name: 'Store front', description: 'Shop-window (pui) screens facing the street.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 5, floorPrice: 3.5, holdDays: 7, constraints: ['MP4, 25 fps, max 50 MB, no sound', 'No AH house-style colours; promotions only in the AH promotion block, confirmed by the AH category', 'Packages S/M/L set the number of stores', 'Creatives due X-4', '6 s spot in a 36 s loop'], owner: 'Media Proposition Developer' },
+    { id: 'mprod-dis-entrance', engine: 'digital-instore', name: 'Entrance', description: 'Screens where shoppers walk in.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 13, floorPrice: 12, holdDays: 7, constraints: ['MP4, 25 fps, max 50 MB, no sound', 'No AH house-style colours; promotions only in the AH promotion block, confirmed by the AH category', 'Packages S/M/L set the number of stores', 'Creatives due X-4', '6 s spot in a 36 s loop'], owner: 'Media Proposition Developer' },
+    { id: 'mprod-dis-floor',    engine: 'digital-instore', name: 'Shop floor', description: 'Screens along the route: take-over, Bonus street and wine.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 5.5, floorPrice: 5, holdDays: 7, constraints: ['MP4, 25 fps, max 50 MB, no sound', 'No AH house-style colours; promotions only in the AH promotion block, confirmed by the AH category', 'Packages S/M/L set the number of stores', 'Creatives due X-4', 'Wine screens: NIX18 required', 'Bonus street: promotional message required'], owner: 'Media Proposition Developer' },
+    { id: 'mprod-dis-checkout', engine: 'digital-instore', name: 'Checkout', description: 'Screens at the tills.', status: 'active', buyingModels: ['guaranteed', 'auction'], pricingBasis: 'cpm', listPrice: 6, floorPrice: 5, holdDays: 7, constraints: ['MP4, 25 fps, max 50 MB, no sound', 'No AH house-style colours; promotions only in the AH promotion block, confirmed by the AH category', 'Packages S/M/L set the number of stores', 'Creatives due X-4', '10 s spot'], owner: 'Media Proposition Developer' },
+    { id: 'mprod-dis-handheld', engine: 'digital-instore', name: 'Handheld', description: 'The self-scan handscanners.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'cpm', listPrice: 12, holdDays: 7, constraints: ['JPG/PNG 480×788', 'Packages S/M/L set the number of stores'], owner: 'Media Proposition Developer' },
     // Offline in-store — POS materials by shelf type. AH sells combinations
     // (VSB + wobbler €17 CPM plus €12 per store); here a store-week.
     { id: 'mprod-ois-print', engine: 'offline-instore', name: 'In-store POS', description: 'Printed POS materials — wobblers, VSBs, floor and cooler-door stickers — placed by shelf type.', status: 'active', buyingModels: ['guaranteed'], pricingBasis: 'per-store', listPrice: 32, holdDays: 10, constraints: ['Rate card: base CPM × reach + €12 start fee per store, × week index', 'Packages: S = 3 wobblers per zone · M = max 2 materials, max 1 M per zone · L = 3+ materials, max 1 L per zone · Multiclient = one of each per zone except wobbler and VSB', 'NASA number required — links the material to the article and its shelf', 'No promotional messages; run time printed in Arial 6pt; NIX18 for alcohol', 'Standard run time 2 weeks, hung and removed by field service', 'AH has priority on fresh categories'], owner: 'Media Proposition Developer' },
@@ -412,11 +418,13 @@ const baseSeed: DbData = {
     { id: 'plc-dsp-newsletter', mediaProductId: 'mprod-dsp-newsletter', name: 'AH newsletter',          description: 'The weekly e-mail.' },
     { id: 'plc-sp-search',      mediaProductId: 'mprod-sp-search',      name: 'Search results',         description: 'Sponsored listings on positions 1, 2 and 6.' },
     { id: 'plc-sp-category',    mediaProductId: 'mprod-sp-search',      name: 'Category pages',         description: 'Sponsored listings on category pages.' },
-    { id: 'plc-dis-front',      mediaProductId: 'mprod-dis-instore',    name: 'Store front',            description: 'Screens in the shop window (pui).' },
-    { id: 'plc-dis-entrance',   mediaProductId: 'mprod-dis-instore',    name: 'Entrance',               description: 'Screens where shoppers walk in.' },
-    { id: 'plc-dis-floor',      mediaProductId: 'mprod-dis-instore',    name: 'Shop floor',             description: 'Screens along the route.' },
-    { id: 'plc-dis-checkout',   mediaProductId: 'mprod-dis-instore',    name: 'Checkout',               description: 'Screens at the tills.' },
-    { id: 'plc-dis-handheld',   mediaProductId: 'mprod-dis-instore',    name: 'Handheld',               description: 'The self-scan handscanners.' },
+    { id: 'plc-dis-pui',         mediaProductId: 'mprod-dis-front',    name: 'Shop-window screens',  description: 'Pui screens, S/M/L/XL packages of 150–600 stores.' },
+    { id: 'plc-dis-entrance',    mediaProductId: 'mprod-dis-entrance', name: 'Entrance screens',     description: 'S/M/L packages of 233, 466 or 700 stores.' },
+    { id: 'plc-dis-takeover',    mediaProductId: 'mprod-dis-floor',    name: 'In-store take-over',   description: 'Three screens per store play one story; up to 750 stores.' },
+    { id: 'plc-dis-bonusstraat', mediaProductId: 'mprod-dis-floor',    name: 'Bonus street screens', description: 'Along the Bonus street, AH and AH XL.' },
+    { id: 'plc-dis-wine',        mediaProductId: 'mprod-dis-floor',    name: 'Wine screens',         description: 'At the wine shelves; 150 or 300 screens.' },
+    { id: 'plc-dis-checkout',    mediaProductId: 'mprod-dis-checkout', name: 'Checkout screens',     description: 'Portrait and landscape at the tills.' },
+    { id: 'plc-dis-handscanner', mediaProductId: 'mprod-dis-handheld', name: 'Handscanners',         description: 'Self-scan handscanners, priced per store.' },
     { id: 'plc-ois-ambient',    mediaProductId: 'mprod-ois-print',      name: 'Ambient aisles',         description: 'Houdbaar — the dry-goods shelves.' },
     { id: 'plc-ois-chilled',    mediaProductId: 'mprod-ois-print',      name: 'Chilled',                description: 'Koel — the cooler doors.' },
     { id: 'plc-ois-frozen',     mediaProductId: 'mprod-ois-print',      name: 'Frozen',                 description: 'Diepvries — the freezer doors.' },
@@ -448,14 +456,19 @@ const baseSeed: DbData = {
     { id: 'pos-sp-search',           mediaProductId: 'mprod-sp-search',      placementId: 'plc-sp-search',      name: 'Position 2',                   format: 'Product listing', dailyCapacity: 14 },
     { id: 'pos-sp-search-rail',      mediaProductId: 'mprod-sp-search',      placementId: 'plc-sp-search',      name: 'Position 6',                   format: 'Product listing', dailyCapacity: 12 },
     { id: 'pos-sp-category',         mediaProductId: 'mprod-sp-search',      placementId: 'plc-sp-category',    name: 'Category listing',             format: 'Product listing', dailyCapacity: 12 },
-    // Digital in-store — dailyCapacity is slots per loop (6 s in a 36 s loop = 6)
-    { id: 'pos-dis-pui',             mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-front',      name: 'Shop-window screens',          format: '1080×1920 · 6 s in a 36 s loop', dailyCapacity: 6, stores: 600, listPrice: 5, floorPrice: 3.5 },
-    { id: 'pos-dis-entrance',        mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-entrance',   name: 'Entrance screens',             format: '1080×1920 · 6 s in a 36 s loop', dailyCapacity: 6, stores: 700, floorPrice: 12 },
-    { id: 'pos-dis-aisle',           mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-floor',      name: 'In-store take-over',           format: '1920×1080 + 3840×1080 · 10 s · 3 screens per store', dailyCapacity: 10, stores: 750, listPrice: 5.5, floorPrice: 5 },
-    { id: 'pos-dis-bonusstraat',     mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-floor',      name: 'Bonus street screens',         format: '1920×1080 · 10 s · promotion required', dailyCapacity: 8, stores: 130, listPrice: 10.5 },
-    { id: 'pos-dis-wine',            mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-floor',      name: 'Wine screens',                 format: '1920×540 · 5 or 10 s · NIX18', dailyCapacity: 6, stores: 150, listPrice: 18.75 },
-    { id: 'pos-dis-checkout',        mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-checkout',   name: 'Checkout screens',             format: 'Portrait + landscape · 10 s', dailyCapacity: 12, stores: 600, listPrice: 6, floorPrice: 5 },
-    { id: 'pos-dis-handscanner',     mediaProductId: 'mprod-dis-instore',    placementId: 'plc-dis-handheld',   name: 'Handscanners',                 format: '480×788 JPG/PNG', dailyCapacity: 4, stores: 655, listPrice: 12 },
+    // Digital in-store — positions are the players, the screens in a
+    // store; dailyCapacity is slots per loop (6 s in a 36 s loop = 6).
+    { id: 'pos-dis-pui', mediaProductId: 'mprod-dis-front', placementId: 'plc-dis-pui', name: 'Shop-window player — left', format: '1080×1920 portrait', dailyCapacity: 6, stores: 600 },
+    { id: 'pos-dis-pui-right', mediaProductId: 'mprod-dis-front', placementId: 'plc-dis-pui', name: 'Shop-window player — right', format: '1080×1920 portrait', dailyCapacity: 6, stores: 500 },
+    { id: 'pos-dis-entrance', mediaProductId: 'mprod-dis-entrance', placementId: 'plc-dis-entrance', name: 'Entrance player', format: '1080×1920 portrait', dailyCapacity: 6, stores: 700 },
+    { id: 'pos-dis-aisle', mediaProductId: 'mprod-dis-floor', placementId: 'plc-dis-takeover', name: 'Take-over wide screen', format: '3840×1080 · 10 s', dailyCapacity: 10, stores: 750 },
+    { id: 'pos-dis-takeover-left', mediaProductId: 'mprod-dis-floor', placementId: 'plc-dis-takeover', name: 'Take-over screen — left', format: '1920×1080 · 10 s', dailyCapacity: 10, stores: 750 },
+    { id: 'pos-dis-takeover-right', mediaProductId: 'mprod-dis-floor', placementId: 'plc-dis-takeover', name: 'Take-over screen — right', format: '1920×1080 · 10 s', dailyCapacity: 10, stores: 750 },
+    { id: 'pos-dis-bonusstraat', mediaProductId: 'mprod-dis-floor', placementId: 'plc-dis-bonusstraat', name: 'Bonus street player', format: '1920×1080 · 10 s', dailyCapacity: 8, stores: 130, listPrice: 10.5 },
+    { id: 'pos-dis-wine', mediaProductId: 'mprod-dis-floor', placementId: 'plc-dis-wine', name: 'Wine shelf player', format: '1920×540 · 5 or 10 s', dailyCapacity: 6, stores: 150, listPrice: 18.75 },
+    { id: 'pos-dis-checkout', mediaProductId: 'mprod-dis-checkout', placementId: 'plc-dis-checkout', name: 'Checkout player — portrait', format: '1080×1920 · 10 s', dailyCapacity: 12, stores: 600 },
+    { id: 'pos-dis-checkout-landscape', mediaProductId: 'mprod-dis-checkout', placementId: 'plc-dis-checkout', name: 'Checkout player — landscape', format: '1920×1080 · 10 s', dailyCapacity: 12, stores: 600 },
+    { id: 'pos-dis-handscanner', mediaProductId: 'mprod-dis-handheld', placementId: 'plc-dis-handscanner', name: 'Handscanner', format: '480×788 JPG/PNG', dailyCapacity: 4, stores: 655 },
     // Offline in-store — the format at a shelf type
     { id: 'pos-ois-shelf',           mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-ambient',    name: 'Wobbler',                      format: '150×164 mm incl. stem', dailyCapacity: 1, stores: 640 },
     { id: 'pos-ois-endcap',          mediaProductId: 'mprod-ois-print',      placementId: 'plc-ois-ambient',    name: 'VSB',                          format: '168×490 mm (XL 168×1150 mm)', dailyCapacity: 1, stores: 380 },

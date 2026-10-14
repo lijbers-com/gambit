@@ -68,14 +68,24 @@ export function withMarketDemand(db: DbData): DbData {
   let campaignN = 200;
   let bookingN = 300;
 
-  for (const position of db.positions) {
+  // What a flight books: one position — or, on in-store screens, a whole
+  // screen group (placement), since AH sells the players of a group as one
+  // package (a take-over is its three screens).
+  const units = db.positions.flatMap((position) => {
+    const engine = db.mediaProducts.find((m) => m.id === position.mediaProductId)?.engine;
+    if (engine !== 'digital-instore') return [{ position, positions: [position] }];
+    const group = db.positions.filter((p) => p.placementId === position.placementId);
+    return group[0].id === position.id ? [{ position, positions: group }] : [];
+  });
+
+  for (const { position, positions: unitPositions } of units) {
     const product = db.mediaProducts.find((m) => m.id === position.mediaProductId);
     if (!product || product.status === 'archived' || product.status === 'draft') continue;
     const engine = product.engine;
     const price = position.listPrice ?? product.listPrice;
     if (!price) continue;
     const r = rng(position.id);
-    const capacity = weeklyCapacity(db, position);
+    const capacity = unitPositions.reduce((n, p) => n + weeklyCapacity(db, p), 0);
     let cursor = addDays(YEAR_FROM, Math.floor(r() * 3) * 7);
 
     while (cursor < YEAR_TO) {
@@ -86,7 +96,7 @@ export function withMarketDemand(db: DbData): DbData {
       // What the hand-written bookings already take of these weeks stays
       // theirs; the market fills up to the season's level around it.
       const flightWeeks = mondaysBetween(start, end);
-      const taken = flightWeeks.reduce((n, m) => n + positionWeek(db, position, m).fill, 0) / Math.max(1, flightWeeks.length);
+      const taken = flightWeeks.reduce((n, m) => n + unitPositions.reduce((f, p) => f + positionWeek(db, p, m).fill, 0) / unitPositions.length, 0) / Math.max(1, flightWeeks.length);
       const share = Math.min(0.95, seasonOf(start) * (0.9 + r() * 0.25)) - taken;
       if (share < 0.1) { cursor = addDays(end, 1); continue; }
 
@@ -150,8 +160,8 @@ export function withMarketDemand(db: DbData): DbData {
       }
       bookingN += 1;
       bookings.push({
-        id: `B-${bookingN}`, campaignId: campaign.id, name: `${position.name} — ${pick.brand}`,
-        status, budget, spend, startDate: start, endDate: end, positionIds: [position.id],
+        id: `B-${bookingN}`, campaignId: campaign.id, name: `${unitPositions.length > 1 ? db.placements.find((x) => x.id === position.placementId)?.name ?? position.name : position.name} — ${pick.brand}`,
+        status, budget, spend, startDate: start, endDate: end, positionIds: unitPositions.map((p) => p.id),
         creativeStatus: 'approved', ...(approvedAt ? { approvedAt } : {}),
         createdAt: now, updatedAt: now,
       });

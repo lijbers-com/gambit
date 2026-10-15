@@ -850,12 +850,11 @@ body[data-theme="alfaBeta"] {
 
 /* ── Booking calendar: finding a slot ───────────────────────────────────────
    With a store target set, every week cell says whether the booking fits.
-   A week that can take it is tinted in the success colour with a hairline;
+   A week that can take it is tinted in the success colour;
    one that cannot turns grey — at full opacity, so its numbers and its
    tooltip stay readable. Set with data-fit on the cell (calendar-table). */
 td[data-fit="yes"] {
   background-color: hsl(var(--success-100));
-  box-shadow: inset 0 0 0 1px hsl(var(--success-400));
 }
 td[data-fit="no"] [role="img"] {
   background-color: rgb(var(--neutral-200)) !important;

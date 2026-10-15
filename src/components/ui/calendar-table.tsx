@@ -40,6 +40,8 @@ export interface Placement {
   id: string;
   name: string;
   availability: CalendarCellValue[];
+  /** See RowMeta.fitStores. */
+  fitStores?: number[];
   storeCapacity?: number;
   availableStores?: number[];
   capacity?: number[];
@@ -55,6 +57,8 @@ export interface Position {
    *  positions of one placement are grouped under its name. */
   placement?: string;
   availability: CalendarCellValue[];
+  /** See RowMeta.fitStores. */
+  fitStores?: number[];
   /** See MediaProduct.storeCapacity. */
   storeCapacity?: number;
   /** See MediaProduct.availableStores. */
@@ -235,6 +239,8 @@ export interface MediaProduct {
    *  positions. Without it, positions sit straight under the product. */
   placements?: Placement[];
   availability: CalendarCellValue[];
+  /** Stores the store target is checked against — see RowMeta. */
+  fitStores?: number[];
   bookings?: Booking[];
   isHighlighted?: boolean[];
   /** When provided, expanding the channel row reveals these positions
@@ -301,6 +307,9 @@ export interface CalendarTableProps {
  *  available stores the target is checked against. */
 interface RowMeta {
   availability: CalendarCellValue[];
+  /** Stores the target is checked against, when that differs from the
+   *  stores shown (a group: its best position; a package: its fewest). */
+  fitStores?: number[];
   storeCapacity?: number;
   availableStores?: number[];
   capacity?: number[];
@@ -400,14 +409,15 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
 
     // Target check: the week's available stores against what the booking
     // needs. Cells with no store figure are left alone.
-    const storesInCell = meta.skipTargetCheck ? undefined :
-      meta.availableStores?.[weekIndex] ??
+    const storesInCell = meta.fitStores?.[weekIndex] ?? (meta.skipTargetCheck ? undefined :
+      meta.availableStores?.[weekIndex]) ??
       (displayType === 'stores' && typeof value === 'number' ? value : undefined);
     // Either the week can take the booking or it cannot: a possible week is
-    // tinted whole, an impossible one steps back.
+    // tinted in the success colour, an impossible one turns grey — at full
+    // opacity, so its numbers and tooltip stay readable (globals.css, data-fit).
     const checked = !!storeTarget && storeTarget > 0 && storesInCell !== undefined;
     const fits = checked && storesInCell! >= storeTarget!;
-    const fitClass = !checked ? undefined : fits ? 'bg-success-50' : 'opacity-40';
+    const fitState = !checked ? undefined : fits ? 'yes' : 'no';
     const fitTitle = !checked
       ? undefined
       : fits
@@ -431,9 +441,10 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       return (
         <td
           key={weekIndex}
-          className={cn("px-3 align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors", fitClass)}
+          className={cn("px-3 align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors")}
           style={{ height: CELL_HEIGHT }}
           title={fitTitle ?? (split || undefined)}
+          data-fit={fitState}
           onClick={handleCellClick}
         >
           <div className="flex items-center justify-center gap-1">
@@ -452,9 +463,10 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       return (
         <td
           key={weekIndex}
-          className={cn("p-0 align-middle hover:bg-neutral-50 transition-colors", fitClass)}
+          className={cn("p-0 align-middle hover:bg-neutral-50 transition-colors")}
           style={{ height: CELL_HEIGHT }}
           title={fitTitle}
+          data-fit={fitState}
           onClick={handleCellClick}
         >
           <AvailableTimeBar value={value} height={10} showLabels className="px-3 py-[11px]" />
@@ -479,9 +491,10 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       return (
         <td
           key={weekIndex}
-          className={cn("p-0 align-middle hover:bg-neutral-50 transition-colors", fitClass)}
+          className={cn("p-0 align-middle hover:bg-neutral-50 transition-colors")}
           style={{ height: CELL_HEIGHT }}
           title={fitTitle}
+          data-fit={fitState}
           onClick={handleCellClick}
         >
           <FillRateBar
@@ -512,9 +525,10 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
       return (
         <td
           key={weekIndex}
-          className={cn("p-0 align-middle cursor-pointer hover:bg-neutral-50 transition-colors", fitClass)}
+          className={cn("p-0 align-middle cursor-pointer hover:bg-neutral-50 transition-colors")}
           style={{ height: CELL_HEIGHT }}
           title={fitTitle}
+          data-fit={fitState}
           onClick={handleCellClick}
         >
           <FillRateBar
@@ -610,10 +624,10 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
         key={weekIndex} 
         className={cn(
           "px-3 align-middle text-center cursor-pointer hover:bg-neutral-50 transition-colors",
-          fitClass
         )}
         style={{ height: CELL_HEIGHT }}
         title={fitTitle}
+        data-fit={fitState}
         onClick={handleCellClick}
       >
         <div className="flex items-center justify-center gap-1">
@@ -1015,7 +1029,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                       </div>
                     </td>
                     {placement.availability.slice(0, weeks).map((value, i) =>
-                      renderAvailabilityCell(value, i, { ...product, id: placement.id, name: placement.name, availability: placement.availability, storeCapacity: placement.storeCapacity, availableStores: placement.availableStores, capacity: placement.capacity, skipTargetCheck: placement.skipTargetCheck, positions: undefined, placements: undefined }, undefined, placement)
+                      renderAvailabilityCell(value, i, { ...product, id: placement.id, name: placement.name, availability: placement.availability, storeCapacity: placement.storeCapacity, availableStores: placement.availableStores, fitStores: placement.fitStores, capacity: placement.capacity, skipTargetCheck: placement.skipTargetCheck, positions: undefined, placements: undefined }, undefined, placement)
                     )}
                   </tr>
                   {expandedRows.includes(placement.id) && placement.positions.map((position) => (
@@ -1027,7 +1041,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                         </div>
                       </td>
                       {position.availability.slice(0, weeks).map((value, i) =>
-                        renderAvailabilityCell(value, i, { ...product, id: position.id, name: position.name, availability: position.availability, storeCapacity: position.storeCapacity, availableStores: position.availableStores, capacity: position.capacity, skipTargetCheck: undefined, positions: undefined, placements: undefined }, undefined, position)
+                        renderAvailabilityCell(value, i, { ...product, id: position.id, name: position.name, availability: position.availability, storeCapacity: position.storeCapacity, availableStores: position.availableStores, fitStores: position.fitStores, capacity: position.capacity, skipTargetCheck: undefined, positions: undefined, placements: undefined }, undefined, position)
                       )}
                     </tr>
                   ))}
@@ -1069,7 +1083,7 @@ export const CalendarTable: React.FC<CalendarTableProps> = ({
                     </div>
                   </td>
                   {position.availability.slice(0, weeks).map((value, i) =>
-                    renderAvailabilityCell(value, i, { ...product, id: position.id, name: position.name, availability: position.availability, storeCapacity: position.storeCapacity, availableStores: position.availableStores, capacity: position.capacity, skipTargetCheck: undefined, positions: undefined }, undefined, position)
+                    renderAvailabilityCell(value, i, { ...product, id: position.id, name: position.name, availability: position.availability, storeCapacity: position.storeCapacity, availableStores: position.availableStores, fitStores: position.fitStores, capacity: position.capacity, skipTargetCheck: undefined, positions: undefined }, undefined, position)
                   )}
                 </tr>
                 </React.Fragment>

@@ -2085,7 +2085,7 @@ export const DigitalInStore: Story = {
                                 status: (
                                   <Badge
                                     className={store.status === 'available'
-                                      ? 'bg-green-100 text-green-800 border-green-200'
+                                      ? 'bg-success-100 text-success-800 border-success-200'
                                       : 'bg-orange-100 text-orange-800 border-orange-200'}
                                   >
                                     {store.status === 'available' ? 'Available' : 'Booked'}
@@ -3610,7 +3610,7 @@ export const OfflineInStore: Story = {
                                     status: (
                                       <Badge
                                         className={store.status === 'available'
-                                          ? 'bg-green-100 text-green-800 border-green-200'
+                                          ? 'bg-success-100 text-success-800 border-success-200'
                                           : 'bg-orange-100 text-orange-800 border-orange-200'}
                                       >
                                         {store.status === 'available' ? 'Available' : 'Booked'}

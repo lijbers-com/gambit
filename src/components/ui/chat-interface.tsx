@@ -353,7 +353,7 @@ export const ChatInterface = ({ initialMessages = [] }: ChatInterfaceProps = {})
           <p><strong>Key insights:</strong></p>
           <ul className="space-y-2 ml-4">
             <li className="flex items-start gap-2">
-              <TrendingUp className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+              <TrendingUp className="h-4 w-4 text-success-700 mt-0.5 flex-shrink-0" />
               <span><strong>High ROAS:</strong> Your campaign is generating $4.20 for every $1 spent, which is 40% above your target of 300%</span>
             </li>
             <li className="flex items-start gap-2">

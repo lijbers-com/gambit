@@ -86,7 +86,7 @@ export function ConversationTemplate({
                   <div className="text-[11px] text-muted-foreground">{s.label}</div>
                   <div className="text-base font-semibold leading-tight">{s.value}</div>
                   {s.sub && (
-                    <div className={cn('mt-0.5 text-[10px]', s.tone === 'success' ? 'text-green-600' : 'text-muted-foreground')}>
+                    <div className={cn('mt-0.5 text-[10px]', s.tone === 'success' ? 'text-success-700' : 'text-muted-foreground')}>
                       {s.sub}
                     </div>
                   )}

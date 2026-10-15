@@ -1267,7 +1267,7 @@ export const GeneralInsights: Story = {
                   <div className="text-center">
                     <div className="text-sm text-muted-foreground">Total CR%</div>
                     <div className="text-2xl font-bold">0.87%</div>
-                    <div className="text-sm text-green-600">↑ 17.3%</div>
+                    <div className="text-sm text-success-700">↑ 17.3%</div>
                   </div>
                 </div>
                 
@@ -2366,7 +2366,7 @@ export const OfflineInstorePerformance: Story = {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold">€24.5K revenue</p>
-                        <p className="text-xs text-green-600">+12% ROAS</p>
+                        <p className="text-xs text-success-700">+12% ROAS</p>
                       </div>
                     </div>
                     
@@ -2377,7 +2377,7 @@ export const OfflineInstorePerformance: Story = {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold">€19.2K revenue</p>
-                        <p className="text-xs text-green-600">+18% ROAS</p>
+                        <p className="text-xs text-success-700">+18% ROAS</p>
                       </div>
                     </div>
                     
@@ -2388,7 +2388,7 @@ export const OfflineInstorePerformance: Story = {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold">€17.8K revenue</p>
-                        <p className="text-xs text-green-600">+8% ROAS</p>
+                        <p className="text-xs text-success-700">+8% ROAS</p>
                       </div>
                     </div>
                     

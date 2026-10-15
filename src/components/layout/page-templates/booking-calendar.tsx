@@ -268,6 +268,10 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
     const sumOrMin = (list: typeof posRows, i: number) => combo ? Math.min(...list.map((r) => r.stores[i])) : list.reduce((sum, r) => sum + r.stores[i], 0);
     const capOf = (list: typeof posRows) => combo ? Math.min(...list.map((r) => r.storeCapacity ?? 0)) : list.reduce((sum, r) => sum + (r.storeCapacity ?? 0), 0);
     const stores = mondays.map((_, i) => sumOrMin(posRows, i));
+    // The store target is checked at every level: with a package picked,
+    // against the fewest stores free across its positions (all must fit);
+    // without, against the best position under the row (somewhere it fits).
+    const fitOf = (list: typeof posRows) => mondays.map((_, i) => combo ? Math.min(...list.map((r) => r.stores[i])) : Math.max(0, ...list.map((r) => r.stores[i])));
     // Placements: the level between the group and its positions, each a
     // row of its own summed (or, while composing, combined) the same way.
     const placementRows = [...new Set(positions.map((p) => p.placementId))].map((placementId) => {
@@ -279,7 +283,7 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
         name: placementName(placementId) ?? placementId,
         availability: pWeeks.map((w, i) => cellFor(w, pStores[i])),
         capacity: pWeeks.map((w) => w.capacity),
-        ...(config.storeBased ? { storeCapacity: capOf(own), ...(combo ? { availableStores: pStores } : { skipTargetCheck: true }) } : {}),
+        ...(config.storeBased ? { storeCapacity: capOf(own), fitStores: fitOf(own), ...(combo ? { availableStores: pStores } : {}) } : {}),
         positions: own,
       };
     });
@@ -289,7 +293,7 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
       placements: placementRows,
       availability: weeks.map((w, i) => cellFor(w, stores[i])),
       capacity: weeks.map((w) => w.capacity),
-      ...(config.storeBased ? { storeCapacity: capOf(posRows), ...(combo ? { availableStores: stores } : { skipTargetCheck: true }) } : {}),
+      ...(config.storeBased ? { storeCapacity: capOf(posRows), fitStores: fitOf(posRows), ...(combo ? { availableStores: stores } : {}) } : {}),
       positions: posRows,
       bookings: bookingsFor(positions),
     };

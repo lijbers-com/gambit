@@ -37,8 +37,8 @@ const columns: TableColumn<Row>[] = [
     key: 'status',
     header: 'Status',
     render: (row) => (
-      <Badge variant="default" className="inline-flex items-center gap-1 text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-        <BadgeCheck className="h-4 w-4 mr-1 text-green-500" />
+      <Badge variant="default" className="inline-flex items-center gap-1 text-xs font-medium bg-success-50 text-success-700 border border-success-100">
+        <BadgeCheck className="h-4 w-4 mr-1 text-success-700" />
         {row.status}
       </Badge>
     ),
@@ -117,8 +117,8 @@ export const FixedColumns: Story = {
             header: 'Status',
             width: 130,
             render: (row) => (
-              <Badge variant="default" className="inline-flex items-center gap-1 text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                <BadgeCheck className="h-4 w-4 mr-1 text-green-500" />
+              <Badge variant="default" className="inline-flex items-center gap-1 text-xs font-medium bg-success-50 text-success-700 border border-success-100">
+                <BadgeCheck className="h-4 w-4 mr-1 text-success-700" />
                 {row.status}
               </Badge>
             ),

@@ -3873,10 +3873,10 @@ export const SponsoredProductsInOption: Story = {
                 {/* Competitive analysis table with triangles */}
                 <div className="grid grid-cols-1 gap-row">
                 {[
-                  { category: 'Organic Foods', competition: 'Low', level: 1, color: 'text-green-600' },
+                  { category: 'Organic Foods', competition: 'Low', level: 1, color: 'text-success-700' },
                   { category: 'Beverages', competition: 'Medium', level: 2, color: 'text-yellow-600' },
                   { category: 'Snacks & Candy', competition: 'High', level: 3, color: 'text-red-600' },
-                  { category: 'Household Items', competition: 'Low', level: 1, color: 'text-green-600' },
+                  { category: 'Household Items', competition: 'Low', level: 1, color: 'text-success-700' },
                   { category: 'Personal Care', competition: 'Medium', level: 2, color: 'text-yellow-600' },
                   { category: 'Frozen Foods', competition: 'High', level: 3, color: 'text-red-600' },
                 ].map((item) => (

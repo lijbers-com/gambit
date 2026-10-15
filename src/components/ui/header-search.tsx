@@ -141,7 +141,7 @@ function getStatusColor(status?: string): string {
     case 'running':
     case 'approved':
     case 'confirmed':
-      return 'bg-green-100 text-green-700';
+      return 'bg-success-100 text-success-700';
     case 'ready':
     case 'pending':
       return 'bg-yellow-100 text-yellow-700';

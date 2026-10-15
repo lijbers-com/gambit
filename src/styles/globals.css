@@ -15,6 +15,23 @@
   --brand-app-bg-hex: #ffffff;
   --brand-page-bg-hex: #fff9eb;
   --brand-nav-bg: var(--brand-page-bg-hex);
+  /* Success — the Edge brand lime (#c8f000 at 500). Edge marks good news
+     in its own colour; text and icons use the dark end (700+) for contrast. */
+  --success-50:  70 100% 95%;
+  --success-100: 70 100% 88%;
+  --success-200: 70 100% 78%;
+  --success-300: 70 100% 64%;
+  --success-400: 70 100% 52%;
+  --success-500: 70 100% 47%;
+  --success-600: 72 100% 36%;
+  --success-700: 75 90% 26%;
+  --success-800: 78 80% 19%;
+  --success-900: 80 70% 13%;
+  --success-950: 82 70%  8%;
+  --badge-success-bg: #F6FFD6;
+  --badge-success-border: #E4FF8A;
+  --badge-success-fg: #4F6B06;
+
 }
 
 /* Paint the canvas itself, so the area outside any component — and the frame
@@ -125,6 +142,23 @@ body[data-theme="retailMedia"] {
   --brand-app-text: #403e3c;
   --brand-app-hover: #e8e4dd;
   --logo-url: url('/edge-icon.svg');
+
+  /* Success — the Edge brand lime (#c8f000 at 500). Edge marks good news
+     in its own colour; text and icons use the dark end (700+) for contrast. */
+  --success-50:  70 100% 95%;
+  --success-100: 70 100% 88%;
+  --success-200: 70 100% 78%;
+  --success-300: 70 100% 64%;
+  --success-400: 70 100% 52%;
+  --success-500: 70 100% 47%;
+  --success-600: 72 100% 36%;
+  --success-700: 75 90% 26%;
+  --success-800: 78 80% 19%;
+  --success-900: 80 70% 13%;
+  --success-950: 82 70%  8%;
+  --badge-success-bg: #F6FFD6;
+  --badge-success-border: #E4FF8A;
+  --badge-success-fg: #4F6B06;
 
   /* Brand shade ramp — purple (hue ~258°). Tune per design system. */
   --brand-50:  258 100% 96%;
@@ -812,4 +846,24 @@ body[data-theme="alfaBeta"] {
 
 .custom-scrollbar::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* ── Booking calendar: finding a slot ───────────────────────────────────────
+   With a store target set, every week cell says whether the booking fits.
+   A week that can take it is tinted in the success colour with a hairline;
+   one that cannot turns grey — at full opacity, so its numbers and its
+   tooltip stay readable. Set with data-fit on the cell (calendar-table). */
+td[data-fit="yes"] {
+  background-color: hsl(var(--success-100));
+  box-shadow: inset 0 0 0 1px hsl(var(--success-400));
+}
+td[data-fit="no"] [role="img"] {
+  background-color: rgb(var(--neutral-200)) !important;
+}
+td[data-fit="no"] [role="img"] > div {
+  background-color: rgb(var(--neutral-300)) !important;
+}
+td[data-fit="no"] span,
+td[data-fit="no"] svg {
+  color: rgb(var(--neutral-400)) !important;
 }

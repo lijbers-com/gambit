@@ -217,7 +217,7 @@ export const MediaCart: Story = {
                               </div>
                               <div>
                                 <div className="text-sm text-muted-foreground">Est. ROAS</div>
-                                <div className="text-lg font-semibold text-green-600">450%</div>
+                                <div className="text-lg font-semibold text-success-700">450%</div>
                               </div>
                             </div>
 
@@ -269,7 +269,7 @@ export const MediaCart: Story = {
                               </div>
                               <div>
                                 <div className="text-sm text-muted-foreground">Est. ROAS</div>
-                                <div className="text-lg font-semibold text-green-600">450%</div>
+                                <div className="text-lg font-semibold text-success-700">450%</div>
                               </div>
                             </div>
 
@@ -368,7 +368,7 @@ export const MediaCart: Story = {
                           <div className="font-medium">{campaignData.budgetUsagePercentage}%</div>
                           <div className="w-full bg-neutral-200 rounded-full h-2 mt-1">
                             <div
-                              className="h-2 rounded-full bg-green-500 transition-all"
+                              className="h-2 rounded-full bg-success-500 transition-all"
                               style={{ width: `${campaignData.budgetUsagePercentage}%` }}
                             />
                           </div>
@@ -383,7 +383,7 @@ export const MediaCart: Story = {
                       <CardSummaryContent>
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Est. ROAS</div>
-                          <div className="font-medium text-green-600">{campaignData.estimatedRoas}</div>
+                          <div className="font-medium text-success-700">{campaignData.estimatedRoas}</div>
                         </div>
                         <div className="mb-2">
                           <div className="text-[14px] text-muted-foreground">Media Products</div>

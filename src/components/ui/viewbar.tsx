@@ -24,7 +24,7 @@ export interface ViewbarProps {
 const labelColorClass = (color: string = 'default') => {
   switch (color) {
     case 'success':
-      return 'bg-green-100 text-green-900';
+      return 'bg-success-100 text-success-900';
     case 'muted':
       return 'bg-muted text-muted-foreground';
     default:

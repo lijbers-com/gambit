@@ -159,9 +159,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             {showViewDropdown && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
+                  {/* Same size as the filters beside it and the items in its
+                      menu: one text size across the row. */}
                   <Button
                     variant="outline"
-                    size="sm"
                     className="h-9 gap-2 px-3 font-medium"
                     aria-label="Switch view"
                   >

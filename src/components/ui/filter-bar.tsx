@@ -127,7 +127,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     // onto further lines as they need; the search (and action) keep the
     // top right of the first line however many filters there are.
     <div ref={barRef} className={cn("flex items-start gap-inline w-full", className)}>
-      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-inline">
+      {/* Both sides give way as the bar narrows: the filters wrap, the search
+          shrinks from 240px down to 140px. */}
+      <div className="flex min-w-0 flex-auto flex-wrap items-center gap-inline">
         {leading}
         {filters.map((filter) => (
           <Filter
@@ -145,9 +147,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       </div>
       {(!hideSearch || showViewDropdown || action) && (
         <>
-          <div className="flex shrink-0 items-center justify-end gap-inline">
+          <div className="flex min-w-0 flex-initial items-center justify-end gap-inline">
             {!hideSearch && (
-              <div className="w-[240px]">
+              <div className="w-[240px] min-w-[140px] shrink">
                 <SearchInput
                   value={searchValue}
                   onChange={(e) => onSearchChange(e.target.value)}

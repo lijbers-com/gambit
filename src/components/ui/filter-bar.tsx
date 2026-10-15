@@ -165,7 +165,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                       menu: one text size across the row. */}
                   <Button
                     variant="outline"
-                    className="h-9 gap-2 px-3 font-medium"
+                    // Never squeezed: only the search gives way.
+                    className="h-9 shrink-0 gap-2 px-3 font-medium"
                     aria-label="Switch view"
                   >
                     <TriggerIcon className="h-4 w-4 text-muted-foreground" size={16} />

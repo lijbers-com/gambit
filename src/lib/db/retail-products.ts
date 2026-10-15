@@ -1,4 +1,5 @@
 import type { Advertiser, Brand, DbData, RetailProduct } from './types';
+import { productImageFor, productImages } from '../product-images';
 
 /**
  * Retail products hang off brands, and brands off organisations. Every flow
@@ -77,13 +78,21 @@ export function brandOfProduct(db: DbData, product: Pick<RetailProduct, 'brandId
 /** Retail products as filter options — every retail product filter shows the
  *  packshot, the name and the pack size. */
 export function retailProductOptions(db: DbData, products: RetailProduct[] = db.retailProducts) {
-  return products.map((p) => ({ label: p.name, value: p.id, description: p.packSize ?? p.category, image: p.image }));
+  return products.map((p) => ({ label: p.name, value: p.id, description: p.packSize ?? p.category, image: packshotOf(db, p) }));
+}
+
+/** A product's packshot from the one shared list every retail products
+ *  column uses (lib/product-images) — a stored path that is not on it (an
+ *  older saved copy) falls back to the product's place in that list. */
+export function packshotOf(db: DbData, product: RetailProduct): string {
+  if (productImages.includes(product.image)) return product.image;
+  return productImageFor(Math.max(0, db.retailProducts.findIndex((r) => r.id === product.id)));
 }
 
 /** Adds the packshot to options that name a retail product by id or name. */
 export function withProductImages<T extends { label: string; value: string }>(db: DbData, options: T[]): (T & { image?: string })[] {
   return options.map((o) => {
     const p = db.retailProducts.find((r) => r.id === o.value || r.name === o.value || r.name === o.label);
-    return p ? { ...o, image: p.image } : o;
+    return p ? { ...o, image: packshotOf(db, p) } : o;
   });
 }

@@ -248,7 +248,13 @@ export const Filter: React.FC<FilterProps> = ({
                   className="mt-0.5"
                 />
                 {opt.image && (
-                  <img src={opt.image} alt="" className="h-9 w-9 shrink-0 rounded-md border border-border bg-white object-contain" />
+                  <img
+                    src={opt.image}
+                    alt=""
+                    className="h-9 w-9 shrink-0 rounded-md border border-border bg-white object-contain"
+                    // A packshot that fails to load leaves an empty tile, never a broken-image icon.
+                    onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                  />
                 )}
                 <div className="flex-1 min-w-0 space-y-1">
                   <span className="truncate block">{opt.label}</span>

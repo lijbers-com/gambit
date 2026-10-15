@@ -300,8 +300,15 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
   [db, engine, activeView, mondays.join(), storeShare, selected.join(), statuses.join(), retailProducts.join(), search]);
 
   const focused = focusedId ? rows.find((r) => r.id === focusedId) : undefined;
+  // A group opened in its own tab: its placements are the rows, each
+  // opening into its positions, with the placement's own bookings under it.
   const focusedRows: CalendarRow[] = focused
-    ? (focused.positions ?? []).map((p) => ({ ...p, bookings: bookingsFor(db.positions.filter((x) => x.id === p.id)) }))
+    ? (focused.placements ?? []).map((pl) => ({
+      ...pl,
+      // The tab row is the placement already; no label row above its positions.
+      positions: pl.positions.map((p) => ({ ...p, placement: undefined })),
+      bookings: bookingsFor(db.positions.filter((x) => pl.positions.some((p) => p.id === x.id))),
+    }))
     : [];
 
   // ── Events: the dated pricing rules ─────────────────────────────────────
@@ -505,7 +512,7 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
                   </span>
                 </span>
               ),
-              content: <CalendarTable mediaProducts={focusedRows} {...commonProps} />,
+              content: <CalendarTable mediaProducts={focusedRows} nameColumnLabel="Placements" {...commonProps} />,
             }] : []),
           ]}
         />

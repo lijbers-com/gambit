@@ -191,12 +191,9 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
   const activeTarget = config.storeBased && Number.isFinite(target) && target > 0 ? target : undefined;
 
   // ── Rows ──────────────────────────────────────────────────────────────
-  // Media product filter: with packages picked, only the positions they
-  // can run on stay in the grid.
-  const inPackages = selected.length
-    ? new Set(products.filter((p) => selected.includes(p.id)).flatMap((p) => p.positionIds))
-    : undefined;
-  const visiblePositions = (groupId: string) => positionsOfGroupSorted(groupId).filter((x) => !inPackages || inPackages.has(x.id));
+  // Placements filter: with placements picked, only they (and their
+  // groups and positions) stay in the grid — the same level the table shows.
+  const visiblePositions = (groupId: string) => positionsOfGroupSorted(groupId).filter((x) => !selected.length || selected.includes(x.placementId));
   const visibleGroups = groups.filter((g) => visiblePositions(g.id).length > 0);
 
   const bookingsFor = (positions: Position[]): CalendarBooking[] => {
@@ -260,17 +257,14 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
     const positions = visiblePositions(group.id);
     const posRows = positions.map(positionRow);
     const weeks = mondays.map((m) => positionsWeek(db, positions, m, inventoryOpts));
-    // In stores, a row is either the booking you are composing — with a
-    // package picked, the stores free for every one of its positions (the
-    // fewest), checked against the target — or, with none picked, the
-    // total across its positions, which is what its fill rate counts.
-    const combo = selected.length > 0 && posRows.length > 0;
+    // In stores, a row counts the total across its positions, which is what
+    // its fill rate counts.
+    const combo = false;
     const sumOrMin = (list: typeof posRows, i: number) => combo ? Math.min(...list.map((r) => r.stores[i])) : list.reduce((sum, r) => sum + r.stores[i], 0);
     const capOf = (list: typeof posRows) => combo ? Math.min(...list.map((r) => r.storeCapacity ?? 0)) : list.reduce((sum, r) => sum + (r.storeCapacity ?? 0), 0);
     const stores = mondays.map((_, i) => sumOrMin(posRows, i));
-    // The store target is checked at every level: with a package picked,
-    // against the fewest stores free across its positions (all must fit);
-    // without, against the best position under the row (somewhere it fits).
+    // The store target is checked at every level, against the best position
+    // under the row: the booking fits if it fits somewhere in it.
     const fitOf = (list: typeof posRows) => mondays.map((_, i) => combo ? Math.min(...list.map((r) => r.stores[i])) : Math.max(0, ...list.map((r) => r.stores[i])));
     // Placements: the level between the group and its positions, each a
     // row of its own summed (or, while composing, combined) the same way.
@@ -376,17 +370,19 @@ export const BookingCalendarPage: React.FC<{ engine: CalendarEngine }> = ({ engi
   }) : [];
 
   // ── Filters ───────────────────────────────────────────────────────────
-  // The packages the retailer sells here; picking one keeps its positions.
-  const productOptions = products.map((p) => ({ label: p.name, value: p.id, description: `${p.positionIds.length} position${p.positionIds.length === 1 ? '' : 's'} · ${p.description ?? ''}` }));
+  // The placements the table shows, each with the group it sits in.
+  const placementOptions = groups.flatMap((g) => db.placements
+    .filter((pl) => pl.groupId === g.id)
+    .map((pl) => ({ label: pl.name, value: pl.id, description: g.name })));
   const maxStores = Math.max(10, ...allPositions.map((p) => p.stores ?? 0));
   const filters: FilterBarFilter[] = [
     ...(config.statusFilter ? [{ name: 'Status', options: STATUS_OPTIONS, selectedValues: statuses, onChange: setStatuses }] : []),
     {
-      name: 'Media product',
-      options: productOptions,
+      name: 'Placements',
+      options: placementOptions,
       selectedValues: selected,
       onChange: setSelected,
-      forceSearch: productOptions.length > 8,
+      forceSearch: placementOptions.length > 8,
     },
     ...(config.storeBased ? [{
       name: 'Stores',
